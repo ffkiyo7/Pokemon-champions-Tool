@@ -1,9 +1,93 @@
-import { Star } from 'lucide-react';
+import { Star, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { pokemon, speedBenchmarks } from '../data';
 import { buildTeamBenchmarks, calculateSpeed } from '../lib/calculations';
 import { useAppStore } from '../state/AppContext';
-import type { Team } from '../types';
+import type { SpeedBenchmark, Team } from '../types';
 import { Button, Card, Chip, TypeBadge } from '../components/ui';
+
+type BenchmarkFilter = 'team' | 'favorites' | 'preset' | 'all';
+
+const filterLabels: Array<{ id: BenchmarkFilter; label: string }> = [
+  { id: 'team', label: '当前队伍' },
+  { id: 'favorites', label: '收藏' },
+  { id: 'preset', label: '常见' },
+  { id: 'all', label: '全部' },
+];
+
+function BenchmarkDetailSheet({
+  benchmark,
+  favorite,
+  onClose,
+  onToggleFavorite,
+}: {
+  benchmark: SpeedBenchmark;
+  favorite: boolean;
+  onClose: () => void;
+  onToggleFavorite: (benchmarkId: string) => void;
+}) {
+  const entry = pokemon.find((candidate) => candidate.id === benchmark.pokemonId);
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
+      <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-semibold">{benchmark.name}</h3>
+          <p className="text-xs text-textSecondary">{benchmark.source}</p>
+        </div>
+        <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭" onClick={onClose}>
+          <X size={18} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <Card className="bg-secondary">
+          <p className="text-[11px] text-textSecondary">Pokemon</p>
+          <p className="font-semibold">{entry ? `${entry.chineseName} ${entry.englishName}` : benchmark.pokemonId}</p>
+        </Card>
+        <Card className="bg-secondary">
+          <p className="text-[11px] text-textSecondary">最终速度</p>
+          <p className="font-semibold text-accent">{benchmark.finalSpeed}</p>
+        </Card>
+        <Card className="bg-secondary">
+          <p className="text-[11px] text-textSecondary">性格</p>
+          <p className="font-semibold">{benchmark.nature}</p>
+        </Card>
+        <Card className="bg-secondary">
+          <p className="text-[11px] text-textSecondary">速度投入</p>
+          <p className="font-semibold">{benchmark.speedInvestment}</p>
+        </Card>
+        <Card className="bg-secondary">
+          <p className="text-[11px] text-textSecondary">道具 / 状态</p>
+          <p className="font-semibold">{benchmark.itemOrStatus}</p>
+        </Card>
+        <Card className="bg-secondary">
+          <p className="text-[11px] text-textSecondary">类型</p>
+          <p className="font-semibold">{benchmark.benchmarkType}</p>
+        </Card>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1">
+        {benchmark.tags.map((tag) => (
+          <Chip key={tag}>{tag}</Chip>
+        ))}
+      </div>
+      <p className="mt-3 rounded-lg bg-reviewBg p-2 text-xs text-warning">{benchmark.notes}</p>
+      <p className="mt-2 text-[11px] text-textMuted">数据版本：{benchmark.dataVersionId}</p>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button variant="ghost" onClick={onClose}>
+          关闭
+        </Button>
+        <Button onClick={() => onToggleFavorite(benchmark.id)}>
+          <Star size={14} fill={favorite ? 'currentColor' : 'none'} />
+          {favorite ? '取消收藏' : '收藏'}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function SpeedPage({
   selectedPokemonId,
@@ -15,11 +99,28 @@ export function SpeedPage({
   activeTeam?: Team;
 }) {
   const { preferences, toggleFavoriteBenchmark } = useAppStore();
+  const [filter, setFilter] = useState<BenchmarkFilter>('preset');
+  const [selectedBenchmarkId, setSelectedBenchmarkId] = useState<string | null>(null);
   const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? pokemon[0];
   const currentSpeed = calculateSpeed(selected.baseStats.speed, 252, 50, '爽朗');
   const favoriteIds = preferences.favoriteBenchmarkIds;
   const teamBenchmarks = activeTeam ? buildTeamBenchmarks(activeTeam) : [];
-  const benchmarks = [...speedBenchmarks, ...teamBenchmarks].slice(0, 12);
+  const allBenchmarks = useMemo(() => [...speedBenchmarks, ...teamBenchmarks], [teamBenchmarks]);
+  const filteredBenchmarks = useMemo(() => {
+    switch (filter) {
+      case 'team':
+        return teamBenchmarks;
+      case 'favorites':
+        return allBenchmarks.filter((benchmark) => favoriteIds.includes(benchmark.id));
+      case 'all':
+        return allBenchmarks;
+      case 'preset':
+      default:
+        return speedBenchmarks;
+    }
+  }, [allBenchmarks, favoriteIds, filter, teamBenchmarks]);
+  const benchmarks = filteredBenchmarks.slice(0, 12);
+  const selectedBenchmark = allBenchmarks.find((benchmark) => benchmark.id === selectedBenchmarkId) ?? null;
 
   return (
     <div className="space-y-3">
@@ -65,8 +166,8 @@ export function SpeedPage({
       </Card>
 
       <div className="flex gap-4 border-b border-divider text-sm">
-        {['当前队伍', '收藏', '常见', '全部'].map((label) => (
-          <button key={label} className={`pb-2 ${label === '常见' ? 'border-b-2 border-accent text-accent' : 'text-textMuted'}`}>
+        {filterLabels.map(({ id, label }) => (
+          <button key={id} className={`pb-2 ${filter === id ? 'border-b-2 border-accent text-accent' : 'text-textMuted'}`} onClick={() => setFilter(id)}>
             {label}
           </button>
         ))}
@@ -96,6 +197,7 @@ export function SpeedPage({
                 className="absolute -translate-x-1/2 text-center"
                 style={{ left: `${left}%`, top }}
                 title={benchmark.notes}
+                onClick={() => setSelectedBenchmarkId(benchmark.id)}
               >
                 <span className={`mx-auto block h-2 w-2 rounded-full ${faster ? 'bg-success' : 'bg-danger'}`} />
                 <span className={`mt-1 block max-w-[58px] truncate text-[10px] ${faster ? 'text-success' : 'text-danger'}`}>{benchmark.name}</span>
@@ -111,10 +213,12 @@ export function SpeedPage({
       </Card>
 
       <div className="space-y-2">
+        {benchmarks.length === 0 && <Card className="bg-secondary text-center text-sm text-textSecondary">当前筛选下暂无 benchmark</Card>}
         {benchmarks.map((benchmark) => {
           const favorite = favoriteIds.includes(benchmark.id);
           return (
-            <Card key={benchmark.id} className="flex items-center justify-between gap-3">
+            <button key={benchmark.id} className="w-full text-left" onClick={() => setSelectedBenchmarkId(benchmark.id)}>
+              <Card className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="truncate text-sm font-semibold">{benchmark.name}</h3>
                 <p className="text-xs text-textSecondary">最终速度 {benchmark.finalSpeed} · {benchmark.source}</p>
@@ -124,14 +228,29 @@ export function SpeedPage({
                   ))}
                 </div>
               </div>
-              <Button variant={favorite ? 'primary' : 'ghost'} onClick={() => toggleFavoriteBenchmark(benchmark.id)}>
+              <Button
+                variant={favorite ? 'primary' : 'ghost'}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  toggleFavoriteBenchmark(benchmark.id);
+                }}
+              >
                 <Star size={14} fill={favorite ? 'currentColor' : 'none'} />
                 收藏
               </Button>
-            </Card>
+              </Card>
+            </button>
           );
         })}
       </div>
+      {selectedBenchmark && (
+        <BenchmarkDetailSheet
+          benchmark={selectedBenchmark}
+          favorite={favoriteIds.includes(selectedBenchmark.id)}
+          onClose={() => setSelectedBenchmarkId(null)}
+          onToggleFavorite={(benchmarkId) => toggleFavoriteBenchmark(benchmarkId)}
+        />
+      )}
     </div>
   );
 }

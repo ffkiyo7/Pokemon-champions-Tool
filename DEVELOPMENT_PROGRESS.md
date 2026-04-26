@@ -56,8 +56,8 @@ npm run build
 - [x] 本地队伍创建
 - [x] 本地队伍删除
 - [x] 队伍成员快速添加
-- [ ] 队伍成员完整编辑表单
-- [ ] 队伍成员字段级校验提示
+- [x] 队伍成员完整编辑表单
+- [x] 队伍成员字段级校验提示
 - [x] Pokemon / 招式 / 道具 / 特性图鉴入口
 - [x] 图鉴搜索
 - [x] Pokemon 详情页
@@ -68,10 +68,10 @@ npm run build
 - [x] benchmark 列表
 - [x] benchmark 收藏
 - [x] 当前队伍 benchmark
-- [ ] benchmark 详情 bottom sheet
-- [ ] benchmark 分类筛选真实生效
+- [x] benchmark 详情 bottom sheet
+- [x] benchmark 分类筛选真实生效
 
-状态：**主要流程完成，编辑细节和 benchmark 细节待补**
+状态：**主要流程、成员编辑和 benchmark 详情已完成，后续继续补真实数据与交互细化**
 
 ### P0c：伤害计算 + 合法性校验
 
@@ -166,8 +166,8 @@ npm run build
 - [x] seed data audit：当前数据内部一致
 - [x] seed data audit：benchmark 版本一致
 - [x] seed data audit：默认队伍版本一致
-- [ ] IndexedDB repository 测试
-- [ ] 导入导出 schema 测试
+- [x] IndexedDB repository 测试
+- [x] 导入导出 schema 测试
 - [ ] 页面级组件测试
 - [ ] 移动端视觉回归测试
 - [ ] PWA 离线缓存测试
@@ -186,11 +186,11 @@ npm run build
 
 建议下一轮优先级：
 
-- [ ] 增加导入 / 导出 schema 测试
-- [ ] 增加 IndexedDB repository 测试
-- [ ] 做队伍成员编辑表单
-- [ ] 做 benchmark 详情 bottom sheet
-- [ ] 把速度线筛选切换做成真实过滤
+- [x] 增加导入 / 导出 schema 测试
+- [x] 增加 IndexedDB repository 测试
+- [x] 做队伍成员编辑表单
+- [x] 做 benchmark 详情 bottom sheet
+- [x] 把速度线筛选切换做成真实过滤
 - [ ] 建立真实 Reg M-A 数据接入清单
 - [ ] 调研并记录 `@smogon/calc` Champions 支持结论
 

@@ -1,4 +1,5 @@
-import { ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronRight, Plus, Save, Trash2, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { abilities, items, moves, pokemon } from '../data';
 import { memberLabel, statRows, teamAnalysis } from '../lib/calculations';
 import { evaluateMemberLegality } from '../lib/legality';
@@ -20,11 +21,13 @@ const blankMember = (): TeamMember => ({
 function MemberCard({
   team,
   member,
+  onEdit,
   onOpenCalculator,
   onOpenSpeed,
 }: {
   team: Team;
   member: TeamMember;
+  onEdit: (member: TeamMember) => void;
   onOpenCalculator: (memberId: string) => void;
   onOpenSpeed: (pokemonId: string) => void;
 }) {
@@ -51,7 +54,9 @@ function MemberCard({
             ))}
           </div>
         </div>
-        <ChevronRight className="mt-2 text-textMuted" size={16} />
+        <button className="mt-1 grid h-8 w-8 place-items-center rounded-lg text-textMuted" title="编辑成员" onClick={() => onEdit(member)}>
+          <ChevronRight size={16} />
+        </button>
       </div>
       {entry && (
         <>
@@ -81,6 +86,240 @@ function MemberCard({
   );
 }
 
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <label className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">{children}</label>;
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  children,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <FieldLabel>{label}</FieldLabel>
+      <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={value} onChange={(event) => onChange(event.target.value)}>
+        {children}
+      </select>
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  min = 0,
+  max = 252,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min?: number;
+  max?: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div>
+      <FieldLabel>{label}</FieldLabel>
+      <input
+        className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
+        max={max}
+        min={min}
+        type="number"
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </div>
+  );
+}
+
+function MemberEditor({
+  team,
+  member,
+  onClose,
+  onSave,
+  onDelete,
+}: {
+  team: Team;
+  member: TeamMember;
+  onClose: () => void;
+  onSave: (member: TeamMember) => Promise<void>;
+  onDelete: (memberId: string) => Promise<void>;
+}) {
+  const [draft, setDraft] = useState<TeamMember>(member);
+  const selectedPokemon = pokemon.find((entry) => entry.id === draft.pokemonId) ?? pokemon[0];
+  const availableMoves = moves.filter((move) => move.learnableByPokemonIds.includes(selectedPokemon.id));
+  const availableAbilities = abilities.filter((ability) => selectedPokemon.abilities.includes(ability.id));
+  const legality = useMemo(() => evaluateMemberLegality(draft, team), [draft, team]);
+
+  const updateDraft = (patch: Partial<TeamMember>) => {
+    setDraft((current) => ({ ...current, ...patch }));
+  };
+
+  const updateStatPoint = (key: keyof TeamMember['statPoints'], value: number) => {
+    setDraft((current) => ({
+      ...current,
+      statPoints: {
+        ...current.statPoints,
+        [key]: Math.max(0, Math.min(252, value || 0)),
+      },
+    }));
+  };
+
+  const updateMoveSlot = (slot: number, moveId: string) => {
+    const nextMoves = [...draft.moveIds];
+    if (moveId) nextMoves[slot] = moveId;
+    else nextMoves.splice(slot, 1);
+    updateDraft({ moveIds: Array.from(new Set(nextMoves.filter(Boolean))).slice(0, 4) });
+  };
+
+  const save = async () => {
+    await onSave({ ...draft, legalityStatus: legality.status });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
+      <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold">编辑成员</h3>
+          <p className="text-xs text-textSecondary">字段级校验会在保存前实时更新</p>
+        </div>
+        <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭" onClick={onClose}>
+          <X size={18} />
+        </button>
+      </div>
+
+      <div className="max-h-[68vh] space-y-3 overflow-y-auto pr-1">
+        <SelectField
+          label="Pokemon"
+          value={selectedPokemon.id}
+          onChange={(pokemonId) => {
+            const nextPokemon = pokemon.find((entry) => entry.id === pokemonId) ?? pokemon[0];
+            updateDraft({
+              pokemonId,
+              formId: pokemonId,
+              abilityId: nextPokemon.abilities[0],
+              moveIds: nextPokemon.learnableMoves.slice(0, 2),
+            });
+          }}
+        >
+          {pokemon.map((entry) => (
+            <option key={entry.id} value={entry.id}>
+              {entry.chineseName} {entry.englishName}
+            </option>
+          ))}
+        </SelectField>
+
+        <div className="grid grid-cols-2 gap-2">
+          <SelectField label="特性" value={draft.abilityId ?? ''} onChange={(abilityId) => updateDraft({ abilityId })}>
+            <option value="">未选择</option>
+            {availableAbilities.map((ability) => (
+              <option key={ability.id} value={ability.id}>
+                {ability.chineseName}
+              </option>
+            ))}
+          </SelectField>
+          <SelectField label="道具" value={draft.itemId ?? ''} onChange={(itemId) => updateDraft({ itemId: itemId || undefined })}>
+            <option value="">未选择</option>
+            {items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.chineseName}
+              </option>
+            ))}
+          </SelectField>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
+            {['爽朗', '胆小', '固执', '慎重', '冷静', '怕慢(+速)'].map((nature) => (
+              <option key={nature} value={nature}>
+                {nature}
+              </option>
+            ))}
+          </SelectField>
+          <NumberField label="等级" max={100} min={1} value={draft.level} onChange={(level) => updateDraft({ level })} />
+        </div>
+
+        <div>
+          <FieldLabel>招式</FieldLabel>
+          <div className="grid grid-cols-2 gap-2">
+            {[0, 1, 2, 3].map((slot) => (
+              <select
+                key={slot}
+                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
+                value={draft.moveIds[slot] ?? ''}
+                onChange={(event) => updateMoveSlot(slot, event.target.value)}
+              >
+                <option value="">空招式位</option>
+                {availableMoves.map((move) => (
+                  <option key={move.id} value={move.id}>
+                    {move.chineseName}
+                  </option>
+                ))}
+              </select>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <NumberField label="HP SP" value={draft.statPoints.hp ?? 0} onChange={(value) => updateStatPoint('hp', value)} />
+          <NumberField label="攻击 SP" value={draft.statPoints.attack ?? 0} onChange={(value) => updateStatPoint('attack', value)} />
+          <NumberField label="速度 SP" value={draft.statPoints.speed ?? 0} onChange={(value) => updateStatPoint('speed', value)} />
+        </div>
+
+        <div>
+          <FieldLabel>备注</FieldLabel>
+          <textarea
+            className="min-h-20 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
+            value={draft.notes}
+            onChange={(event) => updateDraft({ notes: event.target.value })}
+          />
+        </div>
+
+        <Card className="bg-secondary">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-semibold">校验结果</p>
+            <Badge status={legality.status}>{legality.status === 'illegal' ? '非法' : legality.status === 'needs-review' ? '需复核' : legality.status === 'missing-config' ? '缺少配置' : '合法'}</Badge>
+          </div>
+          {legality.issues.length === 0 ? (
+            <p className="text-xs text-success">当前字段未发现问题。</p>
+          ) : (
+            <div className="space-y-1">
+              {legality.issues.map((issue) => (
+                <p key={`${issue.code}-${issue.message}`} className={`text-xs ${issue.severity === 'error' ? 'text-danger' : 'text-warning'}`}>
+                  {issue.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      <div className="mt-3 grid grid-cols-[1fr_1fr_1.4fr] gap-2">
+        <Button variant="danger" onClick={() => onDelete(member.id).then(onClose)}>
+          <Trash2 size={14} />
+          删除
+        </Button>
+        <Button variant="ghost" onClick={onClose}>
+          取消
+        </Button>
+        <Button onClick={save}>
+          <Save size={14} />
+          保存
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function TeamPage({
   onOpenRule,
   onOpenCalculator,
@@ -90,8 +329,10 @@ export function TeamPage({
   onOpenCalculator: (memberId: string) => void;
   onOpenSpeed: (pokemonId: string) => void;
 }) {
-  const { teams, addTeam, deleteTeam, updateMember } = useAppStore();
+  const { teams, addTeam, deleteTeam, saveTeam, updateMember } = useAppStore();
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const activeTeam = teams[0];
+  const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
 
   const addMember = async () => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
@@ -151,7 +392,14 @@ export function TeamPage({
 
           <div className="space-y-2">
             {activeTeam.members.map((member) => (
-              <MemberCard key={member.id} team={activeTeam} member={member} onOpenCalculator={onOpenCalculator} onOpenSpeed={onOpenSpeed} />
+              <MemberCard
+                key={member.id}
+                team={activeTeam}
+                member={member}
+                onEdit={(nextMember) => setEditingMemberId(nextMember.id)}
+                onOpenCalculator={onOpenCalculator}
+                onOpenSpeed={onOpenSpeed}
+              />
             ))}
           </div>
 
@@ -170,6 +418,17 @@ export function TeamPage({
               ))}
             </div>
           </Card>
+          {editingMember && (
+            <MemberEditor
+              team={activeTeam}
+              member={editingMember}
+              onClose={() => setEditingMemberId(null)}
+              onDelete={async (memberId) => {
+                await saveTeam({ ...activeTeam, members: activeTeam.members.filter((member) => member.id !== memberId) });
+              }}
+              onSave={(member) => updateMember(activeTeam.id, member)}
+            />
+          )}
         </>
       )}
     </div>

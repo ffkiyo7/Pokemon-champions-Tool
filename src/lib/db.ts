@@ -51,10 +51,14 @@ export const repository = {
     const preferencesRow = await runStore<{ key: string; value: UserPreference } | undefined>(META_STORE, 'readonly', (store) =>
       store.get('preferences'),
     );
+    const initializedRow = await runStore<{ key: string; value: boolean } | undefined>(META_STORE, 'readonly', (store) =>
+      store.get('initialized'),
+    );
 
-    if (teams.length === 0) {
+    if (teams.length === 0 && !initializedRow?.value) {
       await Promise.all(defaultTeams.map((team) => this.saveTeam(team)));
       await this.savePreferences(defaultPreferences);
+      await runStore<IDBValidKey>(META_STORE, 'readwrite', (store) => store.put({ key: 'initialized', value: true }));
       return { teams: defaultTeams, preferences: defaultPreferences };
     }
 
@@ -99,7 +103,9 @@ export const repository = {
     return new Promise<void>((resolve, reject) => {
       const transaction = db.transaction([TEAM_STORE, META_STORE], 'readwrite');
       transaction.objectStore(TEAM_STORE).clear();
-      transaction.objectStore(META_STORE).clear();
+      const metaStore = transaction.objectStore(META_STORE);
+      metaStore.clear();
+      metaStore.put({ key: 'initialized', value: true });
       transaction.oncomplete = () => {
         db.close();
         resolve();
