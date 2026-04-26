@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { currentDataVersion, currentRuleSet, defaultTeams } from '../data';
-import { buildExportPayload, parseTeamImport } from './exportImport';
+import { TeamImportError, buildExportPayload, parseTeamImport } from './exportImport';
 
 describe('team import/export schema', () => {
   it('exports teams with schema version and timestamps', () => {
@@ -22,7 +22,24 @@ describe('team import/export schema', () => {
   it('rejects unknown schema versions', () => {
     const text = JSON.stringify({ schemaVersion: 2, teams: defaultTeams });
 
-    expect(() => parseTeamImport(text)).toThrow('导入文件格式不正确');
+    try {
+      parseTeamImport(text);
+    } catch (error) {
+      expect(error).toBeInstanceOf(TeamImportError);
+      expect((error as TeamImportError).title).toBe('导入文件格式不正确');
+      expect((error as TeamImportError).suggestion).toContain('v1 导出格式');
+    }
+  });
+
+  it('rejects invalid JSON with actionable import details', () => {
+    expect(() => parseTeamImport('{bad-json')).toThrow(TeamImportError);
+    try {
+      parseTeamImport('{bad-json');
+    } catch (error) {
+      expect(error).toBeInstanceOf(TeamImportError);
+      expect((error as TeamImportError).title).toBe('JSON 解析失败');
+      expect((error as TeamImportError).suggestion).toContain('重新导出');
+    }
   });
 
   it('rejects teams without rule or data version ids', () => {
@@ -32,6 +49,15 @@ describe('team import/export schema', () => {
       teams: [{ ...team, dataVersionId: '' }],
     });
 
-    expect(() => parseTeamImport(text)).toThrow('导入队伍缺少 ruleSetId 或 dataVersionId');
+    expect(() => parseTeamImport(text)).toThrow('第 1 支队伍缺少 ruleSetId 或 dataVersionId');
+  });
+
+  it('rejects structurally incomplete teams', () => {
+    const text = JSON.stringify({
+      schemaVersion: 1,
+      teams: [{ id: 'broken', ruleSetId: currentRuleSet.id, dataVersionId: currentDataVersion.id }],
+    });
+
+    expect(() => parseTeamImport(text)).toThrow('第 1 支队伍缺少 id、name 或 members');
   });
 });

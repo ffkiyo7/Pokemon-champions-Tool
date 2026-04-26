@@ -1,13 +1,35 @@
 import { Database, Download, RefreshCw, Upload } from 'lucide-react';
-import { useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { currentDataVersion, currentRuleSet } from '../data';
-import { buildExportPayload, parseTeamImport } from '../lib/exportImport';
+import { TeamImportError, buildExportPayload, parseTeamImport } from '../lib/exportImport';
 import { useAppStore } from '../state/AppContext';
 import { Badge, Button, Card } from '../components/ui';
 
+type ImportStatus =
+  | {
+      type: 'success';
+      title: string;
+      message: string;
+    }
+  | {
+      type: 'error';
+      title: string;
+      message: string;
+      suggestion: string;
+    };
+
 export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
-  const { teams, replaceTeams, clearLocalData, simulateRefresh, lastRefreshError } = useAppStore();
+  const { teams, preferences, replaceTeams, clearLocalData, simulateRefresh, lastRefreshError } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importStatus, setImportStatus] = useState<ImportStatus | null>(null);
+  const cacheSummary = useMemo(
+    () => [
+      `本地队伍 ${teams.length} 支`,
+      `收藏 benchmark ${preferences.favoriteBenchmarkIds.length} 个`,
+      `缓存规则 ${preferences.cachedRuleSetId}`,
+    ],
+    [preferences.cachedRuleSetId, preferences.favoriteBenchmarkIds.length, teams.length],
+  );
 
   const exportTeams = () => {
     const payload = buildExportPayload(teams);
@@ -22,9 +44,34 @@ export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
 
   const importTeams = async (file?: File) => {
     if (!file) return;
-    const text = await file.text();
-    const parsedTeams = parseTeamImport(text);
-    await replaceTeams(parsedTeams);
+    try {
+      const text = await file.text();
+      const parsedTeams = parseTeamImport(text);
+      await replaceTeams(parsedTeams);
+      setImportStatus({
+        type: 'success',
+        title: '导入成功',
+        message: `已导入 ${parsedTeams.length} 支队伍。`,
+      });
+    } catch (error) {
+      if (error instanceof TeamImportError) {
+        setImportStatus({
+          type: 'error',
+          title: error.title,
+          message: error.message,
+          suggestion: error.suggestion,
+        });
+      } else {
+        setImportStatus({
+          type: 'error',
+          title: '导入失败',
+          message: error instanceof Error ? error.message : '未知错误。',
+          suggestion: '请确认文件格式后重试。',
+        });
+      }
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -54,7 +101,7 @@ export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
           <div className="flex items-center justify-between py-3">
             <span>
               <span className="block text-sm">上次同步</span>
-              <span className="text-xs text-textSecondary">本地模拟数据</span>
+              <span className="text-xs text-textSecondary">离线缓存可用 · {preferences.lastDataRefreshAt.slice(0, 10)}</span>
             </span>
             <Button variant="ghost" onClick={simulateRefresh}>
               <RefreshCw size={14} />
@@ -70,6 +117,13 @@ export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
           </div>
         </div>
         {lastRefreshError && <p className="mt-3 rounded-lg bg-reviewBg p-2 text-xs text-warning">{lastRefreshError}</p>}
+        <div className="mt-3 grid gap-2">
+          {cacheSummary.map((item) => (
+            <p key={item} className="rounded-lg bg-secondary px-3 py-2 text-xs text-textSecondary">
+              {item}
+            </p>
+          ))}
+        </div>
       </Card>
 
       <Card>
@@ -89,9 +143,16 @@ export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
           className="hidden"
           type="file"
           accept="application/json"
-          onChange={(event) => importTeams(event.target.files?.[0]).catch((error: Error) => alert(error.message))}
+          onChange={(event) => importTeams(event.target.files?.[0])}
         />
         <p className="mt-3 text-[11px] text-textMuted">导入 / 导出 JSON 包含 ruleSetId、dataVersionId 和成员配置版本字段。</p>
+        {importStatus && (
+          <div className={`mt-3 rounded-lg p-3 text-xs ${importStatus.type === 'success' ? 'bg-legalBg text-success' : 'bg-missingBg text-danger'}`}>
+            <p className="font-semibold">{importStatus.title}</p>
+            <p className="mt-1 opacity-90">{importStatus.message}</p>
+            {importStatus.type === 'error' && <p className="mt-2 text-danger/80">{importStatus.suggestion}</p>}
+          </div>
+        )}
       </Card>
 
       <Card>
