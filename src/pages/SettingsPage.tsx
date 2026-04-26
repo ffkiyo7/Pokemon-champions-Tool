@@ -1,6 +1,6 @@
 import { Database, Download, RefreshCw, Upload } from 'lucide-react';
 import { useRef } from 'react';
-import { currentDataVersion, currentRuleSet } from '../data/mockData';
+import { currentDataVersion, currentRuleSet } from '../data';
 import { buildExportPayload, parseTeamImport } from '../lib/exportImport';
 import { useAppStore } from '../state/AppContext';
 import { Badge, Button, Card } from '../components/ui';

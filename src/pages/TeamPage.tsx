@@ -1,6 +1,7 @@
 import { ChevronRight, Plus, Trash2 } from 'lucide-react';
-import { abilities, items, moves, pokemon } from '../data/mockData';
+import { abilities, items, moves, pokemon } from '../data';
 import { memberLabel, statRows, teamAnalysis } from '../lib/calculations';
+import { evaluateMemberLegality } from '../lib/legality';
 import { useAppStore } from '../state/AppContext';
 import type { Team, TeamMember } from '../types';
 import { RuleSummary, SyncStrip } from '../components/RuleSummary';
@@ -95,15 +96,16 @@ export function TeamPage({
   const addMember = async () => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
     const entry = pokemon[activeTeam.members.length % pokemon.length];
-    await updateMember(activeTeam.id, {
+    const member: TeamMember = {
       ...blankMember(),
       pokemonId: entry.id,
       abilityId: entry.abilities[0],
       itemId: activeTeam.members.length === 0 ? 'clear-amulet' : 'assault-vest',
       moveIds: entry.learnableMoves.slice(0, 2),
-      legalityStatus: activeTeam.members.length < 2 ? 'legal' : 'needs-review',
       notes: '由 MVP 快速添加生成，可继续编辑。',
-    });
+    };
+    const result = evaluateMemberLegality(member, activeTeam);
+    await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
   };
 
   return (

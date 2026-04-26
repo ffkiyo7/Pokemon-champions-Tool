@@ -1,5 +1,5 @@
 import { AlertTriangle, Calculator } from 'lucide-react';
-import { moves, pokemon } from '../data/mockData';
+import { moves, pokemon } from '../data';
 import { memberLabel } from '../lib/calculations';
 import { useAppStore } from '../state/AppContext';
 import { Badge, Button, Card, Chip, EmptyState } from '../components/ui';

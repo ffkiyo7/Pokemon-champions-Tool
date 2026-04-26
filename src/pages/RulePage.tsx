@@ -1,5 +1,5 @@
 import { ArrowLeft, ExternalLink, RefreshCw } from 'lucide-react';
-import { currentDataVersion, currentRuleSet } from '../data/mockData';
+import { currentDataVersion, currentRuleSet, dataSourceManifest } from '../data';
 import { useAppStore } from '../state/AppContext';
 import { Badge, Button, Card, Chip } from '../components/ui';
 
@@ -76,7 +76,7 @@ export function RulePage({ onBack }: { onBack: () => void }) {
 
       <Card className="bg-reviewBg text-warning">
         <p className="text-sm font-semibold">机制待确认</p>
-        <p className="mt-1 text-xs text-warning/80">合法 Pokémon 完整列表、招式学习关系、Stat Points 和 @smogon/calc 兼容性仍需权威验证。</p>
+        <p className="mt-1 text-xs text-warning/80">{dataSourceManifest.blockedMechanisms.join('、')} 仍需权威验证。</p>
       </Card>
     </div>
   );

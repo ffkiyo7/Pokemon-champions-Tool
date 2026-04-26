@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { currentDataVersion, currentRuleSet, defaultPreferences } from '../data/mockData';
+import { currentDataVersion, currentRuleSet, defaultPreferences } from '../data';
 import { repository } from '../lib/db';
 import type { AppState, Team, TeamMember, UserPreference } from '../types';
 

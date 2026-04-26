@@ -1,5 +1,5 @@
 import type { BaseStats, Pokemon, SpeedBenchmark, Team, TeamMember } from '../types';
-import { items, pokemon } from '../data/mockData';
+import { items, pokemon } from '../data';
 
 const natureSpeedMultiplier: Record<string, number> = {
   爽朗: 1.1,
@@ -10,11 +10,56 @@ const natureSpeedMultiplier: Record<string, number> = {
   冷静: 0.9,
 };
 
-export const calculateSpeed = (baseSpeed: number, investment = 0, level = 50, nature = '爽朗', tailwind = false) => {
-  const stat = Math.floor(((2 * baseSpeed + Math.floor(investment / 4)) * level) / 100 + 5);
+export const calculateSpeed = (baseSpeed: number, investment = 0, level = 50, nature = '爽朗', tailwind = false, iv = 31) => {
+  const stat = Math.floor(((2 * baseSpeed + iv + Math.floor(investment / 4)) * level) / 100 + 5);
   const natureKey = Object.keys(natureSpeedMultiplier).find((key) => nature.includes(key));
   const withNature = Math.floor(stat * (natureKey ? natureSpeedMultiplier[natureKey] : 1));
   return tailwind ? withNature * 2 : withNature;
+};
+
+export type SpeedMechanismStatus = 'confirmed' | 'pending';
+
+export type SpeedCalculationResult =
+  | {
+      status: 'confirmed';
+      finalSpeed: number;
+      explanation: string;
+    }
+  | {
+      status: 'blocked';
+      finalSpeed?: undefined;
+      explanation: string;
+    };
+
+export const calculateSpeedWithMechanismGate = ({
+  baseSpeed,
+  investment = 0,
+  level = 50,
+  nature = '爽朗',
+  tailwind = false,
+  iv = 31,
+  mechanismStatus,
+}: {
+  baseSpeed: number;
+  investment?: number;
+  level?: number;
+  nature?: string;
+  tailwind?: boolean;
+  iv?: number;
+  mechanismStatus: SpeedMechanismStatus;
+}): SpeedCalculationResult => {
+  if (mechanismStatus !== 'confirmed') {
+    return {
+      status: 'blocked',
+      explanation: 'Champions Stat Points / speed modifiers are not confirmed for formal calculation.',
+    };
+  }
+
+  return {
+    status: 'confirmed',
+    finalSpeed: calculateSpeed(baseSpeed, investment, level, nature, tailwind, iv),
+    explanation: 'Computed with confirmed Lv.50 base speed, investment, nature, and tailwind modifiers.',
+  };
 };
 
 export const statRows = (stats: BaseStats) => [

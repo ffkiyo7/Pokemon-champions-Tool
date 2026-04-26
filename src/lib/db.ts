@@ -1,5 +1,5 @@
 import type { AppState, Team, UserPreference } from '../types';
-import { defaultPreferences, defaultTeams } from '../data/mockData';
+import { defaultPreferences, defaultTeams } from '../data';
 
 const DB_NAME = 'pokemon-champions-assistant';
 const DB_VERSION = 1;

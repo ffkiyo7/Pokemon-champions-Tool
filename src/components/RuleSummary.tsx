@@ -1,5 +1,5 @@
 import { ChevronRight, RefreshCw } from 'lucide-react';
-import { currentDataVersion, currentRuleSet } from '../data/mockData';
+import { currentDataVersion, currentRuleSet } from '../data';
 import { useAppStore } from '../state/AppContext';
 import { Badge, Button, Card, Chip } from './ui';
 

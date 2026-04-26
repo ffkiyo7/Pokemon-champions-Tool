@@ -1,7 +1,8 @@
 import { Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { abilities, items, moves, pokemon } from '../data/mockData';
+import { abilities, items, moves, pokemon } from '../data';
 import { statRows } from '../lib/calculations';
+import { evaluateMemberLegality } from '../lib/legality';
 import { useAppStore } from '../state/AppContext';
 import type { Pokemon } from '../types';
 import { Badge, Button, Card, Chip, EmptyState, TypeBadge } from '../components/ui';
@@ -21,7 +22,7 @@ function PokemonDetail({
   const activeTeam = teams[0];
   const addToTeam = async () => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
-    await updateMember(activeTeam.id, {
+    const member = {
       id: crypto.randomUUID(),
       pokemonId: entry.id,
       formId: entry.id,
@@ -32,8 +33,10 @@ function PokemonDetail({
       statPoints: { speed: 252 },
       level: 50,
       notes: '从图鉴加入。',
-      legalityStatus: 'needs-review',
-    });
+      legalityStatus: 'needs-review' as const,
+    };
+    const result = evaluateMemberLegality(member, activeTeam);
+    await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
   };
 
   return (

@@ -1,5 +1,5 @@
 import { Star } from 'lucide-react';
-import { pokemon, speedBenchmarks } from '../data/mockData';
+import { pokemon, speedBenchmarks } from '../data';
 import { buildTeamBenchmarks, calculateSpeed } from '../lib/calculations';
 import { useAppStore } from '../state/AppContext';
 import type { Team } from '../types';
