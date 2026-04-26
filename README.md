@@ -32,6 +32,14 @@ npm run build
 - 图鉴：Pokémon / 招式 / 道具 / 特性浏览、搜索、详情、加入队伍
 - 设置：数据版本、刷新、清缓存、导入/导出队伍 JSON
 
+## 项目资料
+
+- PRD：`docs/product/Pokemon Champions PRD.md`
+- 设计参考：`docs/design/stitch_design_system_implementation (7).zip`
+- 开发进度：`docs/progress/DEVELOPMENT_PROGRESS.md`
+- 调研文档：`docs/research/`
+- QA 清单：`docs/qa/`
+
 ## 数据说明
 
 当前数据是 `v2.1.0-mock` 模拟数据，仅用于验证产品闭环。所有伤害、速度 benchmark 和合法性结论都应视为“示例数据 / 非真实计算”，不可作为正式对战依据。

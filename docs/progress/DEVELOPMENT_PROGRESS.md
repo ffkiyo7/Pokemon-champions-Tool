@@ -30,6 +30,10 @@ npm run build
 - [x] 版本化 seed data 目录：`src/data/seed/regMA/`
 - [x] 基础测试框架：Vitest
 - [x] 数据质量门禁：seed data audit
+- [x] 机制调研文档：`docs/research/MECHANICS_RESEARCH.md`
+- [x] 计算库 spike 文档：`docs/research/CALC_ENGINE_SPIKE.md`
+- [x] 数据源与授权调研文档：`docs/research/DATA_SOURCE_RESEARCH.md`
+- [x] PWA 离线验收清单：`docs/qa/PWA_OFFLINE_CHECKLIST.md`
 - [ ] 真实 Reg M-A 数据源接入
 - [ ] Champions 机制确认
 - [ ] 正式伤害计算
@@ -125,8 +129,8 @@ npm run build
 - [x] `DamageCalcContext`
 - [x] `SpeedBenchmark`
 - [x] `UserPreference`
-- [ ] 数据 schema 版本迁移策略
-- [ ] 导入数据兼容旧版本策略
+- [x] 数据 schema 版本迁移策略
+- [x] 导入数据兼容旧版本策略
 
 ### Seed Data
 
@@ -148,12 +152,20 @@ npm run build
 - [x] 未确认机制默认阻断正式结论
 - [x] 速度计算增加 mechanism gate
 - [x] 伤害计算页保留阻断态
+- [x] 完成 Champions 机制调研文档
 - [ ] 确认 Champions Stat Points 机制
 - [ ] 确认 IV / EV / Nature 是否沿用既有体系
-- [ ] 确认 Mega 形态和 Mega Stone 规则细节
+- [x] 确认 Reg M-A Mega 可用、每场一次、重复道具禁止和计时规则
+- [ ] 确认完整 Mega 形态和 Mega Stone 关系数据
 - [ ] 确认招式学习关系权威来源
-- [ ] 调研 `@smogon/calc`
-- [ ] 确认是否需要自研 Champions 计算适配层
+- [x] 调研 `@smogon/calc`
+- [x] 确认需要项目自有计算适配层
+
+调研结论：
+
+- `docs/research/MECHANICS_RESEARCH.md`：Reg M-A 日期、Mega、重复道具、计时可作为确认规则；Stat Points、速度和伤害公式继续阻断。
+- `docs/research/CALC_ENGINE_SPIKE.md`：`@smogon/calc@0.11.0` 可覆盖主线 doubles、spread、weather、terrain、stat stages、Mega/form 等能力，但 published npm 不含稳定 Champions 机制，必须通过适配层和阻断 gate 使用。
+- `docs/research/DATA_SOURCE_RESEARCH.md`：首批真实数据建议从官方 HOME Reg M-A 元信息和 Eligible Pokemon allowlist 开始，再用 Showdown/PokeAPI join 基础字段；图片、官方描述、使用率数据暂不进入 v1。
 
 ## 4. 测试进度
 
@@ -168,6 +180,8 @@ npm run build
 - [x] seed data audit：默认队伍版本一致
 - [x] IndexedDB repository 测试
 - [x] 导入导出 schema 测试
+- [x] 导入数据 schema 迁移测试
+- [x] PWA 离线验收清单文档
 - [ ] 页面级组件测试
 - [ ] 移动端视觉回归测试
 - [ ] PWA 离线缓存测试
@@ -176,8 +190,9 @@ npm run build
 
 - [ ] Reg M-A 完整合法列表未接入权威结构化数据
 - [ ] Champions Stat Points 机制未确认
-- [ ] `@smogon/calc` 兼容性未确认
+- [x] `@smogon/calc` 兼容性已调研：主线能力可用，Champions 特有机制仍阻断
 - [ ] 中文名、图标、简介资源授权未确认
+- [x] 数据源与授权风险已调研：v1 避免官方图片、官方描述和使用率数据
 - [x] seed data 不被误用为强合法结论：通过 `needs-review` 和测试约束
 - [x] 数据引用断裂风险：通过 `auditSeedData` 测试约束
 - [x] 未确认计算输出风险：通过机制阻断态约束
@@ -191,8 +206,14 @@ npm run build
 - [x] 做队伍成员编辑表单
 - [x] 做 benchmark 详情 bottom sheet
 - [x] 把速度线筛选切换做成真实过滤
-- [ ] 建立真实 Reg M-A 数据接入清单
-- [ ] 调研并记录 `@smogon/calc` Champions 支持结论
+- [x] 建立导入 schema 迁移策略
+- [x] 建立 PWA 离线验收清单
+- [x] 建立真实 Reg M-A 数据接入清单
+- [x] 调研并记录 `@smogon/calc` Champions 支持结论
+- [ ] 页面级组件测试
+- [ ] 移动端视觉回归测试
+- [ ] PWA 离线缓存自动化测试
+- [ ] 首批真实 Reg M-A Pokemon allowlist seed
 
 ## 7. 提交记录
 

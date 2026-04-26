@@ -26,8 +26,8 @@ describe('team import/export schema', () => {
       parseTeamImport(text);
     } catch (error) {
       expect(error).toBeInstanceOf(TeamImportError);
-      expect((error as TeamImportError).title).toBe('导入文件格式不正确');
-      expect((error as TeamImportError).suggestion).toContain('v1 导出格式');
+      expect((error as TeamImportError).title).toBe('导入文件版本不支持');
+      expect((error as TeamImportError).suggestion).toContain('重新导出');
     }
   });
 
@@ -59,5 +59,33 @@ describe('team import/export schema', () => {
     });
 
     expect(() => parseTeamImport(text)).toThrow('第 1 支队伍缺少 id、name 或 members');
+  });
+
+  it('migrates supported v0 exports into the current team shape', () => {
+    const [team] = defaultTeams;
+    const text = JSON.stringify({
+      schemaVersion: 0,
+      teams: [
+        {
+          id: 'legacy-team',
+          name: 'Legacy Team',
+          ruleSetId: team.ruleSetId,
+          dataVersionId: team.dataVersionId,
+          members: [
+            {
+              pokemonId: 'garchomp',
+              moveIds: ['earthquake'],
+            },
+          ],
+        },
+      ],
+    });
+
+    const [migrated] = parseTeamImport(text);
+
+    expect(migrated.id).toBe('legacy-team');
+    expect(migrated.members[0].id).toBe('imported-member-1');
+    expect(migrated.members[0].level).toBe(50);
+    expect(migrated.members[0].legalityStatus).toBe('needs-review');
   });
 });
