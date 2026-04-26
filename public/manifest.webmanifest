@@ -1,0 +1,17 @@
+{
+  "name": "Pokémon Champions 对战助手",
+  "short_name": "Champions Tool",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#141414",
+  "description": "Regulation Set M-A 移动端 PWA 对战助手",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

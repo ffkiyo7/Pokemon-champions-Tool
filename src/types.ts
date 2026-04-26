@@ -1,0 +1,207 @@
+export type VerificationStatus = 'official' | 'community-verified' | 'manual-review' | 'mock';
+export type LegalityStatus = 'legal' | 'illegal' | 'needs-review' | 'missing-config';
+export type BattleType = 'singles' | 'doubles';
+export type PokemonType =
+  | 'Normal'
+  | 'Fire'
+  | 'Water'
+  | 'Electric'
+  | 'Grass'
+  | 'Ice'
+  | 'Fighting'
+  | 'Poison'
+  | 'Ground'
+  | 'Flying'
+  | 'Psychic'
+  | 'Bug'
+  | 'Rock'
+  | 'Ghost'
+  | 'Dragon'
+  | 'Dark'
+  | 'Steel'
+  | 'Fairy';
+
+export type BaseStats = {
+  hp: number;
+  attack: number;
+  defense: number;
+  specialAttack: number;
+  specialDefense: number;
+  speed: number;
+};
+
+export type RuleSet = {
+  id: string;
+  name: string;
+  displayName: string;
+  startAt: string;
+  endAt: string;
+  battleType: BattleType;
+  allowMega: boolean;
+  megaLimitPerBattle: number;
+  duplicateHeldItemsAllowed: boolean;
+  timers: {
+    totalTimeMinutes: number;
+    playerTimeMinutes: number;
+    turnTimeSeconds: number;
+    previewTimeSeconds: number;
+  };
+  officialSourceUrl: string;
+  dataVersionId: string;
+  status: 'current' | 'expired' | 'upcoming';
+};
+
+export type DataVersion = {
+  id: string;
+  ruleSetId: string;
+  versionName: string;
+  updatedAt: string;
+  sourceSummary: string;
+  sourceUrls: string[];
+  verificationStatus: VerificationStatus;
+  notes: string;
+};
+
+export type PokemonForm = {
+  id: string;
+  pokemonId: string;
+  name: string;
+  isMega: boolean;
+  requiredItemId?: string;
+  types: PokemonType[];
+  baseStats: BaseStats;
+  abilities: string[];
+  legalInCurrentRule: boolean;
+  sourceRefs: string[];
+};
+
+export type Pokemon = {
+  id: string;
+  nationalDexNo: number;
+  chineseName: string;
+  englishName: string;
+  iconRef: string;
+  types: PokemonType[];
+  baseStats: BaseStats;
+  legalInCurrentRule: boolean;
+  forms: PokemonForm[];
+  abilities: string[];
+  learnableMoves: string[];
+  canMega: boolean;
+  megaForms: PokemonForm[];
+  notes: string;
+  sourceRefs: string[];
+};
+
+export type Move = {
+  id: string;
+  chineseName: string;
+  englishName: string;
+  type: PokemonType;
+  category: 'Physical' | 'Special' | 'Status';
+  power?: number;
+  accuracy?: number;
+  pp: number;
+  targetScope: string;
+  makesContact: boolean;
+  affectedByProtect: boolean;
+  effectSummary: string;
+  legalInCurrentRule: boolean;
+  learnableByPokemonIds: string[];
+  sourceRefs: string[];
+};
+
+export type Item = {
+  id: string;
+  chineseName: string;
+  englishName: string;
+  effectSummary: string;
+  legalInCurrentRule: boolean;
+  isMegaStone: boolean;
+  applicablePokemonIds: string[];
+  teamRestrictionNotes: string;
+  sourceRefs: string[];
+};
+
+export type Ability = {
+  id: string;
+  chineseName: string;
+  englishName: string;
+  effectSummary: string;
+  pokemonIds: string[];
+  calculationImpact: 'confirmed' | 'pending' | 'none';
+  legalInCurrentRule: boolean;
+  sourceRefs: string[];
+};
+
+export type StatPoints = Partial<Record<keyof BaseStats, number>>;
+
+export type TeamMember = {
+  id: string;
+  pokemonId?: string;
+  formId?: string;
+  abilityId?: string;
+  itemId?: string;
+  moveIds: string[];
+  nature: string;
+  statPoints: StatPoints;
+  level: number;
+  notes: string;
+  legalityStatus: LegalityStatus;
+};
+
+export type Team = {
+  id: string;
+  name: string;
+  ruleSetId: string;
+  dataVersionId: string;
+  members: TeamMember[];
+  createdAt: string;
+  updatedAt: string;
+  notes: string;
+};
+
+export type DamageCalcContext = {
+  attacker?: TeamMember;
+  defender?: TeamMember;
+  moveId?: string;
+  battleType: BattleType;
+  spreadDamage: boolean;
+  weather: string;
+  terrain: string;
+  statStages: Record<string, number>;
+  megaState: 'none' | 'attacker' | 'defender';
+  additionalChampionsMechanics: 'pending';
+  dataVersionId: string;
+};
+
+export type SpeedBenchmark = {
+  id: string;
+  name: string;
+  pokemonId: string;
+  formId?: string;
+  nature: string;
+  speedInvestment: number;
+  itemOrStatus: string;
+  isMega: boolean;
+  finalSpeed: number;
+  tags: string[];
+  source: string;
+  notes: string;
+  benchmarkType: 'preset' | 'favorite' | 'team';
+  dataVersionId: string;
+};
+
+export type UserPreference = {
+  language: 'zh-CN';
+  favoriteBenchmarkIds: string[];
+  defaultBenchmarkFilters: string[];
+  cachedRuleSetId: string;
+  lastDataRefreshAt: string;
+};
+
+export type AppState = {
+  teams: Team[];
+  preferences: UserPreference;
+  lastRefreshError?: string;
+};

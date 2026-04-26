@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: #141414;
+  color: #ececec;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.speed-grid {
+  background-image:
+    linear-gradient(to right, rgba(61, 186, 126, 0.06), transparent 35%, transparent 65%, rgba(224, 82, 82, 0.06)),
+    repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 1px), rgba(142, 144, 157, 0.13) calc(10% - 1px), rgba(142, 144, 157, 0.13) 10%);
+}
+
+.safe-bottom {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+}
