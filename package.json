@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
-    "test:pwa": "playwright test"
+    "test:pwa": "playwright test",
+    "test:visual": "playwright test tests/pwa/visual.spec.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

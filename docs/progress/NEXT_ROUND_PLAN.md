@@ -4,12 +4,14 @@
 
 ## 当前状态
 
-- `master` 已推送到 `origin/master`，最新提交：`25c71fa Improve mobile team and calc interactions`。
+- `master` 已推送到 `origin/master`，远端最新提交：`25c71fa Improve mobile team and calc interactions`。
+- 本地最新提交：`730f7f0 Add regression tests and align product docs`，当前分支领先远端 1 个提交。
 - `npm test` 通过：9 个测试文件，35 个用例。
-- `npm run test:pwa` 通过：1 个 Playwright PWA 离线用例。
+- `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，8 张基线截图。
+- `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归。
 - `npm run build` 通过：生产包可生成。
 - 手机端核心体验已完成一轮修正：多队伍切换、队伍成员缩略卡、展开 / 收起、六项 SP 编辑、示例能力值、计算页攻防双方选择和全图鉴搜索。
-- 当前主要风险仍集中在真实 Reg M-A 数据、Champions Stat Points 机制和移动端视觉回归。
+- 当前主要风险仍集中在真实 Reg M-A 数据和 Champions Stat Points 机制。
 
 ## 建议本轮目标
 
@@ -36,6 +38,7 @@
    - 选取 390px 宽移动视口。
    - 截取组队、计算、速度线、图鉴、设置、规则详情。
    - 重点检查：底部导航、成员展开卡、编辑 bottom sheet、计算页选择器、长文本和按钮不重叠。
+   - 状态：已完成，基线位于 `tests/pwa/visual.spec.ts-snapshots/`。
 
 4. 建立真实数据 provenance 骨架
    - 新增 source ref manifest 类型和种子示例。
@@ -52,9 +55,10 @@
 ## 本轮验收标准
 
 - `npm test` 通过。
+- `npm run test:visual` 通过。
 - `npm run test:pwa` 通过。
 - `npm run build` 通过。
-- 页面级组件测试和 PWA 离线自动化测试已完成。
+- 页面级组件测试、PWA 离线自动化测试和移动端视觉回归最小集已完成。
 - 新增测试不依赖外部网络。
 - 真实数据接入前，所有 mock / manual-review 数据仍不能产生强合法性或正式计算结论。
 - `DEVELOPMENT_PROGRESS.md` 与本计划同步更新。
@@ -65,8 +69,9 @@
 
 ```bash
 npm test
+npm run test:visual
 npm run test:pwa
 npm run build
 ```
 
-下一步从第 3 项开始：补移动端视觉回归最小集。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。
+下一步从第 4 项开始：建立真实数据 provenance 骨架。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线和视觉回归测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。

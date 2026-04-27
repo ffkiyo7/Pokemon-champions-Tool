@@ -12,6 +12,7 @@
 
 ```bash
 npm test
+npm run test:visual
 npm run test:pwa
 npm run build
 ```
@@ -19,7 +20,8 @@ npm run build
 当前验证结果：
 
 - [x] `npm test` 通过：9 个测试文件，35 个用例
-- [x] `npm run test:pwa` 通过：1 个 Playwright PWA 离线用例
+- [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，8 张基线截图
+- [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
 - [x] 本地 PWA 可预览
 
@@ -41,11 +43,11 @@ npm run build
 - [x] 手机端核心交互修正：队伍切换、成员缩略卡、计算页攻防选择、局域网新建兜底
 - [x] 页面级组件测试：核心导航、组队、编辑、计算页交互
 - [x] PWA 离线自动化测试：app shell、IndexedDB 队伍、benchmark 收藏
+- [x] 移动端视觉回归最小集：390px 视口覆盖组队、计算、速度线、图鉴、设置、规则详情
 - [ ] 真实 Reg M-A 数据源接入
 - [ ] Champions 机制确认
 - [ ] 正式伤害计算
 - [ ] 正式速度计算结论
-- [ ] 移动端视觉回归自动化
 
 ## 2. PRD 模块进度
 
@@ -88,7 +90,7 @@ npm run build
 - [x] 队伍成员编辑表单补齐六项 SP
 - [x] 移除固定规则下的等级编辑
 
-状态：**主要流程、成员编辑、移动端成员卡片和 benchmark 详情已完成，后续继续补真实数据与自动化回归**
+状态：**主要流程、成员编辑、移动端成员卡片、benchmark 详情与视觉回归保护已完成，后续继续补真实数据**
 
 ### P0c：伤害计算 + 合法性校验
 
@@ -203,7 +205,7 @@ npm run build
 - [x] PWA 离线验收清单文档
 - [x] 页面级组件测试
 - [x] PWA 离线缓存测试
-- [ ] 移动端视觉回归测试
+- [x] 移动端视觉回归测试
 
 ## 5. 当前风险与处理状态
 
@@ -233,7 +235,7 @@ npm run build
 - [x] 修正手机端组队与计算核心交互
 - [x] 页面级组件测试
 - [x] PWA 离线缓存自动化测试
-- [ ] 移动端视觉回归测试
+- [x] 移动端视觉回归测试
 - [ ] 首批真实 Reg M-A Pokemon allowlist seed
 
 ## 7. 提交记录
@@ -247,3 +249,4 @@ npm run build
 - [x] `757b493`：优化导入错误和缓存状态
 - [x] `112960f`：新增调研文档和队伍 schema 迁移
 - [x] `25c71fa`：优化手机端队伍和计算页交互
+- [x] `730f7f0`：新增回归测试并修正文档口径

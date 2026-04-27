@@ -18,9 +18,10 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'chrome-mobile-pwa',
+      name: 'chrome-mobile-390',
       use: {
         ...devices['Pixel 5'],
+        viewport: { width: 390, height: 844 },
         channel: 'chrome',
       },
     },

@@ -194,13 +194,13 @@ export function SpeedPage({
             return (
               <button
                 key={benchmark.id}
-                className="absolute -translate-x-1/2 text-center"
+                className="absolute -translate-x-1/2"
                 style={{ left: `${left}%`, top }}
-                title={benchmark.notes}
+                title={`${benchmark.name}：${benchmark.notes}`}
+                aria-label={`${benchmark.name} benchmark`}
                 onClick={() => setSelectedBenchmarkId(benchmark.id)}
               >
-                <span className={`mx-auto block h-2 w-2 rounded-full ${faster ? 'bg-success' : 'bg-danger'}`} />
-                <span className={`mt-1 block max-w-[58px] truncate text-[10px] ${faster ? 'text-success' : 'text-danger'}`}>{benchmark.name}</span>
+                <span className={`block h-2.5 w-2.5 rounded-full ring-2 ring-page ${faster ? 'bg-success' : 'bg-danger'}`} />
               </button>
             );
           })}
@@ -219,25 +219,25 @@ export function SpeedPage({
           return (
             <button key={benchmark.id} className="w-full text-left" onClick={() => setSelectedBenchmarkId(benchmark.id)}>
               <Card className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="truncate text-sm font-semibold">{benchmark.name}</h3>
-                <p className="text-xs text-textSecondary">最终速度 {benchmark.finalSpeed} · {benchmark.source}</p>
-                <div className="mt-1 flex gap-1">
-                  {benchmark.tags.slice(0, 2).map((tag) => (
-                    <Chip key={tag}>{tag}</Chip>
-                  ))}
+                <div className="min-w-0">
+                  <h3 className="truncate text-sm font-semibold">{benchmark.name}</h3>
+                  <p className="text-xs text-textSecondary">最终速度 {benchmark.finalSpeed} · {benchmark.source}</p>
+                  <div className="mt-1 flex gap-1">
+                    {benchmark.tags.slice(0, 2).map((tag) => (
+                      <Chip key={tag}>{tag}</Chip>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <Button
-                variant={favorite ? 'primary' : 'ghost'}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  toggleFavoriteBenchmark(benchmark.id);
-                }}
-              >
-                <Star size={14} fill={favorite ? 'currentColor' : 'none'} />
-                收藏
-              </Button>
+                <Button
+                  variant={favorite ? 'primary' : 'ghost'}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toggleFavoriteBenchmark(benchmark.id);
+                  }}
+                >
+                  <Star size={14} fill={favorite ? 'currentColor' : 'none'} />
+                  收藏
+                </Button>
               </Card>
             </button>
           );
