@@ -2,10 +2,11 @@ import { Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, items, moves, pokemon } from '../data';
 import { statRows } from '../lib/calculations';
+import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { useAppStore } from '../state/AppContext';
 import type { Pokemon } from '../types';
-import { Badge, Button, Card, Chip, EmptyState, TypeBadge } from '../components/ui';
+import { Button, Card, Chip, EmptyState, TypeBadge } from '../components/ui';
 
 type DexTab = 'pokemon' | 'moves' | 'items' | 'abilities';
 
@@ -23,7 +24,7 @@ function PokemonDetail({
   const addToTeam = async () => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
     const member = {
-      id: crypto.randomUUID(),
+      id: createId('member'),
       pokemonId: entry.id,
       formId: entry.id,
       abilityId: entry.abilities[0],
@@ -49,7 +50,6 @@ function PokemonDetail({
             {entry.types.map((type) => (
               <TypeBadge key={type} type={type} />
             ))}
-            <Badge status="legal">M-A 合法</Badge>
             {entry.canMega && <Chip>Mega 可用</Chip>}
           </div>
         </div>
@@ -93,7 +93,7 @@ function PokemonDetail({
           → 计算
         </Button>
       </div>
-      <p className="mt-3 text-[11px] text-textMuted">图鉴合法性来自模拟数据版本，不暗示完整合法列表。</p>
+      <p className="mt-3 text-[11px] text-textMuted">当前仅展示规则内 seed data，真实完整列表仍需数据源复核。</p>
     </Card>
   );
 }
@@ -171,7 +171,6 @@ export function DexPage({
                         <TypeBadge key={type} type={type} />
                       ))}
                     </div>
-                    <Badge status="legal">合法</Badge>
                   </Card>
                 </button>
               ))}
@@ -190,7 +189,6 @@ export function DexPage({
                 <h3 className="text-sm font-semibold">{move.chineseName} {move.englishName}</h3>
                 <p className="text-xs text-textSecondary">威力 {move.power ?? '-'} · 命中 {move.accuracy ?? '-'} · PP {move.pp}</p>
               </div>
-              <Badge status="legal">合法</Badge>
             </Card>
           ))}
         </div>
@@ -205,7 +203,6 @@ export function DexPage({
                 <h3 className="text-sm font-semibold">{item.chineseName}</h3>
                 <p className="truncate text-xs text-textSecondary">{item.effectSummary}</p>
               </div>
-              <Badge status="legal">合法</Badge>
             </Card>
           ))}
         </div>

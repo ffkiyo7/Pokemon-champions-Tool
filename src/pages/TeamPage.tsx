@@ -1,15 +1,16 @@
-import { ChevronRight, Plus, Save, Trash2, X } from 'lucide-react';
+import { ChevronUp, Edit3, Plus, Save, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, items, moves, pokemon } from '../data';
-import { buildTeamAnalysisDetails, memberLabel, statRows } from '../lib/calculations';
+import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
+import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { useAppStore } from '../state/AppContext';
 import type { Team, TeamMember } from '../types';
 import { RuleSummary, SyncStrip } from '../components/RuleSummary';
-import { Badge, Button, Card, Chip, EmptyState } from '../components/ui';
+import { Badge, Button, Card, Chip, EmptyState, TypeBadge } from '../components/ui';
 
 const blankMember = (): TeamMember => ({
-  id: crypto.randomUUID(),
+  id: createId('member'),
   moveIds: [],
   nature: '爽朗',
   statPoints: { speed: 252 },
@@ -21,12 +22,16 @@ const blankMember = (): TeamMember => ({
 function MemberCard({
   team,
   member,
+  expanded,
+  onToggle,
   onEdit,
   onOpenCalculator,
   onOpenSpeed,
 }: {
   team: Team;
   member: TeamMember;
+  expanded: boolean;
+  onToggle: (memberId: string) => void;
   onEdit: (member: TeamMember) => void;
   onOpenCalculator: (memberId: string) => void;
   onOpenSpeed: (pokemonId: string) => void;
@@ -35,53 +40,114 @@ function MemberCard({
   const item = items.find((candidate) => candidate.id === member.itemId);
   const ability = abilities.find((candidate) => candidate.id === member.abilityId);
   const learnedMoves = member.moveIds.map((id) => moves.find((move) => move.id === id)?.chineseName).filter(Boolean);
+  const battleStats = memberBattleStats(member);
+  const configuredStats = [
+    ['HP', member.statPoints.hp ?? 0],
+    ['攻击', member.statPoints.attack ?? 0],
+    ['防御', member.statPoints.defense ?? 0],
+    ['特攻', member.statPoints.specialAttack ?? 0],
+    ['特防', member.statPoints.specialDefense ?? 0],
+    ['速度', member.statPoints.speed ?? 0],
+  ].filter(([, value]) => Number(value) > 0);
 
   return (
-    <Card className="bg-card">
-      <div className="flex gap-3">
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-elevated text-sm font-bold text-accent">{entry?.iconRef ?? '?'}</div>
-        <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
-            <h3 className="truncate text-sm font-semibold">{memberLabel(member)}</h3>
-            <Badge status={member.legalityStatus}>{member.legalityStatus === 'legal' ? '合法' : member.legalityStatus === 'needs-review' ? '需复核' : '缺少配置'}</Badge>
+    <Card className={`${expanded ? 'col-span-2' : ''} bg-card`}>
+      <button className="block w-full text-left" onClick={() => onToggle(member.id)}>
+        <div className={expanded ? 'flex gap-3' : 'flex flex-col items-center text-center'}>
+          <div className={`${expanded ? 'h-11 w-11 text-sm' : 'mb-2 h-14 w-14 text-lg'} grid shrink-0 place-items-center rounded-full bg-elevated font-bold text-accent`}>
+            {entry?.iconRef ?? '?'}
           </div>
-          <p className="text-xs text-textSecondary">
-            {item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'} · {member.nature} · Lv.{member.level}
-          </p>
-          <div className="mt-2 flex gap-1 overflow-x-auto pb-1 hide-scrollbar">
-            {(learnedMoves.length ? learnedMoves : ['未配置招式']).map((move) => (
-              <Chip key={move}>{move}</Chip>
-            ))}
+          <div className="min-w-0 flex-1">
+            <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex items-center gap-2`}>
+              <h3 className="truncate text-sm font-semibold">{memberLabel(member)}</h3>
+              {expanded && (
+                <Badge status={member.legalityStatus}>
+                  {member.legalityStatus === 'legal' ? '合法' : member.legalityStatus === 'needs-review' ? '需复核' : '缺少配置'}
+                </Badge>
+              )}
+            </div>
+            <p className="truncate text-xs text-textSecondary">
+              {item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'}
+            </p>
+            {!expanded && (
+              <div className="mt-2 flex justify-center gap-1">
+                {entry?.types.map((type) => (
+                  <TypeBadge key={type} type={type} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        <button className="mt-1 grid h-8 w-8 place-items-center rounded-lg text-textMuted" title="编辑成员" onClick={() => onEdit(member)}>
-          <ChevronRight size={16} />
-        </button>
-      </div>
-      {entry && (
+      </button>
+
+      {expanded && (
         <>
-          <div className="mt-3 space-y-1.5 rounded-lg bg-elevated p-2">
-            {statRows(entry.baseStats).map(([label, value]) => (
-              <div key={label} className="grid grid-cols-[34px_1fr_32px] items-center gap-2 text-[11px]">
-                <span className="text-textSecondary">{label}</span>
-                <span className="h-1.5 overflow-hidden rounded-full bg-border">
-                  <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.min(100, (value / 180) * 100)}%` }} />
-                </span>
-                <span className="text-right text-textPrimary">{value}</span>
+          <div className="mt-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs text-textSecondary">
+                {member.nature} · {member.legalityStatus === 'needs-review' ? '需复核' : member.legalityStatus === 'missing-config' ? '缺少配置' : '字段可读'}
+              </p>
+              <div className="mt-2 flex gap-1">
+                {entry?.types.map((type) => (
+                  <TypeBadge key={type} type={type} />
+                ))}
               </div>
-            ))}
+              <div className="mt-2 flex gap-1 overflow-x-auto pb-1 hide-scrollbar">
+                {(learnedMoves.length ? learnedMoves : ['未配置招式']).map((move) => (
+                  <Chip key={move}>{move}</Chip>
+                ))}
+              </div>
+            </div>
+            <div className="flex shrink-0 gap-1">
+              <button className="grid h-8 w-8 place-items-center rounded-lg text-textMuted" title="编辑成员" onClick={() => onEdit(member)}>
+                <Edit3 size={15} />
+              </button>
+              <button className="grid h-8 w-8 place-items-center rounded-lg text-textMuted" title="收起成员" onClick={() => onToggle(member.id)}>
+                <ChevronUp size={16} />
+              </button>
+            </div>
           </div>
-          <div className="mt-3 flex gap-2">
-            <Button variant="ghost" onClick={() => onOpenCalculator(member.id)}>
-              → 伤害计算
-            </Button>
-            <Button variant="ghost" onClick={() => onOpenSpeed(entry.id)}>
-              → 速度线
-            </Button>
-          </div>
+
+          {entry && (
+            <>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="rounded-lg bg-elevated p-2">
+                  <p className="text-[11px] text-textSecondary">能力配置</p>
+                  <p className="mt-1 text-xs text-textPrimary">
+                    {configuredStats.length > 0 ? configuredStats.map(([label, value]) => `${label}+${value}`).join(' · ') : '未分配 SP'}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-elevated p-2">
+                  <p className="text-[11px] text-textSecondary">规则等级</p>
+                  <p className="mt-1 text-xs text-textPrimary">Lv.50 固定</p>
+                </div>
+              </div>
+              <div className="mt-3 space-y-1.5 rounded-lg bg-elevated p-2">
+                <p className="text-[11px] text-textSecondary">示例能力值</p>
+                {statRows(battleStats).map(([label, value]) => (
+                  <div key={label} className="grid grid-cols-[34px_1fr_32px] items-center gap-2 text-[11px]">
+                    <span className="text-textSecondary">{label}</span>
+                    <span className="h-1.5 overflow-hidden rounded-full bg-border">
+                      <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.min(100, (value / 220) * 100)}%` }} />
+                    </span>
+                    <span className="text-right text-textPrimary">{value}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-textMuted">示例数值，真实 Champions Stat Points 机制确认前不作为正式结论。</p>
+              <div className="mt-3 flex gap-2">
+                <Button variant="ghost" onClick={() => onOpenCalculator(member.id)}>
+                  → 伤害计算
+                </Button>
+                <Button variant="ghost" onClick={() => onOpenSpeed(entry.id)}>
+                  → 速度线
+                </Button>
+              </div>
+            </>
+          )}
+          <p className="mt-2 text-[11px] text-textMuted">数据版本：{team.dataVersionId}</p>
         </>
       )}
-      <p className="mt-2 text-[11px] text-textMuted">数据版本：{team.dataVersionId}</p>
     </Card>
   );
 }
@@ -237,16 +303,13 @@ function MemberEditor({
           </SelectField>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
-            {['爽朗', '胆小', '固执', '慎重', '冷静', '怕慢(+速)'].map((nature) => (
-              <option key={nature} value={nature}>
-                {nature}
-              </option>
-            ))}
-          </SelectField>
-          <NumberField label="等级" max={100} min={1} value={draft.level} onChange={(level) => updateDraft({ level })} />
-        </div>
+        <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
+          {['爽朗', '胆小', '固执', '慎重', '冷静', '怕慢(+速)'].map((nature) => (
+            <option key={nature} value={nature}>
+              {nature}
+            </option>
+          ))}
+        </SelectField>
 
         <div>
           <FieldLabel>招式</FieldLabel>
@@ -272,16 +335,10 @@ function MemberEditor({
         <div className="grid grid-cols-3 gap-2">
           <NumberField label="HP SP" value={draft.statPoints.hp ?? 0} onChange={(value) => updateStatPoint('hp', value)} />
           <NumberField label="攻击 SP" value={draft.statPoints.attack ?? 0} onChange={(value) => updateStatPoint('attack', value)} />
+          <NumberField label="防御 SP" value={draft.statPoints.defense ?? 0} onChange={(value) => updateStatPoint('defense', value)} />
+          <NumberField label="特攻 SP" value={draft.statPoints.specialAttack ?? 0} onChange={(value) => updateStatPoint('specialAttack', value)} />
+          <NumberField label="特防 SP" value={draft.statPoints.specialDefense ?? 0} onChange={(value) => updateStatPoint('specialDefense', value)} />
           <NumberField label="速度 SP" value={draft.statPoints.speed ?? 0} onChange={(value) => updateStatPoint('speed', value)} />
-        </div>
-
-        <div>
-          <FieldLabel>备注</FieldLabel>
-          <textarea
-            className="min-h-20 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
-            value={draft.notes}
-            onChange={(event) => updateDraft({ notes: event.target.value })}
-          />
         </div>
 
         <Card className="bg-secondary">
@@ -377,20 +434,39 @@ function AnalysisDetailSheet({
 }
 
 export function TeamPage({
+  activeTeamId,
+  onActiveTeamChange,
   onOpenRule,
   onOpenCalculator,
   onOpenSpeed,
 }: {
+  activeTeamId?: string;
+  onActiveTeamChange: (teamId: string | undefined) => void;
   onOpenRule: () => void;
   onOpenCalculator: (memberId: string) => void;
   onOpenSpeed: (pokemonId: string) => void;
 }) {
   const { teams, addTeam, deleteTeam, saveTeam, updateMember } = useAppStore();
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const activeTeam = teams[0];
+  const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
   const analysisDetails = activeTeam ? buildTeamAnalysisDetails(activeTeam) : null;
+
+  const createTeam = async () => {
+    const team = await addTeam();
+    onActiveTeamChange(team.id);
+    setExpandedMemberId(null);
+  };
+
+  const removeActiveTeam = async () => {
+    if (!activeTeam) return;
+    const nextTeam = teams.find((team) => team.id !== activeTeam.id);
+    await deleteTeam(activeTeam.id);
+    onActiveTeamChange(nextTeam?.id);
+    setExpandedMemberId(null);
+  };
 
   const addMember = async () => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
@@ -405,6 +481,7 @@ export function TeamPage({
     };
     const result = evaluateMemberLegality(member, activeTeam);
     await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
+    setExpandedMemberId(member.id);
   };
 
   return (
@@ -416,7 +493,7 @@ export function TeamPage({
           <h2 className="text-lg font-semibold">我的队伍</h2>
           <p className="text-xs text-textSecondary">本地保存 · 无账号依赖</p>
         </div>
-        <Button onClick={addTeam}>
+        <Button onClick={createTeam}>
           <Plus size={14} />
           新建
         </Button>
@@ -424,16 +501,16 @@ export function TeamPage({
 
       {teams.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-          {teams.map((team, index) => (
-            <Chip key={team.id} active={index === 0}>
-              {team.name}
-            </Chip>
+          {teams.map((team) => (
+            <button key={team.id} onClick={() => onActiveTeamChange(team.id)}>
+              <Chip active={team.id === activeTeam?.id}>{team.name}</Chip>
+            </button>
           ))}
         </div>
       )}
 
       {!activeTeam ? (
-        <EmptyState title="还没有队伍" action={<Button onClick={addTeam}>新建第一支队伍</Button>} />
+        <EmptyState title="还没有队伍" action={<Button onClick={createTeam}>新建第一支队伍</Button>} />
       ) : (
         <>
           <Card className="bg-secondary">
@@ -442,18 +519,20 @@ export function TeamPage({
                 <h3 className="font-semibold">{activeTeam.name}</h3>
                 <p className="text-xs text-textSecondary">{activeTeam.members.length}/6 成员 · {activeTeam.notes || '未填写队伍备注'}</p>
               </div>
-              <button className="text-danger" title="删除队伍" onClick={() => deleteTeam(activeTeam.id)}>
+              <button className="text-danger" title="删除队伍" onClick={removeActiveTeam}>
                 <Trash2 size={18} />
               </button>
             </div>
           </Card>
 
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             {activeTeam.members.map((member) => (
               <MemberCard
                 key={member.id}
                 team={activeTeam}
                 member={member}
+                expanded={expandedMemberId === member.id}
+                onToggle={(memberId) => setExpandedMemberId((current) => (current === memberId ? null : memberId))}
                 onEdit={(nextMember) => setEditingMemberId(nextMember.id)}
                 onOpenCalculator={onOpenCalculator}
                 onOpenSpeed={onOpenSpeed}

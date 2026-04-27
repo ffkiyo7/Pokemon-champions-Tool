@@ -10,6 +10,15 @@ const natureSpeedMultiplier: Record<string, number> = {
   冷静: 0.9,
 };
 
+const natureStatMultipliers: Record<string, Partial<Record<keyof BaseStats, number>>> = {
+  爽朗: { speed: 1.1, specialAttack: 0.9 },
+  胆小: { speed: 1.1, attack: 0.9 },
+  固执: { attack: 1.1, specialAttack: 0.9 },
+  慎重: { specialDefense: 1.1, specialAttack: 0.9 },
+  冷静: { specialAttack: 1.1, speed: 0.9 },
+  怕慢: { speed: 1.1 },
+};
+
 export const calculateSpeed = (baseSpeed: number, investment = 0, level = 50, nature = '爽朗', tailwind = false, iv = 31) => {
   const stat = Math.floor(((2 * baseSpeed + iv + Math.floor(investment / 4)) * level) / 100 + 5);
   const natureKey = Object.keys(natureSpeedMultiplier).find((key) => nature.includes(key));
@@ -71,6 +80,25 @@ export const statRows = (stats: BaseStats) => [
   ['速', stats.speed],
 ] as const;
 
+const natureMultiplier = (nature: string, stat: keyof BaseStats) => {
+  const natureKey = Object.keys(natureStatMultipliers).find((key) => nature.includes(key));
+  return natureKey ? natureStatMultipliers[natureKey][stat] ?? 1 : 1;
+};
+
+const calculateNonHpStat = (base: number, investment = 0, level = 50, nature = '爽朗', stat: keyof BaseStats, iv = 31) => {
+  const raw = Math.floor(((2 * base + iv + Math.floor(investment / 4)) * level) / 100 + 5);
+  return Math.floor(raw * natureMultiplier(nature, stat));
+};
+
+export const calculateBattleStats = (baseStats: BaseStats, statPoints: TeamMember['statPoints'], level = 50, nature = '爽朗', iv = 31): BaseStats => ({
+  hp: Math.floor(((2 * baseStats.hp + iv + Math.floor((statPoints.hp ?? 0) / 4)) * level) / 100 + level + 10),
+  attack: calculateNonHpStat(baseStats.attack, statPoints.attack ?? 0, level, nature, 'attack', iv),
+  defense: calculateNonHpStat(baseStats.defense, statPoints.defense ?? 0, level, nature, 'defense', iv),
+  specialAttack: calculateNonHpStat(baseStats.specialAttack, statPoints.specialAttack ?? 0, level, nature, 'specialAttack', iv),
+  specialDefense: calculateNonHpStat(baseStats.specialDefense, statPoints.specialDefense ?? 0, level, nature, 'specialDefense', iv),
+  speed: calculateNonHpStat(baseStats.speed, statPoints.speed ?? 0, level, nature, 'speed', iv),
+});
+
 export const getPokemon = (id?: string) => pokemon.find((entry) => entry.id === id);
 
 export const memberLabel = (member: TeamMember) => {
@@ -81,6 +109,11 @@ export const memberLabel = (member: TeamMember) => {
 export const memberSpeed = (member: TeamMember) => {
   const found = getPokemon(member.pokemonId);
   return calculateSpeed(found?.baseStats.speed ?? 50, member.statPoints.speed ?? 0, member.level, member.nature);
+};
+
+export const memberBattleStats = (member: TeamMember) => {
+  const found = getPokemon(member.pokemonId);
+  return calculateBattleStats(found?.baseStats ?? { hp: 50, attack: 50, defense: 50, specialAttack: 50, specialDefense: 50, speed: 50 }, member.statPoints, member.level, member.nature);
 };
 
 export const buildTeamBenchmarks = (team: Team): SpeedBenchmark[] =>

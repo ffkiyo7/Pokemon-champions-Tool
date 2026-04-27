@@ -1,4 +1,4 @@
-import { Activity, Calculator, Database, Gauge, Plus, Search, Settings, ShieldCheck, Users } from 'lucide-react';
+import { Calculator, Gauge, Search, Settings, ShieldCheck, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
@@ -26,9 +26,20 @@ function AppShell() {
   const [overlay, setOverlay] = useState<OverlayPage>(null);
   const [speedPokemonId, setSpeedPokemonId] = useState('garchomp');
   const [calculatorMemberId, setCalculatorMemberId] = useState<string | undefined>();
+  const [activeTeamId, setActiveTeamId] = useState<string | undefined>();
   const { loading, teams } = useAppStore();
 
-  const activeTeam = teams[0];
+  const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
+
+  useEffect(() => {
+    if (teams.length === 0) {
+      setActiveTeamId(undefined);
+      return;
+    }
+    if (!activeTeamId || !teams.some((team) => team.id === activeTeamId)) {
+      setActiveTeamId(teams[0].id);
+    }
+  }, [activeTeamId, teams]);
 
   const page = useMemo(() => {
     if (overlay === 'rule') return <RulePage onBack={() => setOverlay(null)} />;
@@ -37,6 +48,8 @@ function AppShell() {
       case 'teams':
         return (
           <TeamPage
+            activeTeamId={activeTeam?.id}
+            onActiveTeamChange={setActiveTeamId}
             onOpenRule={() => setOverlay('rule')}
             onOpenCalculator={(memberId) => {
               setCalculatorMemberId(memberId);
@@ -88,13 +101,7 @@ function AppShell() {
   return (
     <main className="mx-auto min-h-screen max-w-[430px] bg-page text-textPrimary">
       <div className="safe-bottom min-h-screen px-4 pt-4">
-        <Header
-          rightIcon={overlay ? Activity : Plus}
-          onRightClick={() => {
-            if (overlay) setOverlay(null);
-            else if (activeTab === 'teams') setActiveTab('teams');
-          }}
-        />
+        <Header />
         {page}
       </div>
       {!overlay && <BottomNav activeTab={activeTab} tabs={tabs} onChange={setActiveTab} />}

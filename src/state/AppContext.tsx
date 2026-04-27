@@ -1,13 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { currentDataVersion, currentRuleSet, defaultPreferences } from '../data';
 import { repository } from '../lib/db';
+import { createId } from '../lib/id';
 import type { AppState, Team, TeamMember, UserPreference } from '../types';
 
 type Store = AppState & {
   loading: boolean;
   saveTeam: (team: Team) => Promise<void>;
   deleteTeam: (teamId: string) => Promise<void>;
-  addTeam: () => Promise<void>;
+  addTeam: () => Promise<Team>;
   updateMember: (teamId: string, member: TeamMember) => Promise<void>;
   toggleFavoriteBenchmark: (benchmarkId: string) => Promise<void>;
   replaceTeams: (teams: Team[]) => Promise<void>;
@@ -20,7 +21,7 @@ const AppContext = createContext<Store | undefined>(undefined);
 const now = () => new Date().toISOString();
 
 const createEmptyTeam = (): Team => ({
-  id: crypto.randomUUID(),
+  id: createId('team'),
   name: `新队伍 ${new Date().toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}`,
   ruleSetId: currentRuleSet.id,
   dataVersionId: currentDataVersion.id,
@@ -66,6 +67,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const team = createEmptyTeam();
     setTeams((current) => [team, ...current]);
     await repository.saveTeam(team);
+    return team;
   }, []);
 
   const updateMember = useCallback(
