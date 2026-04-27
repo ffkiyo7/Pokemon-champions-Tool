@@ -1,50 +1,63 @@
 # 下一轮开发准备
 
-更新时间：2026-04-27
+更新时间：2026-04-28
 
 ## 当前状态
 
-- Git 工作区干净，`master` 与 `origin/master` 对齐。
-- `npm test` 通过：7 个测试文件，29 个用例。
+- `master` 已推送到 `origin/master`，最新提交：`25c71fa Improve mobile team and calc interactions`。
+- `npm test` 通过：9 个测试文件，35 个用例。
+- `npm run test:pwa` 通过：1 个 Playwright PWA 离线用例。
 - `npm run build` 通过：生产包可生成。
-- MVP 主流程已完成：组队、计算阻断态、速度线、图鉴、设置、本地存储、导入导出、数据审计。
-- 当前主要风险仍集中在真实数据、Champions 机制确认和离线/移动端自动化验证。
+- 手机端核心体验已完成一轮修正：多队伍切换、队伍成员缩略卡、展开 / 收起、六项 SP 编辑、示例能力值、计算页攻防双方选择和全图鉴搜索。
+- 当前主要风险仍集中在真实 Reg M-A 数据、Champions Stat Points 机制和移动端视觉回归。
 
 ## 建议本轮目标
 
-建议把下一轮定为：**可信度与回归保护补强轮**。
+建议下一轮定为：**真实数据接入前的回归保护与数据骨架轮**。
 
-优先做 PWA 离线自动化测试和基础页面级测试，再进入真实 Reg M-A allowlist seed。原因是应用已经有较完整 MVP 闭环，先补回归保护，可以降低后续真实数据接入和计算适配时的改动风险。
+核心目标不是继续堆 UI，而是把已经确认的手机端闭环保护起来，同时建立真实数据接入所需的 source ref / provenance 骨架。这样后续把 mock seed 替换成真实 Reg M-A allowlist 时，不会把 UI、合法性和计算阻断边界一起打乱。
 
 ## 推荐任务顺序
 
-1. 增加 PWA 离线自动化测试
-   - 检测 service worker 注册。
-   - 模拟 offline 后刷新页面，确认 app shell 仍可打开。
-   - 准备 IndexedDB fixture，确认本地队伍和 benchmark 收藏离线可读。
+1. 增加页面级组件测试
+   - 覆盖底部 Tab 导航和规则详情入口。
+   - 覆盖组队页：新建队伍、切换队伍、添加成员、展开 / 收起成员卡。
+   - 覆盖成员编辑：六项 SP 输入、固定 Lv.50、不展示等级编辑。
+   - 覆盖计算页：进攻方 / 防守方切换、全图鉴搜索、队伍推荐选择、机制阻断态。
+   - 状态：已完成。
 
-2. 增加页面级组件测试
-   - 覆盖底部 Tab 导航。
-   - 覆盖组队页基础渲染、成员编辑入口和分析详情入口。
-   - 覆盖计算页机制阻断态，避免误输出正式伤害结论。
+2. 增加 PWA 离线自动化测试
+   - 检测 service worker 注册。
+   - 模拟 offline 后刷新页面，确认 app shell 可打开。
+   - 用 IndexedDB fixture 验证本地队伍和 benchmark 收藏离线可读。
+   - 状态：已完成。
 
 3. 补移动端视觉回归最小集
    - 选取 390px 宽移动视口。
-   - 截取 5 个主 Tab 和规则详情页。
-   - 检查底部导航、弹层、长文本和按钮不重叠。
+   - 截取组队、计算、速度线、图鉴、设置、规则详情。
+   - 重点检查：底部导航、成员展开卡、编辑 bottom sheet、计算页选择器、长文本和按钮不重叠。
 
-4. 准备首批真实 Reg M-A allowlist seed
+4. 建立真实数据 provenance 骨架
+   - 新增 source ref manifest 类型和种子示例。
+   - 让 catalog rows 的 `sourceRefs` 可以解析到真实来源记录。
+   - 在 seed data audit 中增加 source ref 存在性检查。
+   - 保持 mock / manual-review 数据不能输出强合法结论。
+
+5. 准备首批真实 Reg M-A allowlist seed
    - 按 `docs/research/DATA_SOURCE_RESEARCH.md` 的首批范围执行。
-   - 每条数据必须有 source ref。
-   - 保持 `manual-review`，在二次复核前不输出强合法结论。
+   - 优先接官方规则元信息、Eligible Pokemon allowlist、Mega allowlist。
+   - 每条数据必须有 source ref、检索时间和复核状态。
+   - 在二次复核前全部保持 `manual-review`。
 
 ## 本轮验收标准
 
 - `npm test` 通过。
+- `npm run test:pwa` 通过。
 - `npm run build` 通过。
-- PWA 离线清单至少有自动化覆盖项落地。
+- 页面级组件测试和 PWA 离线自动化测试已完成。
 - 新增测试不依赖外部网络。
-- 任何真实数据接入都保留来源、状态和机制阻断边界。
+- 真实数据接入前，所有 mock / manual-review 数据仍不能产生强合法性或正式计算结论。
+- `DEVELOPMENT_PROGRESS.md` 与本计划同步更新。
 
 ## 开工入口
 
@@ -52,7 +65,8 @@
 
 ```bash
 npm test
+npm run test:pwa
 npm run build
 ```
 
-如果选择 PWA 离线自动化，需要先评估是否加入 Playwright 测试依赖，或使用现有脚本以最小成本验证构建后的 `dist`。
+下一步从第 3 项开始：补移动端视觉回归最小集。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。

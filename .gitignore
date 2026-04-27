@@ -3,3 +3,5 @@ dist
 .npm-cache
 .vite
 *.local
+test-results
+playwright-report

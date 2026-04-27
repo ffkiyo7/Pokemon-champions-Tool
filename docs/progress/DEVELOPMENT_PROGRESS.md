@@ -1,6 +1,6 @@
 # Pokemon Champions 对战助手开发进度表
 
-更新时间：2026-04-27
+更新时间：2026-04-28
 
 当前阶段：**可运行 PWA MVP 已完成，正在进入“可信数据与计算验证”阶段。**
 
@@ -12,12 +12,14 @@
 
 ```bash
 npm test
+npm run test:pwa
 npm run build
 ```
 
 当前验证结果：
 
-- [x] `npm test` 通过
+- [x] `npm test` 通过：9 个测试文件，35 个用例
+- [x] `npm run test:pwa` 通过：1 个 Playwright PWA 离线用例
 - [x] `npm run build` 通过
 - [x] 本地 PWA 可预览
 
@@ -36,11 +38,14 @@ npm run build
 - [x] 计算库 spike 文档：`docs/research/CALC_ENGINE_SPIKE.md`
 - [x] 数据源与授权调研文档：`docs/research/DATA_SOURCE_RESEARCH.md`
 - [x] PWA 离线验收清单：`docs/qa/PWA_OFFLINE_CHECKLIST.md`
+- [x] 手机端核心交互修正：队伍切换、成员缩略卡、计算页攻防选择、局域网新建兜底
+- [x] 页面级组件测试：核心导航、组队、编辑、计算页交互
+- [x] PWA 离线自动化测试：app shell、IndexedDB 队伍、benchmark 收藏
 - [ ] 真实 Reg M-A 数据源接入
 - [ ] Champions 机制确认
 - [ ] 正式伤害计算
 - [ ] 正式速度计算结论
-- [ ] 移动端视觉回归与交互细化
+- [ ] 移动端视觉回归自动化
 
 ## 2. PRD 模块进度
 
@@ -76,13 +81,22 @@ npm run build
 - [x] 当前队伍 benchmark
 - [x] benchmark 详情 bottom sheet
 - [x] benchmark 分类筛选真实生效
+- [x] 多队伍切换
+- [x] 队伍成员 2 列缩略卡
+- [x] 队伍成员展开 / 收起交互
+- [x] 队伍成员示例能力值展示
+- [x] 队伍成员编辑表单补齐六项 SP
+- [x] 移除固定规则下的等级编辑
 
-状态：**主要流程、成员编辑和 benchmark 详情已完成，后续继续补真实数据与交互细化**
+状态：**主要流程、成员编辑、移动端成员卡片和 benchmark 详情已完成，后续继续补真实数据与自动化回归**
 
 ### P0c：伤害计算 + 合法性校验
 
 - [x] 伤害计算页 UI
 - [x] 攻击方 / 防守方展示
+- [x] 攻击方 / 防守方均可从当前规则图鉴选择
+- [x] 计算页支持搜索全部 Pokémon
+- [x] 计算页横向推荐当前队伍成员
 - [x] 招式展示
 - [x] 战斗条件 chip
 - [x] 机制待确认阻断态
@@ -97,7 +111,7 @@ npm run build
 - [ ] 正式输出伤害范围、击杀概率、一确 / 二确 / 乱数
 - [ ] 计算结果来源和机制假设详情页
 
-状态：**UI 和安全阻断完成，正式计算待调研**
+状态：**UI、攻防选择和安全阻断完成，正式计算待机制确认与计算适配层**
 
 ### P1：导入导出 + 基础配队分析 + 缓存兜底
 
@@ -133,6 +147,7 @@ npm run build
 - [x] `UserPreference`
 - [x] 数据 schema 版本迁移策略
 - [x] 导入数据兼容旧版本策略
+- [x] 局域网 / 非安全上下文 ID 生成兜底
 
 ### Seed Data
 
@@ -174,6 +189,8 @@ npm run build
 - [x] Vitest 测试脚本
 - [x] 速度计算公式测试
 - [x] 速度机制 gate 测试
+- [x] 示例能力值计算测试
+- [x] ID 生成 fallback 测试
 - [x] 合法性：缺少 Pokemon 配置
 - [x] 合法性：seed data 只能给出需复核
 - [x] 合法性：重复道具非法
@@ -184,9 +201,9 @@ npm run build
 - [x] 导入导出 schema 测试
 - [x] 导入数据 schema 迁移测试
 - [x] PWA 离线验收清单文档
-- [ ] 页面级组件测试
+- [x] 页面级组件测试
+- [x] PWA 离线缓存测试
 - [ ] 移动端视觉回归测试
-- [ ] PWA 离线缓存测试
 
 ## 5. 当前风险与处理状态
 
@@ -195,6 +212,7 @@ npm run build
 - [x] `@smogon/calc` 兼容性已调研：主线能力可用，Champions 特有机制仍阻断
 - [ ] 中文名、图标、简介资源授权未确认
 - [x] 数据源与授权风险已调研：v1 避免官方图片、官方描述和使用率数据
+- [x] 手机局域网测试中新建失败风险：通过 `createId` fallback 兜底
 - [x] seed data 不被误用为强合法结论：通过 `needs-review` 和测试约束
 - [x] 数据引用断裂风险：通过 `auditSeedData` 测试约束
 - [x] 未确认计算输出风险：通过机制阻断态约束
@@ -212,9 +230,10 @@ npm run build
 - [x] 建立 PWA 离线验收清单
 - [x] 建立真实 Reg M-A 数据接入清单
 - [x] 调研并记录 `@smogon/calc` Champions 支持结论
-- [ ] 页面级组件测试
+- [x] 修正手机端组队与计算核心交互
+- [x] 页面级组件测试
+- [x] PWA 离线缓存自动化测试
 - [ ] 移动端视觉回归测试
-- [ ] PWA 离线缓存自动化测试
 - [ ] 首批真实 Reg M-A Pokemon allowlist seed
 
 ## 7. 提交记录
@@ -227,3 +246,4 @@ npm run build
 - [x] `2611dc2`：新增配队分析详情面板
 - [x] `757b493`：优化导入错误和缓存状态
 - [x] `112960f`：新增调研文档和队伍 schema 迁移
+- [x] `25c71fa`：优化手机端队伍和计算页交互

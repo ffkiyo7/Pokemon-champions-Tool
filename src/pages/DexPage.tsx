@@ -1,7 +1,6 @@
 import { Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, items, moves, pokemon } from '../data';
-import { statRows } from '../lib/calculations';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { useAppStore } from '../state/AppContext';
@@ -53,17 +52,6 @@ function PokemonDetail({
             {entry.canMega && <Chip>Mega 可用</Chip>}
           </div>
         </div>
-      </div>
-      <div className="space-y-1.5 rounded-lg bg-elevated p-2">
-        {statRows(entry.baseStats).map(([label, value]) => (
-          <div key={label} className="grid grid-cols-[34px_1fr_32px] items-center gap-2 text-[11px]">
-            <span className="text-textSecondary">{label}</span>
-            <span className="h-1.5 overflow-hidden rounded-full bg-border">
-              <span className={`block h-full rounded-full ${value >= 100 ? 'bg-success' : value >= 70 ? 'bg-accent' : 'bg-danger'}`} style={{ width: `${Math.min(100, (value / 180) * 100)}%` }} />
-            </span>
-            <span className="text-right">{value}</span>
-          </div>
-        ))}
       </div>
       <div className="mt-3">
         <p className="mb-1 text-[11px] text-textSecondary">特性</p>
@@ -164,7 +152,7 @@ export function DexPage({
                     <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs font-bold text-accent">{entry.iconRef}</div>
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-sm font-semibold">{entry.chineseName} {entry.englishName}</h3>
-                      <p className="text-xs text-textSecondary">速度 {entry.baseStats.speed}</p>
+                      <p className="text-xs text-textSecondary">{entry.canMega ? 'Mega 可用' : '当前规则候选'}</p>
                     </div>
                     <div className="flex gap-1">
                       {entry.types.map((type) => (

@@ -185,7 +185,7 @@ export function CalculatorPage({
                   <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs font-bold text-accent">{entry.iconRef}</div>
                   <div className="min-w-0">
                     <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
-                    <p className="text-[11px] text-textMuted">速度 {entry.baseStats.speed}</p>
+                    <p className="truncate text-[11px] text-textMuted">{entry.englishName}</p>
                   </div>
                 </div>
                 <div className="flex gap-1">

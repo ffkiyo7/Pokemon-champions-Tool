@@ -1,6 +1,6 @@
 # PWA 离线验收清单
 
-更新时间：2026-04-26
+更新时间：2026-04-28
 
 ## 当前策略
 
@@ -31,6 +31,15 @@
 
 ## 自动化候选
 
-- [ ] 用 Playwright 增加 service worker 注册检测。
-- [ ] 用浏览器上下文模拟 offline，验证刷新后 app shell 存活。
-- [ ] 用 IndexedDB fixture 验证离线队伍读取。
+- [x] 用 Playwright 增加 service worker 注册检测。
+- [x] 用浏览器上下文模拟 offline，验证刷新后 app shell 存活。
+- [x] 用 IndexedDB fixture 验证离线队伍读取。
+- [x] 验证离线状态下 benchmark 收藏仍可读取。
+
+自动化命令：
+
+```bash
+npm run test:pwa
+```
+
+当前 Playwright 配置使用本机 Chrome，避免依赖 Playwright Chromium 下载。
