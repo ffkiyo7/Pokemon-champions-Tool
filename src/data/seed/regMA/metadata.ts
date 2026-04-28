@@ -1,4 +1,4 @@
-import type { DataVersion, RuleSet, UserPreference } from '../../../types';
+import type { DataSourceManifest, DataVersion, RuleSet, UserPreference } from '../../../types';
 
 export const currentRuleSet: RuleSet = {
   id: 'reg-ma',
@@ -40,11 +40,39 @@ export const defaultPreferences: UserPreference = {
   lastDataRefreshAt: currentDataVersion.updatedAt,
 };
 
-export const dataSourceManifest = {
+export const dataSourceManifest: DataSourceManifest = {
   id: currentDataVersion.id,
   ruleSetId: currentRuleSet.id,
   mode: 'versioned-seed',
-  officialRuleSource: currentRuleSet.officialSourceUrl,
+  sources: [
+    {
+      id: 'reg-ma-official-rule',
+      url: currentRuleSet.officialSourceUrl,
+      sourceType: 'official',
+      licenseRisk: 'low',
+      retrievedAt: '2026-04-26T16:00:00.000Z',
+      fieldsUsed: [
+        'ruleSet.startAt',
+        'ruleSet.endAt',
+        'ruleSet.battleType',
+        'ruleSet.allowMega',
+        'ruleSet.megaLimitPerBattle',
+        'ruleSet.duplicateHeldItemsAllowed',
+        'ruleSet.timers',
+      ],
+      notes: 'Official Pokemon HOME Regulation Set M-A announcement used for rule metadata only.',
+    },
+    {
+      id: 'manual-seed-review',
+      url: 'local://docs/research/DATA_SOURCE_RESEARCH.md',
+      sourceType: 'manual-observation',
+      licenseRisk: 'medium',
+      retrievedAt: currentDataVersion.updatedAt,
+      sourcePath: 'src/data/seed/regMA/catalog.ts',
+      fieldsUsed: ['pokemon', 'forms', 'abilities', 'moves', 'items', 'learnsets', 'baseStats'],
+      notes: 'Hand-authored MVP seed data for UI validation. Rows with this ref must stay needs-review.',
+    },
+  ],
   reviewPolicy: 'Every catalog row must retain sourceRefs and verificationStatus before being used for strong legality conclusions.',
   blockedMechanisms: ['Champions Stat Points', 'Champions damage formula compatibility', 'complete move learnsets'],
 };

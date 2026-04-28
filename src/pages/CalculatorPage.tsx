@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { moves, pokemon } from '../data';
 import { memberLabel } from '../lib/calculations';
 import { useAppStore } from '../state/AppContext';
-import type { Pokemon } from '../types';
+import type { Pokemon, TeamMember } from '../types';
 import { Badge, Button, Card, Chip, TypeBadge } from '../components/ui';
 
 type CalcSide = 'attacker' | 'defender';
@@ -47,13 +47,22 @@ export function CalculatorPage({
   const attackerMember = members.find(({ member }) => member.pokemonId === attackerEntry.id)?.member ?? makeManualMember(attackerEntry);
   const defenderMember = members.find(({ member }) => member.pokemonId === defenderEntry.id)?.member ?? makeManualMember(defenderEntry);
   const move = moves.find((entry) => attackerMember.moveIds.includes(entry.id)) ?? moves.find((entry) => attackerEntry.learnableMoves.includes(entry.id)) ?? moves[0];
+  const normalizedQuery = query.trim().toLowerCase();
   const filteredPokemon = useMemo(
-    () => pokemon.filter((entry) => `${entry.chineseName} ${entry.englishName} ${entry.types.join(' ')}`.toLowerCase().includes(query.toLowerCase())),
-    [query],
+    () =>
+      normalizedQuery
+        ? pokemon.filter((entry) => `${entry.chineseName} ${entry.englishName} ${entry.types.join(' ')}`.toLowerCase().includes(normalizedQuery))
+        : [],
+    [normalizedQuery],
   );
   const recommended = useMemo(() => {
-    const ids = members.map(({ member }) => member.pokemonId).filter(Boolean) as string[];
-    return pokemon.filter((entry) => ids.includes(entry.id)).slice(0, 8);
+    return members
+      .map(({ team, member }) => {
+        const entry = pokemon.find((candidate) => candidate.id === member.pokemonId);
+        return entry ? { teamName: team.name, member, entry } : undefined;
+      })
+      .filter(Boolean)
+      .slice(0, 8) as Array<{ teamName: string; member: TeamMember; entry: Pokemon }>;
   }, [members]);
   const blocked = true;
 
@@ -63,6 +72,16 @@ export function CalculatorPage({
       onPickMember(members.find(({ member }) => member.pokemonId === pokemonId)?.member.id ?? pokemonId);
     } else {
       setDefenderPokemonId(pokemonId);
+    }
+  };
+
+  const pickTeamMember = (member: TeamMember) => {
+    if (!member.pokemonId) return;
+    if (activeSide === 'attacker') {
+      setAttackerPokemonId(member.pokemonId);
+      onPickMember(member.id);
+    } else {
+      setDefenderPokemonId(member.pokemonId);
     }
   };
 
@@ -161,42 +180,51 @@ export function CalculatorPage({
           <div className="mt-3">
             <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">当前队伍推荐</p>
             <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-              {recommended.map((entry) => (
-                <button key={entry.id} className="min-w-[116px] rounded-lg border border-border bg-card p-2 text-left" onClick={() => pickPokemon(entry.id)}>
+              {recommended.map(({ teamName, member, entry }) => (
+                <button
+                  key={member.id}
+                  aria-pressed={activeSide === 'attacker' ? entry.id === attackerEntry.id : entry.id === defenderEntry.id}
+                  className={`min-w-[116px] rounded-lg border bg-card p-2 text-left ${
+                    activeSide === 'attacker' ? (entry.id === attackerEntry.id ? 'border-accent' : 'border-border') : entry.id === defenderEntry.id ? 'border-accent' : 'border-border'
+                  }`}
+                  onClick={() => pickTeamMember(member)}
+                >
                   <div className="mb-2 grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs font-bold text-accent">{entry.iconRef}</div>
                   <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
-                  <p className="text-[11px] text-textMuted">队伍成员</p>
+                  <p className="truncate text-[11px] text-textMuted">{teamName}</p>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {filteredPokemon.map((entry) => {
-            const active = activeSide === 'attacker' ? entry.id === attackerEntry.id : entry.id === defenderEntry.id;
-            return (
-              <button
-                key={entry.id}
-                className={`rounded-lg border p-2 text-left ${active ? 'border-accent bg-card' : 'border-border bg-card'}`}
-                onClick={() => pickPokemon(entry.id)}
-              >
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs font-bold text-accent">{entry.iconRef}</div>
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
-                    <p className="truncate text-[11px] text-textMuted">{entry.englishName}</p>
+        {normalizedQuery && (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {filteredPokemon.map((entry) => {
+              const active = activeSide === 'attacker' ? entry.id === attackerEntry.id : entry.id === defenderEntry.id;
+              return (
+                <button
+                  key={entry.id}
+                  className={`rounded-lg border p-2 text-left ${active ? 'border-accent bg-card' : 'border-border bg-card'}`}
+                  onClick={() => pickPokemon(entry.id)}
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs font-bold text-accent">{entry.iconRef}</div>
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
+                      <p className="truncate text-[11px] text-textMuted">{entry.englishName}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-1">
-                  {entry.types.map((type) => (
-                    <TypeBadge key={type} type={type} />
-                  ))}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                  <div className="flex gap-1">
+                    {entry.types.map((type) => (
+                      <TypeBadge key={type} type={type} />
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </Card>
     </div>
   );

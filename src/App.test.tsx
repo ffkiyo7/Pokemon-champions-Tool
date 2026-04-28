@@ -85,17 +85,40 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '计算' }));
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
     expect(screen.getByText('当前队伍推荐')).toBeTruthy();
+    expect(screen.queryByText('小顿熊')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /防守方/ }));
     expect(await screen.findByText('选择防守方')).toBeTruthy();
-
-    await user.type(screen.getByPlaceholderText('搜索名称或属性'), 'Torkoal');
     const selector = screen.getByText('选择防守方').closest('section');
     expect(selector).toBeTruthy();
+
+    const recommendedGarchomp = within(selector as HTMLElement).getByRole('button', { name: /烈咬陆鲨/ });
+    await user.click(recommendedGarchomp);
+    const recommendedDefenderCard = screen.getByRole('button', { name: /防守方/ });
+    expect(within(recommendedDefenderCard).getByText('烈咬陆鲨 Garchomp')).toBeTruthy();
+    expect(recommendedGarchomp.getAttribute('aria-pressed')).toBe('true');
+
+    await user.type(screen.getByPlaceholderText('搜索名称或属性'), 'Torkoal');
     await user.click(within(selector as HTMLElement).getByText('コータス'));
 
     const defenderCard = screen.getByRole('button', { name: /防守方/ });
     expect(within(defenderCard).getByText('コータス Torkoal')).toBeTruthy();
     expect(screen.getByText('该机制待确认，计算暂不可用')).toBeTruthy();
+  });
+
+  it('filters the Pokedex Pokemon list by type chips', async () => {
+    const user = await renderApp();
+
+    await user.click(screen.getByRole('button', { name: '图鉴' }));
+    expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '火' }));
+    expect(screen.getAllByText('炽焰咆哮虎 Incineroar').length).toBeGreaterThan(0);
+    expect(screen.getByText('コータス Torkoal')).toBeTruthy();
+    expect(screen.queryByText('水君 Politoed')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '水' }));
+    expect(screen.getAllByText('水君 Politoed').length).toBeGreaterThan(0);
+    expect(screen.queryByText('炽焰咆哮虎 Incineroar')).toBeNull();
   });
 });

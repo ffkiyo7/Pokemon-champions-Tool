@@ -1,6 +1,8 @@
 export type VerificationStatus = 'official' | 'community-verified' | 'manual-review' | 'mock';
 export type LegalityStatus = 'legal' | 'illegal' | 'needs-review' | 'missing-config';
 export type BattleType = 'singles' | 'doubles';
+export type SourceType = 'official' | 'community' | 'derived' | 'manual-observation';
+export type LicenseRisk = 'low' | 'medium' | 'high' | 'blocked';
 export type PokemonType =
   | 'Normal'
   | 'Fire'
@@ -60,6 +62,27 @@ export type DataVersion = {
   sourceUrls: string[];
   verificationStatus: VerificationStatus;
   notes: string;
+};
+
+export type SourceRef = {
+  id: string;
+  url: string;
+  sourceType: SourceType;
+  licenseRisk: LicenseRisk;
+  retrievedAt: string;
+  sourceVersion?: string;
+  sourcePath?: string;
+  fieldsUsed: string[];
+  notes?: string;
+};
+
+export type DataSourceManifest = {
+  id: string;
+  ruleSetId: string;
+  mode: 'versioned-seed' | 'official-ingestion';
+  sources: SourceRef[];
+  reviewPolicy: string;
+  blockedMechanisms: string[];
 };
 
 export type PokemonForm = {

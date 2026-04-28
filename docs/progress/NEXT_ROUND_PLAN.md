@@ -4,9 +4,9 @@
 
 ## 当前状态
 
-- `master` 已推送到 `origin/master`，远端最新提交：`25c71fa Improve mobile team and calc interactions`。
-- 本地最新提交：`730f7f0 Add regression tests and align product docs`，当前分支领先远端 1 个提交。
-- `npm test` 通过：9 个测试文件，35 个用例。
+- `master` 已与 `origin/master` 同步，远端最新提交：`ed170ee Add mobile visual regression baselines`。
+- 本地已有未提交开发改动：真实数据 provenance/sourceRefs 骨架。
+- `npm test` 通过：9 个测试文件，37 个用例。
 - `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，8 张基线截图。
 - `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归。
 - `npm run build` 通过：生产包可生成。
@@ -45,6 +45,7 @@
    - 让 catalog rows 的 `sourceRefs` 可以解析到真实来源记录。
    - 在 seed data audit 中增加 source ref 存在性检查。
    - 保持 mock / manual-review 数据不能输出强合法结论。
+   - 状态：已完成。
 
 5. 准备首批真实 Reg M-A allowlist seed
    - 按 `docs/research/DATA_SOURCE_RESEARCH.md` 的首批范围执行。
@@ -74,4 +75,4 @@ npm run test:pwa
 npm run build
 ```
 
-下一步从第 4 项开始：建立真实数据 provenance 骨架。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线和视觉回归测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。
+下一步从第 5 项开始：准备首批真实 Reg M-A allowlist seed。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线和视觉回归测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。

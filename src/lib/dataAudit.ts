@@ -1,8 +1,10 @@
-import { abilities, currentDataVersion, currentRuleSet, defaultTeams, items, moves, pokemon, speedBenchmarks } from '../data';
+import { abilities, currentDataVersion, currentRuleSet, dataSourceManifest, defaultTeams, items, moves, pokemon, speedBenchmarks } from '../data';
 
 export type DataAuditIssue = {
   code:
     | 'missing-source-ref'
+    | 'unresolved-source-ref'
+    | 'blocked-source-ref'
     | 'version-mismatch'
     | 'missing-pokemon-ref'
     | 'missing-ability-ref'
@@ -15,7 +17,29 @@ export type DataAuditIssue = {
 
 const issue = (code: DataAuditIssue['code'], message: string): DataAuditIssue => ({ code, message });
 
-const hasSourceRefs = (entry: { sourceRefs: string[] }) => entry.sourceRefs.length > 0 && entry.sourceRefs.every(Boolean);
+const sourceRefsById = new Map(dataSourceManifest.sources.map((sourceRef) => [sourceRef.id, sourceRef]));
+
+export function auditSourceRefs(label: string, sourceRefs: string[]): DataAuditIssue[] {
+  const issues: DataAuditIssue[] = [];
+
+  if (sourceRefs.length === 0 || sourceRefs.some((sourceRef) => !sourceRef)) {
+    issues.push(issue('missing-source-ref', `${label} is missing sourceRefs.`));
+  }
+
+  sourceRefs.filter(Boolean).forEach((sourceRefId) => {
+    const sourceRef = sourceRefsById.get(sourceRefId);
+    if (!sourceRef) {
+      issues.push(issue('unresolved-source-ref', `${label} references unknown sourceRef ${sourceRefId}.`));
+      return;
+    }
+
+    if (sourceRef.licenseRisk === 'blocked') {
+      issues.push(issue('blocked-source-ref', `${label} references blocked sourceRef ${sourceRefId}.`));
+    }
+  });
+
+  return issues;
+}
 
 export function auditSeedData(): DataAuditIssue[] {
   const issues: DataAuditIssue[] = [];
@@ -25,7 +49,7 @@ export function auditSeedData(): DataAuditIssue[] {
   const itemIds = new Set(items.map((entry) => entry.id));
 
   pokemon.forEach((entry) => {
-    if (!hasSourceRefs(entry)) issues.push(issue('missing-source-ref', `Pokemon ${entry.id} is missing sourceRefs.`));
+    issues.push(...auditSourceRefs(`Pokemon ${entry.id}`, entry.sourceRefs));
 
     entry.abilities.forEach((abilityId) => {
       if (!abilityIds.has(abilityId)) issues.push(issue('missing-ability-ref', `Pokemon ${entry.id} references unknown ability ${abilityId}.`));
@@ -36,7 +60,7 @@ export function auditSeedData(): DataAuditIssue[] {
     });
 
     entry.megaForms.forEach((form) => {
-      if (!hasSourceRefs(form)) issues.push(issue('missing-source-ref', `Mega form ${form.id} is missing sourceRefs.`));
+      issues.push(...auditSourceRefs(`Mega form ${form.id}`, form.sourceRefs));
       if (form.requiredItemId && !itemIds.has(form.requiredItemId)) {
         issues.push(issue('missing-item-ref', `Mega form ${form.id} references unknown item ${form.requiredItemId}.`));
       }
@@ -47,21 +71,21 @@ export function auditSeedData(): DataAuditIssue[] {
   });
 
   moves.forEach((entry) => {
-    if (!hasSourceRefs(entry)) issues.push(issue('missing-source-ref', `Move ${entry.id} is missing sourceRefs.`));
+    issues.push(...auditSourceRefs(`Move ${entry.id}`, entry.sourceRefs));
     entry.learnableByPokemonIds.forEach((pokemonId) => {
       if (!pokemonIds.has(pokemonId)) issues.push(issue('missing-pokemon-ref', `Move ${entry.id} references unknown Pokemon ${pokemonId}.`));
     });
   });
 
   items.forEach((entry) => {
-    if (!hasSourceRefs(entry)) issues.push(issue('missing-source-ref', `Item ${entry.id} is missing sourceRefs.`));
+    issues.push(...auditSourceRefs(`Item ${entry.id}`, entry.sourceRefs));
     entry.applicablePokemonIds.forEach((pokemonId) => {
       if (!pokemonIds.has(pokemonId)) issues.push(issue('missing-pokemon-ref', `Item ${entry.id} references unknown Pokemon ${pokemonId}.`));
     });
   });
 
   abilities.forEach((entry) => {
-    if (!hasSourceRefs(entry)) issues.push(issue('missing-source-ref', `Ability ${entry.id} is missing sourceRefs.`));
+    issues.push(...auditSourceRefs(`Ability ${entry.id}`, entry.sourceRefs));
     entry.pokemonIds.forEach((pokemonId) => {
       if (!pokemonIds.has(pokemonId)) issues.push(issue('missing-pokemon-ref', `Ability ${entry.id} references unknown Pokemon ${pokemonId}.`));
     });

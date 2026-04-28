@@ -4,10 +4,20 @@ import { abilities, items, moves, pokemon } from '../data';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { useAppStore } from '../state/AppContext';
-import type { Pokemon } from '../types';
+import type { Pokemon, PokemonType } from '../types';
 import { Button, Card, Chip, EmptyState, TypeBadge } from '../components/ui';
 
 type DexTab = 'pokemon' | 'moves' | 'items' | 'abilities';
+type TypeFilter = { label: string; value: PokemonType | 'all' };
+
+const typeFilters: TypeFilter[] = [
+  { label: '全部', value: 'all' },
+  { label: '火', value: 'Fire' },
+  { label: '水', value: 'Water' },
+  { label: '地面', value: 'Ground' },
+  { label: '龙', value: 'Dragon' },
+  { label: '冰', value: 'Ice' },
+];
 
 function PokemonDetail({
   entry,
@@ -95,13 +105,19 @@ export function DexPage({
 }) {
   const [tab, setTab] = useState<DexTab>('pokemon');
   const [query, setQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<PokemonType | 'all'>('all');
   const [selectedPokemonId, setSelectedPokemonId] = useState('garchomp');
-  const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? pokemon[0];
 
   const filteredPokemon = useMemo(
-    () => pokemon.filter((entry) => `${entry.chineseName} ${entry.englishName} ${entry.types.join(' ')}`.toLowerCase().includes(query.toLowerCase())),
-    [query],
+    () =>
+      pokemon.filter((entry) => {
+        const matchesQuery = `${entry.chineseName} ${entry.englishName} ${entry.types.join(' ')}`.toLowerCase().includes(query.toLowerCase());
+        const matchesType = selectedType === 'all' || entry.types.includes(selectedType);
+        return matchesQuery && matchesType;
+      }),
+    [query, selectedType],
   );
+  const selected = filteredPokemon.find((entry) => entry.id === selectedPokemonId) ?? filteredPokemon[0] ?? pokemon.find((entry) => entry.id === selectedPokemonId) ?? pokemon[0];
 
   return (
     <div className="space-y-3">
@@ -136,10 +152,10 @@ export function DexPage({
       {tab === 'pokemon' && (
         <>
           <div className="flex gap-2 overflow-x-auto hide-scrollbar">
-            {['全部', '火', '水', '地面', '龙', '冰'].map((label, index) => (
-              <Chip key={label} active={index === 0}>
-                {label}
-              </Chip>
+            {typeFilters.map((filter) => (
+              <button key={filter.value} type="button" onClick={() => setSelectedType(filter.value)} aria-pressed={selectedType === filter.value}>
+                <Chip active={selectedType === filter.value}>{filter.label}</Chip>
+              </button>
             ))}
           </div>
           {filteredPokemon.length === 0 ? (
