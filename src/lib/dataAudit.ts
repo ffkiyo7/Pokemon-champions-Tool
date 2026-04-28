@@ -1,10 +1,25 @@
-import { abilities, currentDataVersion, currentRuleSet, dataSourceManifest, defaultTeams, items, moves, pokemon, speedBenchmarks } from '../data';
+import {
+  abilities,
+  currentDataVersion,
+  currentRuleSet,
+  dataSourceManifest,
+  defaultTeams,
+  items,
+  moves,
+  pokemon,
+  regMaPokemonAllowlist,
+  regMaPokemonAllowlistExpectedCount,
+  speedBenchmarks,
+} from '../data';
 
 export type DataAuditIssue = {
   code:
     | 'missing-source-ref'
     | 'unresolved-source-ref'
     | 'blocked-source-ref'
+    | 'allowlist-count-mismatch'
+    | 'duplicate-allowlist-entry'
+    | 'allowlist-catalog-mismatch'
     | 'version-mismatch'
     | 'missing-pokemon-ref'
     | 'missing-ability-ref'
@@ -47,6 +62,16 @@ export function auditSeedData(): DataAuditIssue[] {
   const abilityIds = new Set(abilities.map((entry) => entry.id));
   const moveIds = new Set(moves.map((entry) => entry.id));
   const itemIds = new Set(items.map((entry) => entry.id));
+  const allowlistChampionsFormIds = new Set<string>();
+
+  if (regMaPokemonAllowlist.length !== regMaPokemonAllowlistExpectedCount) {
+    issues.push(
+      issue(
+        'allowlist-count-mismatch',
+        `Reg M-A allowlist has ${regMaPokemonAllowlist.length} rows, expected ${regMaPokemonAllowlistExpectedCount}.`,
+      ),
+    );
+  }
 
   pokemon.forEach((entry) => {
     issues.push(...auditSourceRefs(`Pokemon ${entry.id}`, entry.sourceRefs));
@@ -89,6 +114,23 @@ export function auditSeedData(): DataAuditIssue[] {
     entry.pokemonIds.forEach((pokemonId) => {
       if (!pokemonIds.has(pokemonId)) issues.push(issue('missing-pokemon-ref', `Ability ${entry.id} references unknown Pokemon ${pokemonId}.`));
     });
+  });
+
+  regMaPokemonAllowlist.forEach((entry) => {
+    issues.push(...auditSourceRefs(`Allowlist ${entry.id}`, entry.sourceRefs));
+
+    if (allowlistChampionsFormIds.has(entry.championsFormId)) {
+      issues.push(issue('duplicate-allowlist-entry', `Allowlist form ${entry.championsFormId} appears more than once.`));
+    }
+    allowlistChampionsFormIds.add(entry.championsFormId);
+
+    if (entry.pokemonId && !pokemonIds.has(entry.pokemonId)) {
+      issues.push(issue('allowlist-catalog-mismatch', `Allowlist ${entry.id} maps to unknown Pokemon ${entry.pokemonId}.`));
+    }
+
+    if (!entry.championsFormId.startsWith(entry.nationalDexNo.toString().padStart(4, '0'))) {
+      issues.push(issue('allowlist-catalog-mismatch', `Allowlist ${entry.id} does not match its National Dex number.`));
+    }
   });
 
   speedBenchmarks.forEach((entry) => {

@@ -9,7 +9,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:pwa": "playwright test",
-    "test:visual": "playwright test tests/pwa/visual.spec.ts"
+    "test:visual": "playwright test tests/pwa/visual.spec.ts",
+    "data:regma:allowlist": "node scripts/generate-regma-allowlist.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

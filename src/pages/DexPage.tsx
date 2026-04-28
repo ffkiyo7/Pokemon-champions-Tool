@@ -55,11 +55,11 @@ function PokemonDetail({
         <div className="grid h-14 w-14 place-items-center rounded-full bg-elevated text-lg font-bold text-accent">{entry.iconRef}</div>
         <div className="min-w-0">
           <h3 className="text-base font-semibold">{entry.chineseName} {entry.englishName}</h3>
-          <div className="mt-1 flex gap-1">
+          <div className="mt-1 flex flex-wrap items-center gap-1">
             {entry.types.map((type) => (
               <TypeBadge key={type} type={type} />
             ))}
-            {entry.canMega && <Chip>Mega 可用</Chip>}
+            {entry.canMega && <Chip className="h-5 items-center leading-none">Mega 可用</Chip>}
           </div>
         </div>
       </div>

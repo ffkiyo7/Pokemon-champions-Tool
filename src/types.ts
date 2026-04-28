@@ -85,6 +85,18 @@ export type DataSourceManifest = {
   blockedMechanisms: string[];
 };
 
+export type EligiblePokemon = {
+  id: string;
+  pokemonId?: string;
+  championsFormId: string;
+  nationalDexNo: number;
+  englishName: string;
+  formName?: string;
+  verificationStatus: VerificationStatus;
+  sourceRefs: string[];
+  reviewNotes: string;
+};
+
 export type PokemonForm = {
   id: string;
   pokemonId: string;

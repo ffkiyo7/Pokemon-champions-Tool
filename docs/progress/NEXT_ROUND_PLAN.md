@@ -4,9 +4,9 @@
 
 ## 当前状态
 
-- `master` 已与 `origin/master` 同步，远端最新提交：`ed170ee Add mobile visual regression baselines`。
-- 本地已有未提交开发改动：真实数据 provenance/sourceRefs 骨架。
-- `npm test` 通过：9 个测试文件，37 个用例。
+- `master` 本地领先 `origin/master` 1 个提交：`986e0cf Add source provenance audit and fix selectors`。
+- 本地已有未提交开发改动：完整真实 Reg M-A Pokemon allowlist seed。
+- `npm test` 通过：9 个测试文件，39 个用例。
 - `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，8 张基线截图。
 - `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归。
 - `npm run build` 通过：生产包可生成。
@@ -52,6 +52,7 @@
    - 优先接官方规则元信息、Eligible Pokemon allowlist、Mega allowlist。
    - 每条数据必须有 source ref、检索时间和复核状态。
    - 在二次复核前全部保持 `manual-review`。
+   - 状态：已完成完整 Pokemon allowlist seed（213 行）和生成脚本；Mega allowlist 待扩展。
 
 ## 本轮验收标准
 
@@ -75,4 +76,4 @@ npm run test:pwa
 npm run build
 ```
 
-下一步从第 5 项开始：准备首批真实 Reg M-A allowlist seed。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线和视觉回归测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。
+下一步从第 5 项的扩展工作继续：补 Reg M-A Mega allowlist seed，并逐步做 Pokemon catalog join。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线和视觉回归测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。

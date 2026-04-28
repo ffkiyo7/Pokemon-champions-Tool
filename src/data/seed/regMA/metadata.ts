@@ -1,5 +1,7 @@
 import type { DataSourceManifest, DataVersion, RuleSet, UserPreference } from '../../../types';
 
+export const officialEligiblePokemonUrl = 'https://web-view.app.pokemonchampions.jp/battle/pages/events/rs177501629259kmzbny/en/pokemon.html';
+
 export const currentRuleSet: RuleSet = {
   id: 'reg-ma',
   name: 'Regulation Set M-A',
@@ -27,7 +29,7 @@ export const currentDataVersion: DataVersion = {
   versionName: 'v0.2.0-seed',
   updatedAt: '2026-04-26T16:00:00.000Z',
   sourceSummary: 'Versioned MVP seed data. Official rule metadata is tracked separately from manually reviewed catalog entries.',
-  sourceUrls: [currentRuleSet.officialSourceUrl],
+  sourceUrls: [currentRuleSet.officialSourceUrl, officialEligiblePokemonUrl],
   verificationStatus: 'manual-review',
   notes: 'Seed data is structured for validation and UI flow. Do not treat catalog legality or damage output as final battle guidance.',
 };
@@ -71,6 +73,16 @@ export const dataSourceManifest: DataSourceManifest = {
       sourcePath: 'src/data/seed/regMA/catalog.ts',
       fieldsUsed: ['pokemon', 'forms', 'abilities', 'moves', 'items', 'learnsets', 'baseStats'],
       notes: 'Hand-authored MVP seed data for UI validation. Rows with this ref must stay needs-review.',
+    },
+    {
+      id: 'reg-ma-official-eligible-pokemon',
+      url: officialEligiblePokemonUrl,
+      sourceType: 'official',
+      licenseRisk: 'medium',
+      retrievedAt: '2026-04-28T15:20:00.000Z',
+      sourceVersion: 'row-count-213',
+      fieldsUsed: ['eligiblePokemon.championsFormId', 'eligiblePokemon.nationalDexNo', 'eligiblePokemon.englishName'],
+      notes: 'Official public web-view Eligible Pokemon page. Local allowlist rows are generated from its public payload and remain manual-review until a second pass verifies row count and normalization.',
     },
   ],
   reviewPolicy: 'Every catalog row must retain sourceRefs and verificationStatus before being used for strong legality conclusions.',

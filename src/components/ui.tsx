@@ -95,7 +95,7 @@ const typeColors: Record<PokemonType, string> = {
 export function TypeBadge({ type }: { type: PokemonType }) {
   return (
     <span
-      className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+      className="inline-flex h-5 min-w-12 shrink-0 items-center justify-center rounded px-1.5 text-[10px] font-semibold leading-none"
       style={{ backgroundColor: `${typeColors[type]}24`, color: typeColors[type] }}
     >
       {type}

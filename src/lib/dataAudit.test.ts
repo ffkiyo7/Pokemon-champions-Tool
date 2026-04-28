@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currentDataVersion, dataSourceManifest, defaultTeams, speedBenchmarks } from '../data';
+import { currentDataVersion, dataSourceManifest, defaultTeams, regMaPokemonAllowlist, regMaPokemonAllowlistExpectedCount, speedBenchmarks } from '../data';
 import { auditSeedData, auditSourceRefs } from './dataAudit';
 
 describe('seed data audit', () => {
@@ -11,8 +11,22 @@ describe('seed data audit', () => {
     const sourceRefIds = new Set(dataSourceManifest.sources.map((sourceRef) => sourceRef.id));
 
     expect(sourceRefIds.has('reg-ma-official-rule')).toBe(true);
+    expect(sourceRefIds.has('reg-ma-official-eligible-pokemon')).toBe(true);
     expect(sourceRefIds.has('manual-seed-review')).toBe(true);
     expect(auditSourceRefs('Test row', ['reg-ma-official-rule'])).toEqual([]);
+  });
+
+  it('keeps the official Reg M-A allowlist traceable to catalog rows', () => {
+    expect(regMaPokemonAllowlistExpectedCount).toBe(213);
+    expect(regMaPokemonAllowlist).toHaveLength(regMaPokemonAllowlistExpectedCount);
+    expect(regMaPokemonAllowlist).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ championsFormId: '0445-000', englishName: 'Garchomp', pokemonId: 'garchomp' }),
+        expect.objectContaining({ championsFormId: '0727-000', englishName: 'Incineroar', pokemonId: 'incineroar' }),
+      ]),
+    );
+    expect(regMaPokemonAllowlist.some((entry) => entry.englishName === 'Cetitan')).toBe(false);
+    expect(regMaPokemonAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
   });
 
   it('reports source refs that are not present in the manifest', () => {

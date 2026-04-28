@@ -120,5 +120,13 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '水' }));
     expect(screen.getAllByText('水君 Politoed').length).toBeGreaterThan(0);
     expect(screen.queryByText('炽焰咆哮虎 Incineroar')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: '地面' }));
+    expect(screen.getAllByText('烈咬陆鲨 Garchomp').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Ground').length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole('button', { name: '龙' }));
+    expect(screen.getAllByText('烈咬陆鲨 Garchomp').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Dragon').length).toBeGreaterThan(0);
   });
 });
