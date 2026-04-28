@@ -1,6 +1,6 @@
 # Pokemon Champions 对战助手开发进度表
 
-更新时间：2026-04-28
+更新时间：2026-04-29
 
 当前阶段：**可运行 PWA MVP 已完成，正在进入“可信数据与计算验证”阶段。**
 
@@ -19,7 +19,7 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：9 个测试文件，39 个用例
+- [x] `npm test` 通过：9 个测试文件，40 个用例
 - [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，8 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
@@ -46,6 +46,7 @@ npm run build
 - [x] 移动端视觉回归最小集：390px 视口覆盖组队、计算、速度线、图鉴、设置、规则详情
 - [x] 真实数据 provenance/sourceRefs 骨架：类型化 source ref manifest 与 audit 解析检查
 - [x] 完整真实 Reg M-A Pokemon allowlist seed：官方 Eligible Pokemon 页面 213 行、本地生成脚本、catalog 映射审计
+- [x] 首批 6 只真实 Pokemon catalog：妙蛙花、喷火龙、蚊香蛙皇、煤炭龟、烈咬陆鲨、炽焰咆哮虎，含真实头像外链
 - [ ] 完整真实 Reg M-A 数据源接入
 - [ ] Champions 机制确认
 - [ ] 正式伤害计算
@@ -165,10 +166,11 @@ npm run build
 - [x] seed data audit 检查首批 Reg M-A allowlist 来源、唯一性和 catalog 映射
 - [x] seed data audit 纳入测试
 - [x] 完整真实 Reg M-A Pokemon allowlist seed
+- [x] 首批 6 只真实 Pokemon catalog 数据
+- [x] 首批真实道具数据
+- [x] 首批真实招式数据
+- [x] 首批真实特性数据
 - [ ] 完整真实 Reg M-A Pokemon catalog 数据
-- [ ] 首批真实道具数据
-- [ ] 首批真实招式数据
-- [ ] 首批真实特性数据
 - [ ] 每条真实数据的来源链接和复核状态
 
 ### 机制确认
@@ -213,14 +215,15 @@ npm run build
 - [x] 移动端视觉回归测试
 - [x] source ref manifest 解析测试
 - [x] Reg M-A allowlist seed 解析测试
+- [x] 首批真实 catalog 头像 URL 测试
 
 ## 5. 当前风险与处理状态
 
 - [x] Reg M-A 完整合法列表已接入官方 Eligible Pokemon allowlist seed，但仍需二次复核和 catalog join
 - [ ] Champions Stat Points 机制未确认
 - [x] `@smogon/calc` 兼容性已调研：主线能力可用，Champions 特有机制仍阻断
-- [ ] 中文名、图标、简介资源授权未确认
-- [x] 数据源与授权风险已调研：v1 避免官方图片、官方描述和使用率数据
+- [ ] 中文名、图标、简介资源授权风险仍需产品确认
+- [x] 真实头像风险已按用户接受策略接入 PokeAPI official-artwork 外链
 - [x] 手机局域网测试中新建失败风险：通过 `createId` fallback 兜底
 - [x] seed data 不被误用为强合法结论：通过 `needs-review` 和测试约束
 - [x] 数据引用断裂风险：通过 `auditSeedData` 测试约束
@@ -245,6 +248,7 @@ npm run build
 - [x] 移动端视觉回归测试
 - [x] 建立真实数据 provenance 骨架
 - [x] 扩展完整 Reg M-A Pokemon allowlist seed
+- [x] 接入首批 6 只真实 Pokemon catalog 和真实头像
 - [ ] 补 Reg M-A Mega allowlist seed
 
 ## 7. 提交记录
@@ -260,3 +264,4 @@ npm run build
 - [x] `25c71fa`：优化手机端队伍和计算页交互
 - [x] `730f7f0`：新增回归测试并修正文档口径
 - [x] `986e0cf`：新增 source provenance audit 并修复选择器交互
+- [x] `3ef9bf0`：新增 Reg M-A allowlist seed

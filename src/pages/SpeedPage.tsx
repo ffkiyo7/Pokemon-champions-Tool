@@ -4,7 +4,7 @@ import { pokemon, speedBenchmarks } from '../data';
 import { buildTeamBenchmarks, calculateSpeed } from '../lib/calculations';
 import { useAppStore } from '../state/AppContext';
 import type { SpeedBenchmark, Team } from '../types';
-import { Button, Card, Chip, TypeBadge } from '../components/ui';
+import { Button, Card, Chip, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type BenchmarkFilter = 'team' | 'favorites' | 'preset' | 'all';
 
@@ -182,7 +182,9 @@ export function SpeedPage({
             </span>
           ))}
           <div className="absolute top-6 -translate-x-1/2 text-center" style={{ left: `${Math.min(96, Math.max(4, (currentSpeed / 250) * 100))}%` }}>
-            <div className="mx-auto grid h-8 w-8 place-items-center rounded-full bg-[#1e2a45] text-xs font-bold text-accent">{selected.iconRef}</div>
+            <div className="mx-auto">
+              <PokemonAvatar iconRef={selected.iconRef} label={`${selected.chineseName} ${selected.englishName}`} size="xs" />
+            </div>
             <div className="mx-auto h-12 w-px bg-accent/70" />
             <div className="mx-auto h-4 w-4 rotate-45 bg-accent" />
             <p className="mt-2 text-xs font-bold text-accent">{currentSpeed}</p>

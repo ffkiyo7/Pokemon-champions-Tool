@@ -7,6 +7,7 @@ const officialEligiblePokemonRefs = ['reg-ma-official-eligible-pokemon', 'manual
 export const regMaPokemonAllowlist: EligiblePokemon[] = [
   {
     id: 'reg-ma-0003-000',
+    pokemonId: 'venusaur',
     championsFormId: '0003-000',
     nationalDexNo: 3,
     englishName: 'Venusaur',
@@ -16,6 +17,7 @@ export const regMaPokemonAllowlist: EligiblePokemon[] = [
   },
   {
     id: 'reg-ma-0006-000',
+    pokemonId: 'charizard',
     championsFormId: '0006-000',
     nationalDexNo: 6,
     englishName: 'Charizard',

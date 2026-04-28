@@ -1,17 +1,26 @@
 # 下一轮开发准备
 
-更新时间：2026-04-28
+更新时间：2026-04-29
 
 ## 当前状态
 
-- `master` 本地领先 `origin/master` 1 个提交：`986e0cf Add source provenance audit and fix selectors`。
-- 本地已有未提交开发改动：完整真实 Reg M-A Pokemon allowlist seed。
-- `npm test` 通过：9 个测试文件，39 个用例。
+- `master` 本地领先 `origin/master` 2 个提交，最新提交：`3ef9bf0 Add Reg M-A allowlist seed`。
+- 本地已有未提交开发改动：首批 6 只真实 Pokemon catalog 与真实头像。
+- `npm test` 通过：9 个测试文件，40 个用例。
 - `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，8 张基线截图。
 - `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归。
 - `npm run build` 通过：生产包可生成。
 - 手机端核心体验已完成一轮修正：多队伍切换、队伍成员缩略卡、展开 / 收起、六项 SP 编辑、示例能力值、计算页攻防双方选择和全图鉴搜索。
 - 当前主要风险仍集中在真实 Reg M-A 数据和 Champions Stat Points 机制。
+- 用户已在手机端发现若干待修 bug，具体条目待下次会话补充；下一轮优先进入 bug triage，再继续扩数据。
+
+## 明日优先事项
+
+1. 先收集并复现用户发现的手机端 bug。
+2. 对每个 bug 补最小回归测试或 Playwright 视觉覆盖。
+3. 修复后跑 `npm test`、`npm run build`、`npm run test:pwa`。
+4. 确认 6 只真实 Pokemon catalog 与真实头像没有回退。
+5. bug 修完后再继续补 Reg M-A Mega allowlist seed。
 
 ## 建议本轮目标
 
@@ -52,7 +61,7 @@
    - 优先接官方规则元信息、Eligible Pokemon allowlist、Mega allowlist。
    - 每条数据必须有 source ref、检索时间和复核状态。
    - 在二次复核前全部保持 `manual-review`。
-   - 状态：已完成完整 Pokemon allowlist seed（213 行）和生成脚本；Mega allowlist 待扩展。
+   - 状态：已完成完整 Pokemon allowlist seed（213 行）和生成脚本，并接入首批 6 只真实 catalog 与头像；Mega allowlist 待扩展。
 
 ## 本轮验收标准
 
@@ -76,4 +85,4 @@ npm run test:pwa
 npm run build
 ```
 
-下一步从第 5 项的扩展工作继续：补 Reg M-A Mega allowlist seed，并逐步做 Pokemon catalog join。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线和视觉回归测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。
+下一步先处理用户反馈的手机端 bug；bug 收敛后，从第 5 项的扩展工作继续：补 Reg M-A Mega allowlist seed，并扩大 Pokemon catalog join 批次。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线和视觉回归测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。

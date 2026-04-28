@@ -99,10 +99,10 @@ describe('App page flows', () => {
     expect(recommendedGarchomp.getAttribute('aria-pressed')).toBe('true');
 
     await user.type(screen.getByPlaceholderText('搜索名称或属性'), 'Torkoal');
-    await user.click(within(selector as HTMLElement).getByText('コータス'));
+    await user.click(within(selector as HTMLElement).getByText('煤炭龟'));
 
     const defenderCard = screen.getByRole('button', { name: /防守方/ });
-    expect(within(defenderCard).getByText('コータス Torkoal')).toBeTruthy();
+    expect(within(defenderCard).getByText('煤炭龟 Torkoal')).toBeTruthy();
     expect(screen.getByText('该机制待确认，计算暂不可用')).toBeTruthy();
   });
 
@@ -114,11 +114,12 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: '火' }));
     expect(screen.getAllByText('炽焰咆哮虎 Incineroar').length).toBeGreaterThan(0);
-    expect(screen.getByText('コータス Torkoal')).toBeTruthy();
-    expect(screen.queryByText('水君 Politoed')).toBeNull();
+    expect(screen.getByText('煤炭龟 Torkoal')).toBeTruthy();
+    expect(screen.getAllByText('喷火龙 Charizard').length).toBeGreaterThan(0);
+    expect(screen.queryByText('蚊香蛙皇 Politoed')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '水' }));
-    expect(screen.getAllByText('水君 Politoed').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('蚊香蛙皇 Politoed').length).toBeGreaterThan(0);
     expect(screen.queryByText('炽焰咆哮虎 Incineroar')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '地面' }));

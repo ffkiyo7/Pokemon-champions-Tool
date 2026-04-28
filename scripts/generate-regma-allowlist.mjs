@@ -3,6 +3,8 @@ import { writeFile } from 'node:fs/promises';
 const sourceUrl = 'https://web-view.app.pokemonchampions.jp/battle/pages/events/rs177501629259kmzbny/en/pokemon.html';
 const outputPath = new URL('../src/data/seed/regMA/allowlist.ts', import.meta.url);
 const catalogPokemonIdsByEnglishName = new Map([
+  ['Venusaur', 'venusaur'],
+  ['Charizard', 'charizard'],
   ['Garchomp', 'garchomp'],
   ['Incineroar', 'incineroar'],
   ['Politoed', 'politoed'],

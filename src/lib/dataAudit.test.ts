@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { currentDataVersion, dataSourceManifest, defaultTeams, regMaPokemonAllowlist, regMaPokemonAllowlistExpectedCount, speedBenchmarks } from '../data';
+import { currentDataVersion, dataSourceManifest, defaultTeams, pokemon, regMaPokemonAllowlist, regMaPokemonAllowlistExpectedCount, speedBenchmarks } from '../data';
 import { auditSeedData, auditSourceRefs } from './dataAudit';
 
 describe('seed data audit', () => {
@@ -27,6 +27,11 @@ describe('seed data audit', () => {
     );
     expect(regMaPokemonAllowlist.some((entry) => entry.englishName === 'Cetitan')).toBe(false);
     expect(regMaPokemonAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
+  });
+
+  it('keeps the first six real catalog rows on real artwork URLs', () => {
+    expect(pokemon.map((entry) => entry.id)).toEqual(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']);
+    expect(pokemon.every((entry) => entry.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
   });
 
   it('reports source refs that are not present in the manifest', () => {

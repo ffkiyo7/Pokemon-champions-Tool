@@ -4,7 +4,7 @@ import { moves, pokemon } from '../data';
 import { memberLabel } from '../lib/calculations';
 import { useAppStore } from '../state/AppContext';
 import type { Pokemon, TeamMember } from '../types';
-import { Badge, Button, Card, Chip, TypeBadge } from '../components/ui';
+import { Badge, Button, Card, Chip, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type CalcSide = 'attacker' | 'defender';
 
@@ -189,7 +189,9 @@ export function CalculatorPage({
                   }`}
                   onClick={() => pickTeamMember(member)}
                 >
-                  <div className="mb-2 grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs font-bold text-accent">{entry.iconRef}</div>
+                  <div className="mb-2">
+                    <PokemonAvatar iconRef={entry.iconRef} label={`${entry.chineseName} ${entry.englishName}`} />
+                  </div>
                   <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
                   <p className="truncate text-[11px] text-textMuted">{teamName}</p>
                 </button>
@@ -209,7 +211,7 @@ export function CalculatorPage({
                   onClick={() => pickPokemon(entry.id)}
                 >
                   <div className="mb-2 flex items-center gap-2">
-                    <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs font-bold text-accent">{entry.iconRef}</div>
+                    <PokemonAvatar iconRef={entry.iconRef} label={`${entry.chineseName} ${entry.englishName}`} />
                     <div className="min-w-0">
                       <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
                       <p className="truncate text-[11px] text-textMuted">{entry.englishName}</p>

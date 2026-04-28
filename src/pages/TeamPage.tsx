@@ -7,7 +7,7 @@ import { evaluateMemberLegality } from '../lib/legality';
 import { useAppStore } from '../state/AppContext';
 import type { Team, TeamMember } from '../types';
 import { RuleSummary, SyncStrip } from '../components/RuleSummary';
-import { Badge, Button, Card, Chip, EmptyState, TypeBadge } from '../components/ui';
+import { Badge, Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
 
 const blankMember = (): TeamMember => ({
   id: createId('member'),
@@ -54,8 +54,8 @@ function MemberCard({
     <Card className={`${expanded ? 'col-span-2' : ''} bg-card`}>
       <button className="block w-full text-left" onClick={() => onToggle(member.id)}>
         <div className={expanded ? 'flex gap-3' : 'flex flex-col items-center text-center'}>
-          <div className={`${expanded ? 'h-11 w-11 text-sm' : 'mb-2 h-14 w-14 text-lg'} grid shrink-0 place-items-center rounded-full bg-elevated font-bold text-accent`}>
-            {entry?.iconRef ?? '?'}
+          <div className={expanded ? '' : 'mb-2'}>
+            <PokemonAvatar iconRef={entry?.iconRef} label={entry ? `${entry.chineseName} ${entry.englishName}` : '未配置 Pokemon'} size={expanded ? 'md' : 'lg'} />
           </div>
           <div className="min-w-0 flex-1">
             <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex items-center gap-2`}>

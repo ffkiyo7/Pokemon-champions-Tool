@@ -5,7 +5,7 @@ import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { useAppStore } from '../state/AppContext';
 import type { Pokemon, PokemonType } from '../types';
-import { Button, Card, Chip, EmptyState, TypeBadge } from '../components/ui';
+import { Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type DexTab = 'pokemon' | 'moves' | 'items' | 'abilities';
 type TypeFilter = { label: string; value: PokemonType | 'all' };
@@ -52,7 +52,7 @@ function PokemonDetail({
   return (
     <Card>
       <div className="mb-3 flex gap-3">
-        <div className="grid h-14 w-14 place-items-center rounded-full bg-elevated text-lg font-bold text-accent">{entry.iconRef}</div>
+        <PokemonAvatar iconRef={entry.iconRef} label={`${entry.chineseName} ${entry.englishName}`} size="lg" />
         <div className="min-w-0">
           <h3 className="text-base font-semibold">{entry.chineseName} {entry.englishName}</h3>
           <div className="mt-1 flex flex-wrap items-center gap-1">
@@ -165,7 +165,7 @@ export function DexPage({
               {filteredPokemon.map((entry) => (
                 <button key={entry.id} className="w-full" onClick={() => setSelectedPokemonId(entry.id)}>
                   <Card className={`flex items-center gap-3 text-left ${entry.id === selected.id ? 'border-accent/70' : ''}`}>
-                    <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs font-bold text-accent">{entry.iconRef}</div>
+                    <PokemonAvatar iconRef={entry.iconRef} label={`${entry.chineseName} ${entry.englishName}`} />
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-sm font-semibold">{entry.chineseName} {entry.englishName}</h3>
                       <p className="text-xs text-textSecondary">{entry.canMega ? 'Mega 可用' : '当前规则候选'}</p>
