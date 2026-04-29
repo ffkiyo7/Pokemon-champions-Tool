@@ -1,5 +1,6 @@
-import type { BaseStats, Pokemon, SpeedBenchmark, Team, TeamMember } from '../types';
+import type { BaseStats, Pokemon, PokemonType, SpeedBenchmark, Team, TeamMember } from '../types';
 import { items, pokemon } from '../data';
+import { clampStatPointValue } from './statPoints';
 
 const natureSpeedMultiplier: Record<string, number> = {
   爽朗: 1.1,
@@ -19,8 +20,8 @@ const natureStatMultipliers: Record<string, Partial<Record<keyof BaseStats, numb
   怕慢: { speed: 1.1 },
 };
 
-export const calculateSpeed = (baseSpeed: number, investment = 0, level = 50, nature = '爽朗', tailwind = false, iv = 31) => {
-  const stat = Math.floor(((2 * baseSpeed + iv + Math.floor(investment / 4)) * level) / 100 + 5);
+export const calculateSpeed = (baseSpeed: number, statPoints = 0, level = 50, nature = '爽朗', tailwind = false) => {
+  const stat = baseSpeed + clampStatPointValue(statPoints) + 20;
   const natureKey = Object.keys(natureSpeedMultiplier).find((key) => nature.includes(key));
   const withNature = Math.floor(stat * (natureKey ? natureSpeedMultiplier[natureKey] : 1));
   return tailwind ? withNature * 2 : withNature;
@@ -42,19 +43,17 @@ export type SpeedCalculationResult =
 
 export const calculateSpeedWithMechanismGate = ({
   baseSpeed,
-  investment = 0,
+  statPoints = 0,
   level = 50,
   nature = '爽朗',
   tailwind = false,
-  iv = 31,
   mechanismStatus,
 }: {
   baseSpeed: number;
-  investment?: number;
+  statPoints?: number;
   level?: number;
   nature?: string;
   tailwind?: boolean;
-  iv?: number;
   mechanismStatus: SpeedMechanismStatus;
 }): SpeedCalculationResult => {
   if (mechanismStatus !== 'confirmed') {
@@ -66,8 +65,8 @@ export const calculateSpeedWithMechanismGate = ({
 
   return {
     status: 'confirmed',
-    finalSpeed: calculateSpeed(baseSpeed, investment, level, nature, tailwind, iv),
-    explanation: 'Computed with confirmed Lv.50 base speed, investment, nature, and tailwind modifiers.',
+    finalSpeed: calculateSpeed(baseSpeed, statPoints, level, nature, tailwind),
+    explanation: 'Computed with confirmed Champions Lv.50 base speed, Stat Points, nature, and tailwind modifiers.',
   };
 };
 
@@ -85,18 +84,18 @@ const natureMultiplier = (nature: string, stat: keyof BaseStats) => {
   return natureKey ? natureStatMultipliers[natureKey][stat] ?? 1 : 1;
 };
 
-const calculateNonHpStat = (base: number, investment = 0, level = 50, nature = '爽朗', stat: keyof BaseStats, iv = 31) => {
-  const raw = Math.floor(((2 * base + iv + Math.floor(investment / 4)) * level) / 100 + 5);
+const calculateNonHpStat = (base: number, statPoints = 0, level = 50, nature = '爽朗', stat: keyof BaseStats) => {
+  const raw = base + clampStatPointValue(statPoints) + 20;
   return Math.floor(raw * natureMultiplier(nature, stat));
 };
 
-export const calculateBattleStats = (baseStats: BaseStats, statPoints: TeamMember['statPoints'], level = 50, nature = '爽朗', iv = 31): BaseStats => ({
-  hp: Math.floor(((2 * baseStats.hp + iv + Math.floor((statPoints.hp ?? 0) / 4)) * level) / 100 + level + 10),
-  attack: calculateNonHpStat(baseStats.attack, statPoints.attack ?? 0, level, nature, 'attack', iv),
-  defense: calculateNonHpStat(baseStats.defense, statPoints.defense ?? 0, level, nature, 'defense', iv),
-  specialAttack: calculateNonHpStat(baseStats.specialAttack, statPoints.specialAttack ?? 0, level, nature, 'specialAttack', iv),
-  specialDefense: calculateNonHpStat(baseStats.specialDefense, statPoints.specialDefense ?? 0, level, nature, 'specialDefense', iv),
-  speed: calculateNonHpStat(baseStats.speed, statPoints.speed ?? 0, level, nature, 'speed', iv),
+export const calculateBattleStats = (baseStats: BaseStats, statPoints: TeamMember['statPoints'], level = 50, nature = '爽朗'): BaseStats => ({
+  hp: baseStats.hp + clampStatPointValue(statPoints.hp ?? 0) + 75,
+  attack: calculateNonHpStat(baseStats.attack, statPoints.attack ?? 0, level, nature, 'attack'),
+  defense: calculateNonHpStat(baseStats.defense, statPoints.defense ?? 0, level, nature, 'defense'),
+  specialAttack: calculateNonHpStat(baseStats.specialAttack, statPoints.specialAttack ?? 0, level, nature, 'specialAttack'),
+  specialDefense: calculateNonHpStat(baseStats.specialDefense, statPoints.specialDefense ?? 0, level, nature, 'specialDefense'),
+  speed: calculateNonHpStat(baseStats.speed, statPoints.speed ?? 0, level, nature, 'speed'),
 });
 
 export const getPokemon = (id?: string) => pokemon.find((entry) => entry.id === id);
@@ -108,7 +107,14 @@ export const memberLabel = (member: TeamMember) => {
 
 export const memberSpeed = (member: TeamMember) => {
   const found = getPokemon(member.pokemonId);
-  return calculateSpeed(found?.baseStats.speed ?? 50, member.statPoints.speed ?? 0, member.level, member.nature);
+  const result = calculateSpeedWithMechanismGate({
+    baseSpeed: found?.baseStats.speed ?? 50,
+    statPoints: member.statPoints.speed ?? 0,
+    level: member.level,
+    nature: member.nature,
+    mechanismStatus: 'confirmed',
+  });
+  return result.status === 'confirmed' ? result.finalSpeed : 0;
 };
 
 export const memberBattleStats = (member: TeamMember) => {
@@ -126,7 +132,7 @@ export const buildTeamBenchmarks = (team: Team): SpeedBenchmark[] =>
         name: found ? `${found.chineseName} 队内` : '队内成员',
         pokemonId: member.pokemonId ?? 'unknown',
         nature: member.nature,
-        speedInvestment: member.statPoints.speed ?? 0,
+        speedStatPoints: member.statPoints.speed ?? 0,
         itemOrStatus: items.find((item) => item.id === member.itemId)?.chineseName ?? '无',
         isMega: false,
         finalSpeed: memberSpeed(member),
@@ -151,44 +157,58 @@ export type TeamAnalysisDetails = {
   sections: TeamAnalysisSection[];
 };
 
-const attackingTypes = [
+export const attackingTypes: PokemonType[] = [
+  'Normal',
   'Fire',
   'Water',
   'Electric',
   'Grass',
   'Ice',
   'Fighting',
+  'Poison',
   'Ground',
   'Flying',
   'Psychic',
+  'Bug',
   'Rock',
+  'Ghost',
   'Dragon',
   'Dark',
-] as const;
+  'Steel',
+  'Fairy',
+];
 
-const typeMatchups: Partial<Record<(typeof attackingTypes)[number], { strong?: string[]; resisted?: string[]; immune?: string[] }>> = {
-  Fire: { strong: ['Grass', 'Ice', 'Steel'], resisted: ['Fire', 'Water', 'Dragon'] },
+const typeMatchups: Record<PokemonType, { strong?: PokemonType[]; resisted?: PokemonType[]; immune?: PokemonType[] }> = {
+  Normal: { resisted: ['Rock', 'Steel'], immune: ['Ghost'] },
+  Fire: { strong: ['Grass', 'Ice', 'Bug', 'Steel'], resisted: ['Fire', 'Water', 'Rock', 'Dragon'] },
   Water: { strong: ['Fire', 'Ground', 'Rock'], resisted: ['Water', 'Grass', 'Dragon'] },
   Electric: { strong: ['Water', 'Flying'], resisted: ['Electric', 'Grass', 'Dragon'], immune: ['Ground'] },
-  Grass: { strong: ['Water', 'Ground', 'Rock'], resisted: ['Fire', 'Grass', 'Flying', 'Dragon'] },
+  Grass: { strong: ['Water', 'Ground', 'Rock'], resisted: ['Fire', 'Grass', 'Poison', 'Flying', 'Bug', 'Dragon', 'Steel'] },
   Ice: { strong: ['Grass', 'Ground', 'Flying', 'Dragon'], resisted: ['Fire', 'Water', 'Ice', 'Steel'] },
-  Fighting: { strong: ['Normal', 'Ice', 'Rock', 'Dark', 'Steel'], resisted: ['Poison', 'Flying', 'Psychic', 'Bug', 'Fairy'] },
+  Fighting: { strong: ['Normal', 'Ice', 'Rock', 'Dark', 'Steel'], resisted: ['Poison', 'Flying', 'Psychic', 'Bug', 'Fairy'], immune: ['Ghost'] },
+  Poison: { strong: ['Grass', 'Fairy'], resisted: ['Poison', 'Ground', 'Rock', 'Ghost'], immune: ['Steel'] },
   Ground: { strong: ['Fire', 'Electric', 'Poison', 'Rock', 'Steel'], resisted: ['Grass', 'Bug'], immune: ['Flying'] },
   Flying: { strong: ['Grass', 'Fighting', 'Bug'], resisted: ['Electric', 'Rock', 'Steel'] },
   Psychic: { strong: ['Fighting', 'Poison'], resisted: ['Psychic', 'Steel'], immune: ['Dark'] },
+  Bug: { strong: ['Grass', 'Psychic', 'Dark'], resisted: ['Fire', 'Fighting', 'Poison', 'Flying', 'Ghost', 'Steel', 'Fairy'] },
   Rock: { strong: ['Fire', 'Ice', 'Flying', 'Bug'], resisted: ['Fighting', 'Ground', 'Steel'] },
+  Ghost: { strong: ['Psychic', 'Ghost'], resisted: ['Dark'], immune: ['Normal'] },
   Dragon: { strong: ['Dragon'], resisted: ['Steel'], immune: ['Fairy'] },
   Dark: { strong: ['Psychic', 'Ghost'], resisted: ['Fighting', 'Dark', 'Fairy'] },
+  Steel: { strong: ['Ice', 'Rock', 'Fairy'], resisted: ['Fire', 'Water', 'Electric', 'Steel'] },
+  Fairy: { strong: ['Fighting', 'Dragon', 'Dark'], resisted: ['Fire', 'Poison', 'Steel'] },
 };
 
-const matchupMultiplier = (attackType: (typeof attackingTypes)[number], defender: Pokemon) =>
-  defender.types.reduce((multiplier, defenderType) => {
+export const defensiveMatchupMultiplier = (attackType: PokemonType, defenderTypes: PokemonType[]) =>
+  defenderTypes.reduce((multiplier, defenderType) => {
     const matchup = typeMatchups[attackType];
     if (matchup?.immune?.includes(defenderType)) return 0;
     if (matchup?.strong?.includes(defenderType)) return multiplier * 2;
     if (matchup?.resisted?.includes(defenderType)) return multiplier * 0.5;
     return multiplier;
   }, 1);
+
+const matchupMultiplier = (attackType: PokemonType, defender: Pokemon) => defensiveMatchupMultiplier(attackType, defender.types);
 
 export const buildTeamAnalysisDetails = (team: Team): TeamAnalysisDetails => {
   const members = team.members.map((member) => getPokemon(member.pokemonId)).filter(Boolean) as Pokemon[];
@@ -212,7 +232,10 @@ export const buildTeamAnalysisDetails = (team: Team): TeamAnalysisDetails => {
     .sort((a, b) => b.weakCount - a.weakCount);
 
   const topWeaknesses = weaknessCounts.filter((entry) => entry.weakCount > 0).slice(0, 4);
-  const topDefenses = weaknessCounts.filter((entry) => entry.resistCount + entry.immuneCount > 0).slice(0, 4);
+  const topDefenses = weaknessCounts
+    .filter((entry) => entry.resistCount + entry.immuneCount > 0)
+    .sort((a, b) => b.resistCount + b.immuneCount - (a.resistCount + a.immuneCount))
+    .slice(0, 4);
   const sortedSpeed = [...membersWithSpeed].sort((a, b) => b.speed - a.speed);
   const duplicateTypes = Object.entries(typeCounts).filter(([, count]) => count >= 3);
   const weatherSetters = team.members

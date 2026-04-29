@@ -1,7 +1,7 @@
 import { Star, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { pokemon, speedBenchmarks } from '../data';
-import { buildTeamBenchmarks, calculateSpeed } from '../lib/calculations';
+import { buildTeamBenchmarks, calculateSpeedWithMechanismGate } from '../lib/calculations';
 import { useAppStore } from '../state/AppContext';
 import type { SpeedBenchmark, Team } from '../types';
 import { Button, Card, Chip, PokemonAvatar, TypeBadge } from '../components/ui';
@@ -56,7 +56,7 @@ function BenchmarkDetailSheet({
         </Card>
         <Card className="bg-secondary">
           <p className="text-[11px] text-textSecondary">速度投入</p>
-          <p className="font-semibold">{benchmark.speedInvestment}</p>
+          <p className="font-semibold">{benchmark.speedStatPoints}</p>
         </Card>
         <Card className="bg-secondary">
           <p className="text-[11px] text-textSecondary">道具 / 状态</p>
@@ -102,7 +102,15 @@ export function SpeedPage({
   const [filter, setFilter] = useState<BenchmarkFilter>('preset');
   const [selectedBenchmarkId, setSelectedBenchmarkId] = useState<string | null>(null);
   const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? pokemon[0];
-  const currentSpeed = calculateSpeed(selected.baseStats.speed, 252, 50, '爽朗');
+  const currentSpeedResult = calculateSpeedWithMechanismGate({
+    baseSpeed: selected.baseStats.speed,
+    statPoints: 32,
+    level: 50,
+    nature: '爽朗',
+    mechanismStatus: 'confirmed',
+  });
+  const currentSpeed = currentSpeedResult.status === 'confirmed' ? currentSpeedResult.finalSpeed : 0;
+  const currentSpeedLabel = currentSpeedResult.status === 'confirmed' ? String(currentSpeedResult.finalSpeed) : '待确认';
   const favoriteIds = preferences.favoriteBenchmarkIds;
   const teamBenchmarks = activeTeam ? buildTeamBenchmarks(activeTeam) : [];
   const allBenchmarks = useMemo(() => [...speedBenchmarks, ...teamBenchmarks], [teamBenchmarks]);
@@ -126,7 +134,7 @@ export function SpeedPage({
     <div className="space-y-3">
       <div>
         <h2 className="text-lg font-semibold">速度线</h2>
-        <p className="text-xs text-textSecondary">默认最多 12 个 benchmark · 示例数据 / 非真实计算</p>
+        <p className="text-xs text-textSecondary">默认最多 12 个 benchmark · Champions SP 公式已启用</p>
       </div>
 
       <Card>
@@ -143,7 +151,7 @@ export function SpeedPage({
         </select>
         <div className="flex gap-2 overflow-x-auto hide-scrollbar">
           <Chip active>爽朗(+速)</Chip>
-          <Chip active>SP:252</Chip>
+          <Chip active>SP:32</Chip>
           <Chip>{selected.canMega ? 'Mega 可用' : '原始形态'}</Chip>
           <Chip>道具 ▾</Chip>
           <Chip>顺风</Chip>
@@ -154,8 +162,8 @@ export function SpeedPage({
         <p className="text-[11px] text-textSecondary">最终速度</p>
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-[26px] font-bold text-white">{currentSpeed}</p>
-            <p className="text-xs text-textSecondary">基础速度 {selected.baseStats.speed} · 性格×1.1 · SP+252</p>
+            <p className="text-[26px] font-bold text-white">{currentSpeedLabel}</p>
+            <p className="text-xs text-textSecondary">基础速度 {selected.baseStats.speed} · 性格×1.1 · SP+32</p>
           </div>
           <div className="flex gap-1">
             {selected.types.map((type) => (
@@ -187,7 +195,7 @@ export function SpeedPage({
             </div>
             <div className="mx-auto h-12 w-px bg-accent/70" />
             <div className="mx-auto h-4 w-4 rotate-45 bg-accent" />
-            <p className="mt-2 text-xs font-bold text-accent">{currentSpeed}</p>
+            <p className="mt-2 text-xs font-bold text-accent">{currentSpeedLabel}</p>
           </div>
           {benchmarks.map((benchmark, index) => {
             const left = Math.min(96, Math.max(4, (benchmark.finalSpeed / 250) * 100));

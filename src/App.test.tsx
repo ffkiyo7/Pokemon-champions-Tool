@@ -77,6 +77,10 @@ describe('App page flows', () => {
     ['HP SP', '攻击 SP', '防御 SP', '特攻 SP', '特防 SP', '速度 SP'].forEach((label) => {
       expect(screen.getByText(label)).toBeTruthy();
     });
+    screen.getAllByRole('spinbutton').forEach((input) => {
+      expect(input.getAttribute('max')).toBe('32');
+    });
+    expect(screen.getByText('SP 合计 65/66 · 单项最多 32')).toBeTruthy();
   });
 
   it('selects both calculator sides from searchable current-rule Pokemon and team recommendations', async () => {

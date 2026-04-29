@@ -4,7 +4,7 @@ import { useAppStore } from '../state/AppContext';
 import { Badge, Button, Card, Chip } from '../components/ui';
 
 export function RulePage({ onBack }: { onBack: () => void }) {
-  const { simulateRefresh, lastRefreshError } = useAppStore();
+  const { lastRefreshError } = useAppStore();
 
   return (
     <div className="space-y-3">
@@ -57,9 +57,9 @@ export function RulePage({ onBack }: { onBack: () => void }) {
         <p className="text-sm text-textSecondary">{currentDataVersion.sourceSummary}</p>
         <p className="mt-2 text-[11px] text-textMuted">{currentDataVersion.notes}</p>
         <div className="mt-3 flex gap-2">
-          <Button variant="ghost" onClick={simulateRefresh}>
+          <Button variant="ghost" disabled title="当前版本暂不支持远程刷新">
             <RefreshCw size={14} />
-            刷新数据
+            暂不支持远程刷新
           </Button>
           <a
             className="inline-flex min-h-8 items-center justify-center gap-1.5 rounded-lg border border-accent/40 px-3 text-xs font-semibold text-accent"
@@ -71,6 +71,7 @@ export function RulePage({ onBack }: { onBack: () => void }) {
             官方来源
           </a>
         </div>
+        <p className="mt-3 rounded-lg bg-secondary p-2 text-xs text-textSecondary">当前版本使用本地 seed 数据，远程官方数据刷新入口将在接入审核流程后开放。</p>
         {lastRefreshError && <p className="mt-3 rounded-lg bg-reviewBg p-2 text-xs text-warning">{lastRefreshError}</p>}
       </Card>
 

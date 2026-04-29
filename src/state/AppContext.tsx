@@ -111,9 +111,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const simulateRefresh = useCallback(async () => {
-    setLastRefreshError('刷新失败，当前使用本地缓存。MVP 暂不接真实官方数据源。');
-    await savePreferences({ ...preferences, lastDataRefreshAt: now() });
-  }, [preferences, savePreferences]);
+    setLastRefreshError(undefined);
+  }, []);
 
   const value = useMemo<Store>(
     () => ({

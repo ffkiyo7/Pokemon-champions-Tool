@@ -14,6 +14,31 @@ const deleteDb = () =>
     request.onblocked = () => reject(new Error('IndexedDB delete was blocked'));
   });
 
+const createV1DbWithTeam = (team: Team) =>
+  new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      db.createObjectStore('teams', { keyPath: 'id' });
+      db.createObjectStore('meta', { keyPath: 'key' });
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      const transaction = db.transaction(['teams', 'meta'], 'readwrite');
+      transaction.objectStore('teams').put(team);
+      transaction.objectStore('meta').put({ key: 'initialized', value: true });
+      transaction.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      transaction.onerror = () => {
+        db.close();
+        reject(transaction.error);
+      };
+    };
+    request.onerror = () => reject(request.error);
+  });
+
 const cloneTeam = (team: Team, patch: Partial<Team> = {}): Team => ({
   ...team,
   members: team.members.map((member) => ({ ...member, moveIds: [...member.moveIds], statPoints: { ...member.statPoints } })),
@@ -30,6 +55,31 @@ describe('IndexedDB repository', () => {
 
     expect(state.teams).toEqual(defaultTeams);
     expect(state.preferences).toEqual(defaultPreferences);
+  });
+
+  it('migrates v1 EV-like stat point data to Champions SP on database upgrade', async () => {
+    const legacyTeam = cloneTeam(defaultTeams[0], {
+      id: 'legacy-team',
+      members: [
+        {
+          ...defaultTeams[0].members[0],
+          id: 'legacy-member',
+          statPoints: { attack: 252, speed: 252, hp: 4 },
+        },
+      ],
+    });
+    await createV1DbWithTeam(legacyTeam);
+
+    const state = await repository.loadState();
+
+    expect(state.teams[0].members[0].statPoints).toEqual({
+      hp: 1,
+      attack: 32,
+      defense: 0,
+      specialAttack: 0,
+      specialDefense: 0,
+      speed: 32,
+    });
   });
 
   it('saves and reloads a team', async () => {

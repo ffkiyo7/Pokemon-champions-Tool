@@ -13,6 +13,8 @@ describe('seed data audit', () => {
     expect(sourceRefIds.has('reg-ma-official-rule')).toBe(true);
     expect(sourceRefIds.has('reg-ma-official-eligible-pokemon')).toBe(true);
     expect(sourceRefIds.has('manual-seed-review')).toBe(true);
+    expect(sourceRefIds.has('champions-official-training')).toBe(true);
+    expect(sourceRefIds.has('champions-stat-point-review')).toBe(true);
     expect(auditSourceRefs('Test row', ['reg-ma-official-rule'])).toEqual([]);
   });
 
@@ -47,6 +49,7 @@ describe('seed data audit', () => {
 
   it('keeps benchmark versions aligned with the active data version', () => {
     expect(speedBenchmarks.every((benchmark) => benchmark.dataVersionId === currentDataVersion.id)).toBe(true);
+    expect(speedBenchmarks.every((benchmark) => benchmark.speedStatPoints >= 0 && benchmark.speedStatPoints <= 32)).toBe(true);
   });
 
   it('keeps default teams tied to the active data version', () => {

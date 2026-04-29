@@ -6,21 +6,50 @@ describe('team import/export schema', () => {
   it('exports teams with schema version and timestamps', () => {
     const payload = buildExportPayload(defaultTeams);
 
-    expect(payload.schemaVersion).toBe(1);
+    expect(payload.schemaVersion).toBe(2);
     expect(Date.parse(payload.exportedAt)).not.toBeNaN();
     expect(payload.teams).toHaveLength(defaultTeams.length);
     expect(payload.teams[0].ruleSetId).toBe(currentRuleSet.id);
     expect(payload.teams[0].dataVersionId).toBe(currentDataVersion.id);
   });
 
-  it('parses valid v1 team exports', () => {
+  it('parses valid v2 team exports', () => {
     const text = JSON.stringify(buildExportPayload(defaultTeams));
 
     expect(parseTeamImport(text)).toEqual(defaultTeams);
   });
 
+  it('migrates v1 EV-like stat points into Champions SP', () => {
+    const [team] = defaultTeams;
+    const text = JSON.stringify({
+      schemaVersion: 1,
+      teams: [
+        {
+          ...team,
+          members: [
+            {
+              ...team.members[0],
+              statPoints: { attack: 252, speed: 252, hp: 4 },
+            },
+          ],
+        },
+      ],
+    });
+
+    const [migrated] = parseTeamImport(text);
+
+    expect(migrated.members[0].statPoints).toEqual({
+      hp: 1,
+      attack: 32,
+      defense: 0,
+      specialAttack: 0,
+      specialDefense: 0,
+      speed: 32,
+    });
+  });
+
   it('rejects unknown schema versions', () => {
-    const text = JSON.stringify({ schemaVersion: 2, teams: defaultTeams });
+    const text = JSON.stringify({ schemaVersion: 3, teams: defaultTeams });
 
     try {
       parseTeamImport(text);

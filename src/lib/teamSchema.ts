@@ -1,8 +1,9 @@
 import type { Team, TeamMember } from '../types';
+import { migrateLegacyEvStatPoints } from './statPoints';
 
-export const CURRENT_TEAM_EXPORT_SCHEMA_VERSION = 1;
+export const CURRENT_TEAM_EXPORT_SCHEMA_VERSION = 2;
 
-export type TeamExportSchemaVersion = 0 | typeof CURRENT_TEAM_EXPORT_SCHEMA_VERSION;
+export type TeamExportSchemaVersion = 0 | 1 | typeof CURRENT_TEAM_EXPORT_SCHEMA_VERSION;
 
 type RawTeamMember = Partial<TeamMember>;
 
@@ -18,7 +19,7 @@ export type RawTeamExportPayload = {
 
 const now = () => new Date().toISOString();
 
-const migrateMember = (member: RawTeamMember, index: number): TeamMember => ({
+const migrateMember = (member: RawTeamMember, index: number, migrateLegacyStats = false): TeamMember => ({
   id: member.id || `imported-member-${index + 1}`,
   pokemonId: member.pokemonId,
   formId: member.formId,
@@ -26,13 +27,13 @@ const migrateMember = (member: RawTeamMember, index: number): TeamMember => ({
   itemId: member.itemId,
   moveIds: Array.isArray(member.moveIds) ? member.moveIds.filter(Boolean) : [],
   nature: member.nature || '爽朗',
-  statPoints: member.statPoints ?? {},
+  statPoints: migrateLegacyStats ? migrateLegacyEvStatPoints(member.statPoints ?? {}) : member.statPoints ?? {},
   level: Number.isFinite(member.level) && member.level ? Number(member.level) : 50,
   notes: member.notes || '',
   legalityStatus: member.legalityStatus || 'needs-review',
 });
 
-const normalizeTeam = (team: RawTeam, index: number): Team => {
+const normalizeTeam = (team: RawTeam, index: number, migrateLegacyStats = false): Team => {
   if (!team.ruleSetId || !team.dataVersionId) {
     throw new Error(`第 ${index + 1} 支队伍缺少 ruleSetId 或 dataVersionId。`);
   }
@@ -45,7 +46,7 @@ const normalizeTeam = (team: RawTeam, index: number): Team => {
     name: team.name,
     ruleSetId: team.ruleSetId,
     dataVersionId: team.dataVersionId,
-    members: team.members.map(migrateMember),
+    members: team.members.map((member, memberIndex) => migrateMember(member, memberIndex, migrateLegacyStats)),
     createdAt: team.createdAt || now(),
     updatedAt: team.updatedAt || now(),
     notes: team.notes || '',
@@ -60,7 +61,7 @@ const migrateV0Team = (team: RawTeam, index: number): Team => {
     members: Array.isArray(team.members) ? team.members : [],
   };
 
-  return normalizeTeam(migrated, index);
+  return normalizeTeam(migrated, index, true);
 };
 
 export const migrateTeamExportPayload = (payload: RawTeamExportPayload): Team[] => {
@@ -74,8 +75,10 @@ export const migrateTeamExportPayload = (payload: RawTeamExportPayload): Team[] 
   switch (payload.schemaVersion) {
     case 0:
       return payload.teams.map(migrateV0Team);
+    case 1:
+      return payload.teams.map((team, index) => normalizeTeam(team, index, true));
     case CURRENT_TEAM_EXPORT_SCHEMA_VERSION:
-      return payload.teams.map(normalizeTeam);
+      return payload.teams.map((team, index) => normalizeTeam(team, index));
     default:
       throw new Error(`不支持的 schemaVersion: ${String(payload.schemaVersion)}。`);
   }

@@ -4,12 +4,12 @@ import { CURRENT_TEAM_EXPORT_SCHEMA_VERSION, migrateTeamExportPayload } from './
 
 describe('team schema migration', () => {
   it('keeps the current schema version explicit', () => {
-    expect(CURRENT_TEAM_EXPORT_SCHEMA_VERSION).toBe(1);
+    expect(CURRENT_TEAM_EXPORT_SCHEMA_VERSION).toBe(2);
   });
 
   it('normalizes current schema teams', () => {
     const migrated = migrateTeamExportPayload({
-      schemaVersion: 1,
+      schemaVersion: 2,
       teams: defaultTeams,
     });
 

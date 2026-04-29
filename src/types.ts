@@ -216,7 +216,7 @@ export type SpeedBenchmark = {
   pokemonId: string;
   formId?: string;
   nature: string;
-  speedInvestment: number;
+  speedStatPoints: number;
   itemOrStatus: string;
   isMega: boolean;
   finalSpeed: number;

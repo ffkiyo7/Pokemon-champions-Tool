@@ -1,24 +1,48 @@
 import type { AppState, Team, UserPreference } from '../types';
 import { defaultPreferences, defaultTeams } from '../data';
+import { migrateLegacyEvStatPoints } from './statPoints';
 
 const DB_NAME = 'pokemon-champions-assistant';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const TEAM_STORE = 'teams';
 const META_STORE = 'meta';
 
 type StoreName = typeof TEAM_STORE | typeof META_STORE;
 
+const migrateTeamsToV2 = (transaction: IDBTransaction) => {
+  const teamStore = transaction.objectStore(TEAM_STORE);
+  const metaStore = transaction.objectStore(META_STORE);
+  const request = teamStore.getAll();
+
+  request.onsuccess = () => {
+    (request.result as Team[]).forEach((team) => {
+      teamStore.put({
+        ...team,
+        members: team.members.map((member) => ({
+          ...member,
+          statPoints: migrateLegacyEvStatPoints(member.statPoints),
+        })),
+      });
+    });
+    metaStore.put({ key: 'schemaVersion', value: DB_VERSION });
+  };
+};
+
 const openDb = () =>
   new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onupgradeneeded = () => {
+    request.onupgradeneeded = (event) => {
       const db = request.result;
+      const oldVersion = event.oldVersion;
       if (!db.objectStoreNames.contains(TEAM_STORE)) {
         db.createObjectStore(TEAM_STORE, { keyPath: 'id' });
       }
       if (!db.objectStoreNames.contains(META_STORE)) {
         db.createObjectStore(META_STORE, { keyPath: 'key' });
+      }
+      if (oldVersion < 2 && request.transaction) {
+        migrateTeamsToV2(request.transaction);
       }
     };
 

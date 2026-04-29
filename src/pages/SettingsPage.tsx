@@ -19,7 +19,7 @@ type ImportStatus =
     };
 
 export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
-  const { teams, preferences, replaceTeams, clearLocalData, simulateRefresh, lastRefreshError } = useAppStore();
+  const { teams, preferences, replaceTeams, clearLocalData, lastRefreshError } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<ImportStatus | null>(null);
   const cacheSummary = useMemo(
@@ -103,9 +103,9 @@ export function SettingsPage({ onOpenRule }: { onOpenRule: () => void }) {
               <span className="block text-sm">上次同步</span>
               <span className="text-xs text-textSecondary">离线缓存可用 · {preferences.lastDataRefreshAt.slice(0, 10)}</span>
             </span>
-            <Button variant="ghost" onClick={simulateRefresh}>
+            <Button variant="ghost" disabled title="当前版本暂不支持远程刷新">
               <RefreshCw size={14} />
-              立即刷新
+              暂不支持
             </Button>
           </div>
           <div className="flex items-center justify-between py-3">

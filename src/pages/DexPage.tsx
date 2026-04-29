@@ -40,7 +40,7 @@ function PokemonDetail({
       itemId: undefined,
       moveIds: entry.learnableMoves.slice(0, 2),
       nature: '爽朗',
-      statPoints: { speed: 252 },
+      statPoints: { speed: 32 },
       level: 50,
       notes: '从图鉴加入。',
       legalityStatus: 'needs-review' as const,

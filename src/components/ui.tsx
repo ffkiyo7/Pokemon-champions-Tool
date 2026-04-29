@@ -18,7 +18,7 @@ export function Button({
   };
   return (
     <button
-      className={`inline-flex min-h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition active:scale-[0.98] ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:border-border disabled:text-textMuted disabled:opacity-60 ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

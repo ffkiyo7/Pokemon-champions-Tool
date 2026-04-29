@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultTeams } from '../data';
-import { buildTeamAnalysisDetails } from './calculations';
+import { attackingTypes, buildTeamAnalysisDetails, defensiveMatchupMultiplier } from './calculations';
 
 describe('team analysis details', () => {
   it('returns summary chips and explainable analysis sections', () => {
@@ -14,6 +14,39 @@ describe('team analysis details', () => {
       '速度覆盖',
       '功能位 / 重复定位',
     ]);
+  });
+
+  it('covers all 18 attacking types for matchup analysis', () => {
+    expect(attackingTypes).toHaveLength(18);
+    expect(attackingTypes).toEqual([
+      'Normal',
+      'Fire',
+      'Water',
+      'Electric',
+      'Grass',
+      'Ice',
+      'Fighting',
+      'Poison',
+      'Ground',
+      'Flying',
+      'Psychic',
+      'Bug',
+      'Rock',
+      'Ghost',
+      'Dragon',
+      'Dark',
+      'Steel',
+      'Fairy',
+    ]);
+  });
+
+  it('handles matchups that were missing from the first attacking type list', () => {
+    expect(defensiveMatchupMultiplier('Ghost', ['Normal'])).toBe(0);
+    expect(defensiveMatchupMultiplier('Fighting', ['Ghost'])).toBe(0);
+    expect(defensiveMatchupMultiplier('Fairy', ['Dragon', 'Dark'])).toBe(4);
+    expect(defensiveMatchupMultiplier('Poison', ['Fairy'])).toBe(2);
+    expect(defensiveMatchupMultiplier('Bug', ['Psychic', 'Dark'])).toBe(4);
+    expect(defensiveMatchupMultiplier('Steel', ['Rock', 'Fairy'])).toBe(4);
   });
 
   it('surfaces speed coverage using configured team member speeds', () => {

@@ -189,7 +189,7 @@ npm run build
 
 调研结论：
 
-- `docs/research/MECHANICS_RESEARCH.md`：Reg M-A 日期、Mega、重复道具、计时可作为确认规则；Stat Points、速度和伤害公式继续阻断。
+- `docs/research/MECHANICS_RESEARCH.md`：Reg M-A 日期、Mega、重复道具、计时可作为确认规则；Stat Points / 速度公式已按 Champions SP 机制启用，伤害公式继续阻断。
 - `docs/research/CALC_ENGINE_SPIKE.md`：`@smogon/calc@0.11.0` 可覆盖主线 doubles、spread、weather、terrain、stat stages、Mega/form 等能力，但 published npm 不含稳定 Champions 机制，必须通过适配层和阻断 gate 使用。
 - `docs/research/DATA_SOURCE_RESEARCH.md`：首批真实数据建议从官方 HOME Reg M-A 元信息和 Eligible Pokemon allowlist 开始，再用 Showdown/PokeAPI join 基础字段；图片、官方描述、使用率数据暂不进入 v1。
 

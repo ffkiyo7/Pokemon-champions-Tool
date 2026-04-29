@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { calculateBattleStats, calculateSpeed, calculateSpeedWithMechanismGate } from './calculations';
 
 describe('speed calculation', () => {
-  it('keeps the existing Lv.50 speed formula stable for confirmed inputs', () => {
-    expect(calculateSpeed(102, 252, 50, '爽朗')).toBe(169);
-    expect(calculateSpeed(20, 252, 50, '怕慢(+速)')).toBe(79);
+  it('uses the confirmed Champions Lv.50 SP formula for speed', () => {
+    expect(calculateSpeed(102, 32, 50, '爽朗')).toBe(169);
+    expect(calculateSpeed(20, 32, 50, '怕慢(+速)')).toBe(79);
   });
 
   it('blocks formal speed conclusions while Champions speed mechanisms are pending', () => {
     const result = calculateSpeedWithMechanismGate({
       baseSpeed: 102,
-      investment: 252,
+      statPoints: 32,
       level: 50,
       nature: '爽朗',
       mechanismStatus: 'pending',
@@ -23,7 +23,7 @@ describe('speed calculation', () => {
   it('returns a formal result only when the mechanism is explicitly confirmed', () => {
     const result = calculateSpeedWithMechanismGate({
       baseSpeed: 102,
-      investment: 252,
+      statPoints: 32,
       level: 50,
       nature: '爽朗',
       mechanismStatus: 'confirmed',
@@ -38,7 +38,7 @@ describe('speed calculation', () => {
   it('derives displayed battle stats from base stats, stat points, level, and nature', () => {
     const stats = calculateBattleStats(
       { hp: 108, attack: 130, defense: 95, specialAttack: 80, specialDefense: 85, speed: 102 },
-      { hp: 252, attack: 252, speed: 252 },
+      { hp: 32, attack: 32, speed: 32 },
       50,
       '爽朗',
     );

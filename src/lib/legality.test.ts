@@ -11,7 +11,7 @@ const baseMember: TeamMember = {
   itemId: 'clear-amulet',
   moveIds: ['earthquake', 'protect'],
   nature: '爽朗',
-  statPoints: { attack: 252, speed: 252, hp: 4 },
+  statPoints: { attack: 32, speed: 32, hp: 1 },
   level: 50,
   notes: '',
   legalityStatus: 'needs-review',
@@ -55,6 +55,16 @@ describe('legality evaluation', () => {
 
     expect(result.status).toBe('illegal');
     expect(result.issues.some((issue) => issue.code === 'duplicate-held-item')).toBe(true);
+  });
+
+  it('rejects SP values over the Champions per-stat or total limits', () => {
+    const result = evaluateMemberLegality({
+      ...baseMember,
+      statPoints: { attack: 33, speed: 32, hp: 2 },
+    });
+
+    expect(result.status).toBe('illegal');
+    expect(result.issues.some((issue) => issue.code === 'stat-points-over-limit')).toBe(true);
   });
 
   it('keeps the catalog review flag visible at the data layer', () => {

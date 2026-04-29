@@ -14,7 +14,7 @@ const makeManualMember = (entry: Pokemon) => ({
   abilityId: entry.abilities[0],
   moveIds: entry.learnableMoves.slice(0, 2),
   nature: '爽朗',
-  statPoints: { speed: 252 },
+  statPoints: { speed: 32 },
   level: 50,
   notes: '手动图鉴配置。',
   legalityStatus: 'needs-review' as const,
@@ -152,7 +152,7 @@ export function CalculatorPage({
               <AlertTriangle size={16} />
               该机制待确认，计算暂不可用
             </div>
-            <p className="text-xs text-warning/80">Champions Stat Points、Mega 和计算库兼容性未验证前，不输出正式一确/二确/乱数结论。</p>
+            <p className="text-xs text-warning/80">Champions 伤害公式、Mega 细节和计算库兼容性未验证前，不输出正式一确/二确/乱数结论。</p>
           </div>
         )}
       </Card>

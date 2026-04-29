@@ -4,16 +4,16 @@ import { useAppStore } from '../state/AppContext';
 import { Badge, Button, Card, Chip } from './ui';
 
 export function SyncStrip() {
-  const { lastRefreshError, simulateRefresh } = useAppStore();
+  const { lastRefreshError } = useAppStore();
   return (
     <div className={`mb-3 flex min-h-9 items-center justify-between rounded-lg px-3 text-xs ${lastRefreshError ? 'bg-reviewBg text-warning' : 'bg-legalBg text-success'}`}>
       <span>
         <span className="mr-2 inline-block h-2 w-2 rounded-full bg-current" />
-        {lastRefreshError ? '使用本地缓存 · 刷新失败' : `数据已同步 · ${currentDataVersion.versionName}`}
+        {lastRefreshError ? '使用本地缓存 · 数据读取受限' : `本地缓存可用 · ${currentDataVersion.versionName}`}
       </span>
-      <Button variant="ghost" className="h-7 min-h-0 px-2 text-[11px]" onClick={simulateRefresh}>
+      <Button variant="ghost" className="h-7 min-h-0 px-2 text-[11px]" disabled title="当前版本暂不支持远程刷新">
         <RefreshCw size={12} />
-        刷新
+        暂不支持远程刷新
       </Button>
     </div>
   );

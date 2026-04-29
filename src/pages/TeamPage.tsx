@@ -4,6 +4,7 @@ import { abilities, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
+import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
 import type { Team, TeamMember } from '../types';
 import { RuleSummary, SyncStrip } from '../components/RuleSummary';
@@ -13,7 +14,7 @@ const blankMember = (): TeamMember => ({
   id: createId('member'),
   moveIds: [],
   nature: '爽朗',
-  statPoints: { speed: 252 },
+  statPoints: { speed: 32 },
   level: 50,
   notes: '',
   legalityStatus: 'missing-config',
@@ -134,7 +135,7 @@ function MemberCard({
                   </div>
                 ))}
               </div>
-              <p className="mt-2 text-[11px] text-textMuted">示例数值，真实 Champions Stat Points 机制确认前不作为正式结论。</p>
+              <p className="mt-2 text-[11px] text-textMuted">Champions SP 公式：单项最多 32，总量最多 66，Lv.50 固定。</p>
               <div className="mt-3 flex gap-2">
                 <Button variant="ghost" onClick={() => onOpenCalculator(member.id)}>
                   → 伤害计算
@@ -181,7 +182,7 @@ function NumberField({
   label,
   value,
   min = 0,
-  max = 252,
+  max = MAX_STAT_POINTS_PER_STAT,
   onChange,
 }: {
   label: string;
@@ -223,6 +224,7 @@ function MemberEditor({
   const availableMoves = moves.filter((move) => move.learnableByPokemonIds.includes(selectedPokemon.id));
   const availableAbilities = abilities.filter((ability) => selectedPokemon.abilities.includes(ability.id));
   const legality = useMemo(() => evaluateMemberLegality(draft, team), [draft, team]);
+  const totalStatPoints = statPointTotal(draft.statPoints);
 
   const updateDraft = (patch: Partial<TeamMember>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -233,7 +235,14 @@ function MemberEditor({
       ...current,
       statPoints: {
         ...current.statPoints,
-        [key]: Math.max(0, Math.min(252, value || 0)),
+        [key]: Math.max(
+          0,
+          Math.min(
+            MAX_STAT_POINTS_PER_STAT,
+            MAX_TOTAL_STAT_POINTS - (statPointTotal(current.statPoints) - Math.max(0, Number(current.statPoints[key] ?? 0))),
+            Math.round(value || 0),
+          ),
+        ),
       },
     }));
   };
@@ -340,6 +349,9 @@ function MemberEditor({
           <NumberField label="特防 SP" value={draft.statPoints.specialDefense ?? 0} onChange={(value) => updateStatPoint('specialDefense', value)} />
           <NumberField label="速度 SP" value={draft.statPoints.speed ?? 0} onChange={(value) => updateStatPoint('speed', value)} />
         </div>
+        <p className={`text-[11px] ${totalStatPoints > MAX_TOTAL_STAT_POINTS ? 'text-danger' : 'text-textMuted'}`}>
+          SP 合计 {totalStatPoints}/{MAX_TOTAL_STAT_POINTS} · 单项最多 {MAX_STAT_POINTS_PER_STAT}
+        </p>
 
         <Card className="bg-secondary">
           <div className="mb-2 flex items-center justify-between">

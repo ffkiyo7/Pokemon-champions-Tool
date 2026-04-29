@@ -1,5 +1,6 @@
 import { abilities, items, moves, pokemon } from '../data';
 import type { LegalityStatus, Team, TeamMember } from '../types';
+import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointKeys, statPointTotal } from './statPoints';
 
 export type LegalityIssue = {
   code:
@@ -11,6 +12,7 @@ export type LegalityIssue = {
     | 'ability-mismatch'
     | 'move-mismatch'
     | 'mega-item-mismatch'
+    | 'stat-points-over-limit'
     | 'seed-data-needs-review';
   severity: 'error' | 'review';
   message: string;
@@ -82,6 +84,10 @@ export function evaluateMemberLegality(member: TeamMember, team?: Team): Legalit
     if (duplicateItem) {
       issues.push(error('当前规则不允许同队重复携带相同道具。', 'duplicate-held-item'));
     }
+  }
+
+  if (statPointKeys.some((key) => Number(member.statPoints[key] ?? 0) > MAX_STAT_POINTS_PER_STAT) || statPointTotal(member.statPoints) > MAX_TOTAL_STAT_POINTS) {
+    issues.push(error('Champions SP 单项最多 32，总量最多 66。', 'stat-points-over-limit'));
   }
 
   if (entry.sourceRefs.includes('manual-seed-review')) {

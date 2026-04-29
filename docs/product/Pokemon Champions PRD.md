@@ -491,7 +491,7 @@ v2 可延后：
 页面目标：
 
 - 给用户提供可解释的规则型队伍检查，帮助发现明显短板。
-- v1 不直接强行替换 Pokémon，不做 AI 聊天式建议。
+- v1 可给轻量风险提醒和方向性留意点，但不点名强行替换 Pokémon、不生成完整队伍、不做 AI 聊天式建议。
 
 核心组件：
 
@@ -1005,7 +1005,7 @@ Stat Points 字段需要等待 Pokémon Champions 机制确认后再最终定型
 - pokemonId
 - formId
 - nature
-- speedInvestment
+- speedStatPoints
 - itemOrStatus
 - isMega
 - finalSpeed
