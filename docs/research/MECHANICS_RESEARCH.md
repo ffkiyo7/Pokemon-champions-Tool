@@ -2,6 +2,8 @@
 
 Research date: 2026-04-26
 
+Implementation review: 2026-04-30
+
 Scope: mechanics needed by the current PRD for team legality, speed-line calculation, and damage-calculation readiness. Official sources are preferred. Community sources are used only to identify likely behavior and must not be treated as authoritative unless later verified against the game client, official documentation, or a first-party API.
 
 ## Sources
@@ -72,6 +74,20 @@ Product impact:
 - The rule-set detail page can display these timer values as confirmed.
 - Timer values should remain regulation-versioned data because future regulations may change them.
 
+## Product Decision For Current Code
+
+As of 2026-04-30, the app promotes Champions Stat Points to the v1 product calculation layer while keeping provenance explicit:
+
+- SP range is fixed in code as `0-32` per stat and `66` total per Pokemon.
+- Lv.50 is fixed for official Champions calculations.
+- IV is not exposed as a user parameter. The current simplified Champions formula treats IV behavior as folded into the SP formula rather than user-editable.
+- HP formula: `base + SP + 75`.
+- Non-HP / Speed formula: `floor((base + SP + 20) * natureMultiplier)`.
+- Speed pages and team-derived benchmarks must call `calculateSpeedWithMechanismGate`; the gate status is set to `confirmed` for the current SP v1 formula.
+- Damage calculation remains blocked for formal KO odds/ranges until Champions damage mechanics, Mega details, and calc adapter assumptions are verified.
+
+This is a product implementation decision based on official training direction plus cross-checked community/mechanics references. It should continue to be monitored against future first-party documentation or direct game-client evidence.
+
 ## Partially Confirmed
 
 ### Stat Points vs EV / IV / Nature
@@ -99,10 +115,11 @@ Community-reported behavior, not authoritative:
 
 Product impact:
 
-- Store Stat Points as a flexible, versioned configuration object, not as final EVs.
-- UI may expose Stat Points and Stat Alignment fields because official UI references them, but validation should use `mechanismPending` until caps and formula are confirmed.
-- Do not claim official EV/IV/Nature equivalence in product copy.
-- Do not export Stat Points as Showdown EVs without an explicit "approximate / unverified" conversion mode.
+- Store Stat Points as Champions SP, not EVs.
+- Validate SP as single stat `0-32`, total `66`.
+- Keep import/export and IndexedDB migration paths for old EV-like `statPoints`.
+- Do not expose IV in UI; do not export Stat Points as Showdown EVs without an explicit approximate conversion mode.
+- Continue avoiding first-party wording such as "officially confirmed exact formula" until official documentation or direct client evidence is captured.
 
 ### Lv.50 speed formula assumptions
 
@@ -121,11 +138,11 @@ Speed = floor((floor((2 * BaseSpeed + IV + StatPoints) * Level / 100) + 5) * Ali
 
 - Community sources currently assume `Level = 50`, `IV = 31`, `StatPoints = 0..32`, and `Alignment = 0.9 / 1.0 / 1.1`.
 
-Product impact:
+Current product impact:
 
-- This formula should remain blocked for official speed-line conclusions.
-- It is acceptable for internal prototypes or clearly labeled sample calculations if every result is marked "unverified Champions formula".
-- v1 speed-line UI may support base Speed, Mega form base Speed, Tailwind, stat-stage multipliers, and item/status toggles only as confirmed/known Pokemon battle concepts, but final numeric Champions speed should not be labeled authoritative until formula and rounding are verified.
+- The app now uses the simplified Champions SP formula above for formal speed-line output.
+- `calculateSpeedWithMechanismGate` remains in place as an architectural boundary so the mechanism can be downgraded to blocked if future evidence contradicts v1 assumptions.
+- Damage output remains blocked; confirming speed/SP does not imply full damage correctness.
 
 ## Confirmed vs Blocked Mechanism Matrix
 
@@ -140,18 +157,18 @@ Product impact:
 | Duplicate held items | Confirmed | Official Regulation Set M-A page. | Strong team-builder validation. |
 | Timers | Confirmed | Official Regulation Set M-A page. | Display as confirmed rule-set metadata. |
 | Stat Points existence | Confirmed | Official site references Stat Points/training. | Show fields, save values, version schema. |
-| Stat Point caps | Blocked | No accessible official formula/cap source found. | Do not hard-fail over caps unless later verified. |
-| EV-to-Stat Point conversion | Blocked | Only community sources found. | No official conversion in import/export. |
-| IV behavior | Blocked | Only community sources found. | Do not assume fixed 31 for official calculations. |
-| Stat Alignment vs Nature | Partially confirmed / blocked for math | Official UI references Stat Alignment; community sources map it to Nature-like behavior. | Allow field; block exact multiplier/rounding until verified. |
-| Lv.50 Speed formula | Blocked | No accessible official formula source found. | Use only in unverified prototypes, not authoritative results. |
+| Stat Point caps | Product v1 enabled / monitor | Caps come from cross-checked community references, not a clearly accessible official formula page. | Enforce `0-32` per stat and `66` total; keep provenance and monitor official docs. |
+| EV-to-Stat Point conversion | Migration-only heuristic | Community references and legacy app data require a safe upgrade path. | Convert old local/imported values only when any stat is `>32`: `252 -> 32`, `4 -> 1`; do not present as official export conversion. |
+| IV behavior | Product v1 folded into formula / monitor | Community sources report IV fixed to 31; accessible official docs do not state the exact IV wording. | Do not expose IV; current formula bakes in Champions fixed handling. |
+| Stat Alignment vs Nature | Product v1 enabled / monitor | Official UI references Stat Alignment; community sources map it to Nature-like behavior. | Use nature-like multipliers for speed and battle stats; monitor official wording. |
+| Lv.50 Speed formula | Product v1 enabled through gate | Formula comes from product decision and cross-checked references. | Use for formal speed-line values via `calculateSpeedWithMechanismGate`; keep damage blocked. |
 | Damage calculator correctness | Blocked | Depends on Stat Points, IV behavior, Stat Alignment, move/item/ability edge cases. | Keep final KO odds and official labels disabled until verified. |
 
 ## PRD Recommendations
 
-- Keep `StatPoints` in the team schema, but allow a `verificationStatus` such as `mechanismPending`.
-- Keep current PRD language that says Stat Points / IV / EV / Nature details are not hard-coded.
-- For speed-line v1, separate "known display inputs" from "confirmed final Speed". Base stats, form/Mega selection, Tailwind toggle, and stage modifiers can exist as UI controls, but final numeric Speed should stay unverified unless backed by a confirmed formula.
+- Keep `StatPoints` in the team schema as Champions SP with v2 migration support for old EV-like input.
+- Keep PRD language precise: SP v1 is enabled, but final official wording for IV and Stat Alignment should still be monitored.
+- For speed-line v1, final numeric Speed can be shown through the mechanism gate, but the code should not bypass that gate.
 - Implement duplicate held item validation now; it is officially confirmed.
 - Implement Regulation Set M-A timer display now; it is officially confirmed.
 - Implement Mega metadata now at the rule level, but require source-backed Mega form and Mega Stone mappings before giving per-Pokemon legality a strong pass/fail.

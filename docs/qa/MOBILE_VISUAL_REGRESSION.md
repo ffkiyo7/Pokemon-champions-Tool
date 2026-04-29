@@ -1,6 +1,6 @@
 # 移动端视觉回归最小集
 
-更新时间：2026-04-28
+更新时间：2026-04-30
 
 ## 当前策略
 
@@ -8,12 +8,14 @@
 - 使用本机 Chrome channel，避免依赖 Playwright Chromium 下载。
 - 视觉测试阻止 service worker，减少旧缓存对截图基线的影响。
 - 基线截图保存在 `tests/pwa/visual.spec.ts-snapshots/`。
+- 当前视觉集是 smoke coverage，不判断属性图标方案是否最终采用；属性 badge 视觉下一轮单独回评。
 
 ## 覆盖页面
 
 - 组队页缩略态：`01-team-compact.png`
 - 组队页展开态：`02-team-expanded.png`
 - 成员编辑 bottom sheet：`03-member-editor.png`
+- 成员编辑 SP picker 展开态：`03-member-editor-sp-picker.png`
 - 计算页选择器入口：`04-calculator-selector.png`
 - 速度线页面：`05-speed-line.png`
 - 图鉴页面：`06-dex.png`
@@ -43,3 +45,5 @@ npm run test:pwa
 - 当前基线只覆盖 390px 移动视口，后续如需要平板或窄屏，可增加独立 project。
 - 截图覆盖的是核心页面 smoke set，不替代真实数据接入后的数据准确性测试。
 - 速度线图表内 benchmark 标记只显示点位，详细名称通过列表和点击后的详情查看，避免移动端长文本重叠。
+- 成员编辑页 SP 主界面只显示六项摘要；具体调整在底部 picker 内完成，以减少 390px 视口的纵向拥挤。
+- 当前属性图标使用本地 PNG 资源，已纳入截图基线；下一轮若切回英文+代表色 badge 或百科式条形 badge，需要更新 `04-calculator-selector`、`05-speed-line`、`06-dex` 等基线。

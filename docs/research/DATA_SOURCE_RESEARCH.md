@@ -2,6 +2,8 @@
 
 Last researched: 2026-04-26
 
+Implementation review: 2026-04-30
+
 This document is a practical source plan for replacing MVP seed data with real, traceable data. It is not legal advice. Treat Pokemon names, character designs, sprites, screenshots, official descriptions, and page layouts as protected IP unless a source grants explicit reuse rights.
 
 ## Executive Recommendation
@@ -12,7 +14,7 @@ First ingestion should be a small, auditable Reg M-A legality package:
 2. Manually verify the official Eligible Pokemon page into a local `reg-ma` allowlist.
 3. Join that allowlist against Pokemon Showdown and/or PokeAPI identifiers for base stats, types, abilities, move IDs, item IDs, and learnsets.
 4. Mark every row `manual-review` until a second reviewer checks source URLs and row counts.
-5. Do not ingest or bundle official icons, artwork, screenshots, or official flavor/descriptive prose in the first real-data pass.
+5. Do not ingest or bundle official Pokemon artwork, screenshots, or official flavor/descriptive prose in the first real-data pass. Type badge art remains a product-design exception under review.
 
 This gives the app strong legality boundaries without taking on the highest-risk assets.
 
@@ -24,7 +26,7 @@ This gives the app strong legality boundaries without taking on the highest-risk
 | Pokemon/move/item/ability base data | P1 | Pokemon Showdown data repo: https://github.com/smogon/pokemon-showdown/tree/master/data and MIT license: https://raw.githubusercontent.com/smogon/pokemon-showdown/master/LICENSE; PokeAPI docs: https://pokeapi.co/docs/v2 and license: https://github.com/PokeAPI/pokeapi/blob/master/LICENSE.md | Structured stats, types, abilities, moves, items, learnsets, mechanical flags | Showdown code/data is MIT; PokeAPI project is BSD-like and asks for local caching. Still medium risk for Pokemon trademarks and any copied official text embedded in datasets. |
 | Champions-only Mega forms/mechanics | P0 for existence, P2 for mechanics | Official Reg M-A announcement Mega list; future official Champions docs/news; in-game/HOME observation notes only if manually recorded | Allowed Mega names, Mega limit, required Mega Stone relationship | Medium. Official page confirms existence and legality; exact base stats, move/ability behavior, Stat Points, and damage formulas need official or carefully reviewed evidence before strong conclusions. |
 | Chinese names | P1 official, P2 community cross-check | Official China Pokedex: https://www.pokemon.cn/play/pokedex/0001; official Taiwan Pokedex: https://tw.portal-pokemon.com/play/pokedex/0001; Bulbapedia Chinese names list: https://bulbapedia.bulbagarden.net/wiki/List_of_Chinese_Pok%C3%A9mon_names; 52poke list: https://wiki.52poke.com/wiki/%E5%AE%9D%E5%8F%AF%E6%A2%A6%E5%88%97%E8%A1%A8%EF%BC%88%E6%8C%89%E5%85%A8%E5%9B%BD%E5%9B%BE%E9%89%B4%E7%BC%96%E5%8F%B7%EF%BC%89 | zh-CN and zh-TW display names, cross-region name differences | Official sites are safest for factual confirmation but not bulk reuse. Bulbapedia is CC BY-NC-SA 2.5; 52poke is CC BY-NC-SA 3.0. Avoid importing CC BY-NC-SA content into app data unless the app can comply with attribution, noncommercial, and share-alike obligations. |
-| Icons/images/artwork | P3 / blocked for v1 | Official Pokedex images; PokeAPI sprites repo: https://github.com/PokeAPI/sprites; Pokemon support IP guidance: https://support.pokemon.com/hc/en-us/articles/360000634094-Can-I-use-Pok%C3%A9mon-images-or-materials-; press asset terms: https://press.pokemon.com/en/Assets-Use-Terms | Visual polish only | High. Even when hosted in accessible repos, Pokemon sprites/artwork depict protected characters. Use text, type chips, generated neutral placeholders, or user-provided local assets until explicit permission/licensing is settled. |
+| Icons/images/artwork | P3 / blocked for Pokemon artwork; type badge under product review | Official Pokedex images; PokeAPI sprites repo: https://github.com/PokeAPI/sprites; Pokemon Showdown type sprites; Bulbapedia/52poke type templates; Pokemon support IP guidance: https://support.pokemon.com/hc/en-us/articles/360000634094-Can-I-use-Pok%C3%A9mon-images-or-materials-; press asset terms: https://press.pokemon.com/en/Assets-Use-Terms | Visual polish only | High for Pokemon character artwork. Type icons/badges are lower product risk for self-use but still need provenance and a final visual decision. Current local PNG type icons are experimental and may be replaced by text+color or wiki-style badges. |
 | Descriptions/flavor text | P2 mechanics, P3 flavor | Pokemon Showdown data/text for short mechanical summaries; official CN/TW/EN Pokedex pages only as reference; PokeAPI species flavor text only with caution | Short mechanics summaries for abilities/items/moves; avoid flavor text in v1 | Medium/high. Official prose and game flavor text are copyrightable. Prefer original, terse summaries written by maintainers from mechanics data; do not copy Pokedex entries. |
 | Usage/benchmark data | P2 official observation, P3 community | Pokemon HOME Battle Data feature info: https://home.pokemon.com/en-us/features/ and support article: https://support.pokemon.com/hc/en-us/articles/360043472332-What-is-the-Battle-Data-feature-in-Pok%25C3%25A9mon-HOME; Smogon stats index: https://www.smogon.com/stats/; Pikalytics: https://www.pikalytics.com/ | Speed benchmarks, common sets, popularity labels | Official HOME Battle Data is primary but mobile-app access may not permit bulk export. Smogon stats are stable/public for Showdown ladders, but may not match official Champions. Pikalytics is useful for human research but do not scrape or redistribute without permission/terms review. |
 
@@ -62,9 +64,16 @@ Recommended v1 policy:
 
 Do not bundle Pokemon artwork, official sprites, HOME icons, Pokedex images, or screenshots in the first real-data release. The Pokemon support page says they are not positioned to review requests to use Pokemon IP, and press assets are limited to revocable, noncommercial use. PokeAPI sprites are easy to access but still high risk because the underlying character artwork is protected.
 
+Current implementation note:
+
+- Pokemon catalog avatars currently use external PokeAPI official-artwork URLs for the first six catalog entries, accepted as a temporary self-use product decision.
+- Type badges currently use local PNG type icons sourced from a Showdown-hosted type sprite set. The user is not satisfied with this visual direction.
+- Next visual decision should compare the original English abbreviation + recognizable type color badge against a Bulbapedia/52poke-style rounded badge with icon/text and type-colored background.
+- Do not treat the current PNG type icons as final design or final licensing posture.
+
 Safer v1 alternatives:
 
-- Type-color chips and numeric dex badges.
+- Type-color chips / badges and numeric dex badges.
 - Neutral generated silhouettes that do not resemble specific Pokemon.
 - Optional user-side external image URL fields disabled by default.
 
@@ -155,7 +164,7 @@ Recommended first batch:
 
 Do not include:
 
-- Official sprites/artwork/icons.
+- Official Pokemon sprites/artwork and screenshot-derived assets.
 - Pokedex flavor text.
 - HOME/Pikalytics usage percentages.
 - Strong damage conclusions.

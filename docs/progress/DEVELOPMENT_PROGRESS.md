@@ -1,8 +1,8 @@
 # Pokemon Champions 对战助手开发进度表
 
-更新时间：2026-04-29
+更新时间：2026-04-30
 
-当前阶段：**可运行 PWA MVP 已完成，正在进入“可信数据与计算验证”阶段。**
+当前阶段：**PWA MVP 已完成，已进入“机制边界收紧 + 真实数据骨架 + 手机端体验打磨”阶段。**
 
 下一轮开发准备：`docs/progress/NEXT_ROUND_PLAN.md`
 
@@ -19,8 +19,8 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：9 个测试文件，40 个用例
-- [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，8 张基线截图
+- [x] `npm test` 通过：9 个测试文件，45 个用例
+- [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，9 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
 - [x] 本地 PWA 可预览
@@ -47,10 +47,18 @@ npm run build
 - [x] 真实数据 provenance/sourceRefs 骨架：类型化 source ref manifest 与 audit 解析检查
 - [x] 完整真实 Reg M-A Pokemon allowlist seed：官方 Eligible Pokemon 页面 213 行、本地生成脚本、catalog 映射审计
 - [x] 首批 6 只真实 Pokemon catalog：妙蛙花、喷火龙、蚊香蛙皇、煤炭龟、烈咬陆鲨、炽焰咆哮虎，含真实头像外链
+- [x] Champions SP v1 机制落地：SP 单项 0-32、单只总量 66、Lv.50 固定、IV 不暴露
+- [x] 速度线正式改走 mechanism gate，并支持手动调整速度 SP
+- [x] 队伍成员 SP 编辑改为 6 项摘要 + 点开式滑条 / min / max / 单步调整
+- [x] IndexedDB 升级到 v2，补 `1 -> 2` 迁移并迁移旧 EV-like `statPoints`
+- [x] 属性相性补齐 18 种攻击属性，配队分析弱点 / 抗性 / 免疫覆盖更完整
+- [x] 远程刷新入口改为 disabled，不再暴露永远失败的刷新操作
+- [x] 伤害计算页招式、单双打、天气、场地、能力阶级、Mega 状态控件已可点击；正式伤害输出继续阻断
+- [x] 属性展示已尝试切换为本地 PNG 原生图标资源；视觉方案下一轮回评
 - [ ] 完整真实 Reg M-A 数据源接入
-- [ ] Champions 机制确认
+- [ ] Champions 伤害机制确认
 - [ ] 正式伤害计算
-- [ ] 正式速度计算结论
+- [x] 正式速度计算结论（基于当前 Champions SP v1 公式与 gate）
 
 ## 2. PRD 模块进度
 
@@ -91,9 +99,11 @@ npm run build
 - [x] 队伍成员展开 / 收起交互
 - [x] 队伍成员示例能力值展示
 - [x] 队伍成员编辑表单补齐六项 SP
+- [x] 队伍成员编辑 SP 改为适配手机端的点开式 picker，并显示 `已用 X/66`
 - [x] 移除固定规则下的等级编辑
+- [x] 速度线页面支持手动调整速度 SP，不再固定满 SP 极速
 
-状态：**主要流程、成员编辑、移动端成员卡片、benchmark 详情与视觉回归保护已完成，后续继续补真实数据**
+状态：**主要流程、成员编辑、移动端成员卡片、benchmark 详情与速度 SP 已完成；成员卡信息层级和属性 badge 视觉下一轮继续调**
 
 ### P0c：伤害计算 + 合法性校验
 
@@ -104,6 +114,8 @@ npm run build
 - [x] 计算页横向推荐当前队伍成员
 - [x] 招式展示
 - [x] 战斗条件 chip
+- [x] 招式选择、单双打、天气、场地、能力阶级、Mega 状态控件可交互
+- [x] 分散伤害由招式目标范围和单双打模式在逻辑层派生，不再作为前端手动开关展示
 - [x] 机制待确认阻断态
 - [x] 计算结果标注“示例数据 / 非真实计算”
 - [x] 基础合法性状态：合法、非法、需复核、缺少配置
@@ -112,11 +124,11 @@ npm run build
 - [x] 特性与 Pokemon 匹配校验
 - [x] Mega Stone 匹配校验
 - [ ] 接入正式伤害计算库
-- [ ] 验证 `@smogon/calc` 对 Champions 的支持程度
+- [x] 验证 `@smogon/calc` 对 Champions 的支持程度
 - [ ] 正式输出伤害范围、击杀概率、一确 / 二确 / 乱数
 - [ ] 计算结果来源和机制假设详情页
 
-状态：**UI、攻防选择和安全阻断完成，正式计算待机制确认与计算适配层**
+状态：**UI 和条件控件已可交互，正式计算仍因 Champions 伤害机制、Mega 细节和计算适配层未完成而阻断**
 
 ### P1：导入导出 + 基础配队分析 + 缓存兜底
 
@@ -124,7 +136,7 @@ npm run build
 - [x] 队伍 JSON 导入
 - [x] 导入导出格式包含 `ruleSetId` 和 `dataVersionId`
 - [x] 基础配队分析 chip 摘要
-- [x] 数据刷新失败缓存兜底提示
+- [x] 刷新入口禁用并标注当前版本暂不支持远程刷新 / 本地缓存可用
 - [x] 清除本地缓存入口
 - [x] 配队分析详情面板
 - [x] 属性弱点 / 抗性 / 免疫更完整分析
@@ -132,7 +144,7 @@ npm run build
 - [x] 导入失败错误详情优化
 - [x] 缓存状态和离线状态更精细展示
 
-状态：**基础能力完成，分析解释和异常体验待补**
+状态：**基础能力完成；分析文案保留轻量风险提醒边界，不生成完整队伍、不点名替换对象**
 
 ## 3. 数据与机制进度
 
@@ -152,6 +164,7 @@ npm run build
 - [x] `UserPreference`
 - [x] 数据 schema 版本迁移策略
 - [x] 导入数据兼容旧版本策略
+- [x] IndexedDB v2 升级迁移策略
 - [x] 局域网 / 非安全上下文 ID 生成兜底
 
 ### Seed Data
@@ -177,10 +190,12 @@ npm run build
 
 - [x] 未确认机制默认阻断正式结论
 - [x] 速度计算增加 mechanism gate
+- [x] 速度页和队伍 benchmark 均走 speed mechanism gate
 - [x] 伤害计算页保留阻断态
 - [x] 完成 Champions 机制调研文档
-- [ ] 确认 Champions Stat Points 机制
-- [ ] 确认 IV / EV / Nature 是否沿用既有体系
+- [x] Champions Stat Points v1 机制按产品决策启用：单项 32、总量 66、Lv.50 固定
+- [x] IV 不再暴露为用户参数；当前速度 / 能力公式隐含 Champions 固定处理
+- [ ] 持续追踪官方一手资料对 IV 固定值、SP 公式和 Stat Alignment 命名的最终表述
 - [x] 确认 Reg M-A Mega 可用、每场一次、重复道具禁止和计时规则
 - [ ] 确认完整 Mega 形态和 Mega Stone 关系数据
 - [ ] 确认招式学习关系权威来源
@@ -189,7 +204,7 @@ npm run build
 
 调研结论：
 
-- `docs/research/MECHANICS_RESEARCH.md`：Reg M-A 日期、Mega、重复道具、计时可作为确认规则；Stat Points / 速度公式已按 Champions SP 机制启用，伤害公式继续阻断。
+- `docs/research/MECHANICS_RESEARCH.md`：Reg M-A 日期、Mega、重复道具、计时可作为确认规则；Stat Points / 速度公式已按 Champions SP v1 机制启用，伤害公式继续阻断。
 - `docs/research/CALC_ENGINE_SPIKE.md`：`@smogon/calc@0.11.0` 可覆盖主线 doubles、spread、weather、terrain、stat stages、Mega/form 等能力，但 published npm 不含稳定 Champions 机制，必须通过适配层和阻断 gate 使用。
 - `docs/research/DATA_SOURCE_RESEARCH.md`：首批真实数据建议从官方 HOME Reg M-A 元信息和 Eligible Pokemon allowlist 开始，再用 Showdown/PokeAPI join 基础字段；图片、官方描述、使用率数据暂不进入 v1。
 
@@ -207,6 +222,7 @@ npm run build
 - [x] seed data audit：benchmark 版本一致
 - [x] seed data audit：默认队伍版本一致
 - [x] IndexedDB repository 测试
+- [x] IndexedDB v1 -> v2 fixture 迁移测试
 - [x] 导入导出 schema 测试
 - [x] 导入数据 schema 迁移测试
 - [x] PWA 离线验收清单文档
@@ -216,18 +232,22 @@ npm run build
 - [x] source ref manifest 解析测试
 - [x] Reg M-A allowlist seed 解析测试
 - [x] 首批真实 catalog 头像 URL 测试
+- [x] 18 属性相性枚举与 Ghost / Fairy / Poison / Bug / Steel 覆盖测试
+- [x] SP 输入最大 32、总量 66、点开式 picker 与刷新 disabled 测试
 
 ## 5. 当前风险与处理状态
 
 - [x] Reg M-A 完整合法列表已接入官方 Eligible Pokemon allowlist seed，但仍需二次复核和 catalog join
-- [ ] Champions Stat Points 机制未确认
+- [x] Champions Stat Points 已按 v1 产品机制启用；后续仍需追踪官方最终措辞
 - [x] `@smogon/calc` 兼容性已调研：主线能力可用，Champions 特有机制仍阻断
-- [ ] 中文名、图标、简介资源授权风险仍需产品确认
+- [ ] 中文名、属性图标、简介资源授权风险仍需产品确认
+- [ ] 当前属性 PNG 图标视觉不满意，下一轮需回评最初英文+色彩 badge 或百科式条形 badge
 - [x] 真实头像风险已按用户接受策略接入 PokeAPI official-artwork 外链
 - [x] 手机局域网测试中新建失败风险：通过 `createId` fallback 兜底
 - [x] seed data 不被误用为强合法结论：通过 `needs-review` 和测试约束
 - [x] 数据引用断裂风险：通过 `auditSeedData` 测试约束
 - [x] 未确认计算输出风险：通过机制阻断态约束
+- [x] 远程刷新误导风险：刷新入口已 disabled，避免永远失败的操作入口
 
 ## 6. 下一步开发清单
 
@@ -249,7 +269,13 @@ npm run build
 - [x] 建立真实数据 provenance 骨架
 - [x] 扩展完整 Reg M-A Pokemon allowlist seed
 - [x] 接入首批 6 只真实 Pokemon catalog 和真实头像
-- [ ] 补 Reg M-A Mega allowlist seed
+- [x] 修复 Champions SP 机制边界、18 属性相性和 IndexedDB v2 迁移
+- [x] 伤害计算页条件控件可交互，但正式计算继续阻断
+- [x] 成员编辑 SP 改为手机端点开式 picker
+- [ ] 调整队伍成员卡属性位置与“能力配置”点击编辑入口
+- [ ] 回评属性 badge 视觉方案
+- [ ] 重构图鉴属性筛选以支持完整 18 属性
+- [ ] 补 Reg M-A Mega allowlist seed 与 Mega Stone / Mega 状态禁用校验
 
 ## 7. 提交记录
 
@@ -265,3 +291,5 @@ npm run build
 - [x] `730f7f0`：新增回归测试并修正文档口径
 - [x] `986e0cf`：新增 source provenance audit 并修复选择器交互
 - [x] `3ef9bf0`：新增 Reg M-A allowlist seed
+- [x] `adccbb3`：接入首批真实 catalog 头像
+- [x] `37e6b5f`：修复 Champions SP 机制、属性相性与本地数据迁移

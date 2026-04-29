@@ -25,6 +25,10 @@ test('captures the mobile visual regression smoke set', async ({ page }) => {
   await page.getByTitle('编辑成员').click();
   await expect(page.getByText('编辑成员')).toBeVisible();
   await expect(page).toHaveScreenshot('03-member-editor.png', screenshotOptions);
+  await page.getByRole('button', { name: /速度\s*32/ }).click();
+  await expect(page.getByText('拖动滑条，或直接设为最小 / 最大')).toBeVisible();
+  await expect(page).toHaveScreenshot('03-member-editor-sp-picker.png', screenshotOptions);
+  await page.getByTitle('关闭 SP 调整').click();
   await page.getByTitle('关闭').click();
 
   await page.getByRole('button', { name: '计算', exact: true }).click();

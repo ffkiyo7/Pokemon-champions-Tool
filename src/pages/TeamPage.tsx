@@ -1,4 +1,4 @@
-import { ChevronUp, Edit3, Plus, Save, Trash2, X } from 'lucide-react';
+import { ChevronUp, Edit3, Minus, Plus, Save, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
@@ -178,30 +178,83 @@ function SelectField({
   );
 }
 
-function NumberField({
+const statPointControls: Array<{ key: keyof TeamMember['statPoints']; label: string }> = [
+  { key: 'hp', label: 'HP' },
+  { key: 'attack', label: '攻击' },
+  { key: 'defense', label: '防御' },
+  { key: 'specialAttack', label: '特攻' },
+  { key: 'specialDefense', label: '特防' },
+  { key: 'speed', label: '速度' },
+];
+
+function StatPointPicker({
   label,
   value,
   min = 0,
   max = MAX_STAT_POINTS_PER_STAT,
   onChange,
+  onClose,
 }: {
   label: string;
   value: number;
   min?: number;
   max?: number;
   onChange: (value: number) => void;
+  onClose: () => void;
 }) {
+  const nextValue = Math.max(min, Math.min(max, Math.round(value)));
+
   return (
-    <div>
-      <FieldLabel>{label}</FieldLabel>
+    <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
+      <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-disabled" />
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold">{label} SP</p>
+          <p className="text-xs text-textSecondary">拖动滑条，或直接设为最小 / 最大</p>
+        </div>
+        <button className="grid h-8 w-8 place-items-center rounded-lg text-textSecondary" title="关闭 SP 调整" onClick={onClose}>
+          <X size={18} />
+        </button>
+      </div>
+      <div className="mb-4 text-center">
+        <p className="text-[34px] font-bold text-accent">{nextValue}</p>
+        <p className="text-xs text-textMuted">范围 {min}-{max}</p>
+      </div>
       <input
-        className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
+        aria-label={`${label} SP`}
+        className="mb-4 h-9 w-full accent-accent"
         max={max}
         min={min}
-        type="number"
-        value={value}
+        type="range"
+        value={nextValue}
         onChange={(event) => onChange(Number(event.target.value))}
       />
+      <div className="grid grid-cols-4 gap-2">
+        <Button variant="ghost" onClick={() => onChange(min)}>
+          min
+        </Button>
+        <button
+          aria-label={`${label} -1`}
+          className="inline-flex min-h-8 items-center justify-center rounded-lg border border-border text-textSecondary disabled:opacity-40"
+          disabled={nextValue <= min}
+          type="button"
+          onClick={() => onChange(nextValue - 1)}
+        >
+          <Minus size={13} />
+        </button>
+        <button
+          aria-label={`${label} +1`}
+          className="inline-flex min-h-8 items-center justify-center rounded-lg border border-border text-textSecondary disabled:opacity-40"
+          disabled={nextValue >= max}
+          type="button"
+          onClick={() => onChange(nextValue + 1)}
+        >
+          <Plus size={13} />
+        </button>
+        <Button onClick={() => onChange(max)}>
+          max
+        </Button>
+      </div>
     </div>
   );
 }
@@ -220,11 +273,13 @@ function MemberEditor({
   onDelete: (memberId: string) => Promise<void>;
 }) {
   const [draft, setDraft] = useState<TeamMember>(member);
+  const [editingStatKey, setEditingStatKey] = useState<keyof TeamMember['statPoints'] | null>(null);
   const selectedPokemon = pokemon.find((entry) => entry.id === draft.pokemonId) ?? pokemon[0];
   const availableMoves = moves.filter((move) => move.learnableByPokemonIds.includes(selectedPokemon.id));
   const availableAbilities = abilities.filter((ability) => selectedPokemon.abilities.includes(ability.id));
   const legality = useMemo(() => evaluateMemberLegality(draft, team), [draft, team]);
   const totalStatPoints = statPointTotal(draft.statPoints);
+  const editingStat = statPointControls.find((control) => control.key === editingStatKey);
 
   const updateDraft = (patch: Partial<TeamMember>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -235,14 +290,7 @@ function MemberEditor({
       ...current,
       statPoints: {
         ...current.statPoints,
-        [key]: Math.max(
-          0,
-          Math.min(
-            MAX_STAT_POINTS_PER_STAT,
-            MAX_TOTAL_STAT_POINTS - (statPointTotal(current.statPoints) - Math.max(0, Number(current.statPoints[key] ?? 0))),
-            Math.round(value || 0),
-          ),
-        ),
+        [key]: Math.max(0, Math.min(MAX_STAT_POINTS_PER_STAT, Math.round(value || 0))),
       },
     }));
   };
@@ -341,16 +389,29 @@ function MemberEditor({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          <NumberField label="HP SP" value={draft.statPoints.hp ?? 0} onChange={(value) => updateStatPoint('hp', value)} />
-          <NumberField label="攻击 SP" value={draft.statPoints.attack ?? 0} onChange={(value) => updateStatPoint('attack', value)} />
-          <NumberField label="防御 SP" value={draft.statPoints.defense ?? 0} onChange={(value) => updateStatPoint('defense', value)} />
-          <NumberField label="特攻 SP" value={draft.statPoints.specialAttack ?? 0} onChange={(value) => updateStatPoint('specialAttack', value)} />
-          <NumberField label="特防 SP" value={draft.statPoints.specialDefense ?? 0} onChange={(value) => updateStatPoint('specialDefense', value)} />
-          <NumberField label="速度 SP" value={draft.statPoints.speed ?? 0} onChange={(value) => updateStatPoint('speed', value)} />
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <FieldLabel>SP 分配</FieldLabel>
+            <span className={`text-[11px] ${totalStatPoints > MAX_TOTAL_STAT_POINTS ? 'text-danger' : 'text-textMuted'}`}>
+              已用 {totalStatPoints}/{MAX_TOTAL_STAT_POINTS}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {statPointControls.map((control) => (
+              <button
+                key={control.key}
+                className="rounded-lg border border-border bg-secondary p-2 text-left active:scale-[0.99]"
+                type="button"
+                onClick={() => setEditingStatKey(control.key)}
+              >
+                <span className="block text-[11px] text-textMuted">{control.label}</span>
+                <span className="mt-1 block text-lg font-semibold text-textPrimary">{draft.statPoints[control.key] ?? 0}</span>
+              </button>
+            ))}
+          </div>
         </div>
         <p className={`text-[11px] ${totalStatPoints > MAX_TOTAL_STAT_POINTS ? 'text-danger' : 'text-textMuted'}`}>
-          SP 合计 {totalStatPoints}/{MAX_TOTAL_STAT_POINTS} · 单项最多 {MAX_STAT_POINTS_PER_STAT}
+          单项最多 {MAX_STAT_POINTS_PER_STAT} · 超过 {MAX_TOTAL_STAT_POINTS} 会在校验中报错
         </p>
 
         <Card className="bg-secondary">
@@ -385,6 +446,14 @@ function MemberEditor({
           保存
         </Button>
       </div>
+      {editingStat && (
+        <StatPointPicker
+          label={editingStat.label}
+          value={draft.statPoints[editingStat.key] ?? 0}
+          onChange={(value) => updateStatPoint(editingStat.key, value)}
+          onClose={() => setEditingStatKey(null)}
+        />
+      )}
     </div>
   );
 }

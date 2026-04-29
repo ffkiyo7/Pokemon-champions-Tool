@@ -75,12 +75,15 @@ describe('App page flows', () => {
     expect(screen.queryByText('备注')).toBeNull();
 
     ['HP SP', '攻击 SP', '防御 SP', '特攻 SP', '特防 SP', '速度 SP'].forEach((label) => {
-      expect(screen.getByText(label)).toBeTruthy();
+      expect(screen.getAllByText(label.replace(' SP', '')).length).toBeGreaterThan(0);
     });
-    screen.getAllByRole('spinbutton').forEach((input) => {
-      expect(input.getAttribute('max')).toBe('32');
-    });
-    expect(screen.getByText('SP 合计 65/66 · 单项最多 32')).toBeTruthy();
+    expect(screen.getByText('已用 65/66')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /速度\s*32/ }));
+    expect(screen.getByText('速度 SP')).toBeTruthy();
+    expect(screen.getByRole('slider', { name: '速度 SP' }).getAttribute('max')).toBe('32');
+    expect(screen.getByRole('button', { name: 'min' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'max' })).toBeTruthy();
   });
 
   it('selects both calculator sides from searchable current-rule Pokemon and team recommendations', async () => {
@@ -90,6 +93,12 @@ describe('App page flows', () => {
     expect(await screen.findByText('选择进攻方')).toBeTruthy();
     expect(screen.getByText('当前队伍推荐')).toBeTruthy();
     expect(screen.queryByText('小顿熊')).toBeNull();
+    expect(screen.getByText('选择招式')).toBeTruthy();
+    expect(screen.getByText('天气')).toBeTruthy();
+    await user.selectOptions(screen.getByLabelText('选择招式'), 'dragon-claw');
+    await user.selectOptions(screen.getByLabelText('天气'), '晴天');
+    expect((screen.getByLabelText('选择招式') as HTMLSelectElement).value).toBe('dragon-claw');
+    expect((screen.getByLabelText('天气') as HTMLSelectElement).value).toBe('晴天');
 
     await user.click(screen.getByRole('button', { name: /防守方/ }));
     expect(await screen.findByText('选择防守方')).toBeTruthy();
@@ -128,10 +137,10 @@ describe('App page flows', () => {
 
     await user.click(screen.getByRole('button', { name: '地面' }));
     expect(screen.getAllByText('烈咬陆鲨 Garchomp').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Ground').length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText('地面属性').length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: '龙' }));
     expect(screen.getAllByText('烈咬陆鲨 Garchomp').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Dragon').length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText('龙属性').length).toBeGreaterThan(0);
   });
 });

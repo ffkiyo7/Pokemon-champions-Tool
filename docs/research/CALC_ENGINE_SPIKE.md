@@ -2,6 +2,8 @@
 
 Date: 2026-04-26
 
+Implementation review: 2026-04-30
+
 Scope: Evaluate whether `@smogon/calc` can satisfy the Pokemon Champions PRD damage-calculation needs without changing package setup. The project currently does not depend on `@smogon/calc`.
 
 ## Sources
@@ -35,7 +37,7 @@ Scope: Evaluate whether `@smogon/calc` can satisfy the Pokemon Champions PRD dam
 | Abilities | `Pokemon` accepts `ability`; Gen 7-9 mechanics implement many ability effects and field/side abilities. | Direct use for known mainline abilities; adapter/validation for Champions-specific abilities. |
 | KO text/damage range | `Result` and desc helpers provide damage arrays and descriptions; common damage calculators use this for ranges and KO chance text. | Direct use after output-normalization adapter. |
 | Champions-specific mechanics | Not in published npm `0.11.0`. Upstream `master` has an unreleased `calculateChampions` implementation with Champions-specific names such as `Piercing Drill`, `Mega Sol`, and `Dragonize`. | Block formal production use until released or vendored/forked with verification. |
-| Champions Stat Points | Published package computes stats from mainline IV/EV/Nature inputs. PRD marks Stat Points as unconfirmed. | Block formal outputs unless adapter has a verified Stat Points to calc-stat mapping. |
+| Champions Stat Points | Published package computes stats from mainline IV/EV/Nature inputs. The app now has a project-owned Champions SP v1 stat formula for speed/battle-stat display. | Do not pass user SP directly into calc as EVs. Adapter must either inject precomputed stats or use a reviewed SP-to-calc mapping. |
 | Champions legality | `@smogon/calc` is a damage engine, not a Regulation Set M-A legality authority. | Keep legality in project data/version layer. Do not rely on calc for legal Pokemon/moves/items. |
 
 ## Adapter Shape
@@ -44,7 +46,7 @@ Use `@smogon/calc` behind a small project-owned adapter, not directly in React p
 
 1. Resolve PRD data IDs to calc names: species/form, move, ability, item, nature.
 2. Gate unsupported or unverified Champions mechanics before calculation.
-3. Convert Stat Points to EV/IV/Nature only after the mechanics are verified.
+3. Convert Stat Points through the project-owned Champions SP v1 formula; do not expose IV or silently reinterpret SP as EV.
 4. Build calc objects:
    - `new Pokemon(9, speciesOrFormName, { level, ability, item, nature, evs, ivs, boosts })`
    - `new Move(9, moveName, { isCrit, hits, overrides })`
@@ -75,6 +77,9 @@ Expected probe coverage:
 Use `@smogon/calc` as the core mainline damage engine through an adapter, but do not label Champions damage output as formal until Champions-only mechanics are verified.
 
 - Direct-use: doubles, spread damage, weather, terrain, mainline stat stages, many items, many abilities, standard damage ranges.
-- Adapter-required: PRD data IDs to calc names, form/Mega resolution, result formatting, legality/version gates, Stat Points mapping, explicit blocked-state UX.
-- Blocked for formal Champions output: any Champions-specific mechanic not present in published npm `0.11.0`, including confirmed Stat Points behavior and any Champions-only abilities/items/move effects. Upstream `calculateChampions` is worth tracking, but relying on unreleased `master` would be too brittle for v1.
+- Adapter-required: PRD data IDs to calc names, form/Mega resolution, result formatting, legality/version gates, Champions SP v1 stat injection/mapping, explicit blocked-state UX.
+- Blocked for formal Champions output: Champions-specific damage mechanics not present in published npm `0.11.0`, incomplete Mega form / Mega Stone legality mapping, and any Champions-only abilities/items/move effects. Upstream `calculateChampions` is worth tracking, but relying on unreleased `master` would be too brittle for v1.
 
+## Current UI State
+
+The damage page now exposes clickable controls for move selection, singles/doubles, weather, terrain, attack stage, and Mega state. Spread damage is derived from the selected move target scope and battle type rather than shown as a user-facing toggle. These controls are readiness work for the adapter; they do not yet produce formal damage ranges, KO odds, one-hit, or two-hit conclusions.

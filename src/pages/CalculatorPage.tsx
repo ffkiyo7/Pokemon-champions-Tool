@@ -4,9 +4,18 @@ import { moves, pokemon } from '../data';
 import { memberLabel } from '../lib/calculations';
 import { useAppStore } from '../state/AppContext';
 import type { Pokemon, TeamMember } from '../types';
-import { Badge, Button, Card, Chip, PokemonAvatar, TypeBadge } from '../components/ui';
+import { Badge, Card, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type CalcSide = 'attacker' | 'defender';
+type BattleTypeOption = 'singles' | 'doubles';
+
+const weatherOptions = ['无天气', '晴天', '雨天', '沙暴', '雪天'];
+const terrainOptions = ['无场地', '青草场地', '电气场地', '精神场地', '薄雾场地'];
+const stageOptions = ['0', '+1', '+2', '-1', '-2'];
+const megaOptions = ['无 Mega', '进攻方 Mega', '防守方 Mega'];
+
+const isSpreadMove = (targetScope: string, battleType: BattleTypeOption) =>
+  battleType === 'doubles' && ['对手全体', '全体邻近目标', '全体'].some((scope) => targetScope.includes(scope));
 
 const makeManualMember = (entry: Pokemon) => ({
   id: `manual-${entry.id}`,
@@ -34,6 +43,12 @@ export function CalculatorPage({
   const [attackerPokemonId, setAttackerPokemonId] = useState(members[0]?.member.pokemonId ?? selectedMemberId ?? firstPokemonId);
   const [defenderPokemonId, setDefenderPokemonId] = useState(members[1]?.member.pokemonId ?? pokemon[1]?.id ?? firstPokemonId);
   const [query, setQuery] = useState('');
+  const [selectedMoveId, setSelectedMoveId] = useState<string | undefined>();
+  const [battleType, setBattleType] = useState<BattleTypeOption>('doubles');
+  const [weather, setWeather] = useState(weatherOptions[0]);
+  const [terrain, setTerrain] = useState(terrainOptions[0]);
+  const [attackStage, setAttackStage] = useState('0');
+  const [megaState, setMegaState] = useState(megaOptions[0]);
 
   useEffect(() => {
     if (!selectedMemberId) return;
@@ -46,7 +61,13 @@ export function CalculatorPage({
   const defenderEntry = pokemon.find((entry) => entry.id === defenderPokemonId) ?? pokemon[1] ?? pokemon[0];
   const attackerMember = members.find(({ member }) => member.pokemonId === attackerEntry.id)?.member ?? makeManualMember(attackerEntry);
   const defenderMember = members.find(({ member }) => member.pokemonId === defenderEntry.id)?.member ?? makeManualMember(defenderEntry);
-  const move = moves.find((entry) => attackerMember.moveIds.includes(entry.id)) ?? moves.find((entry) => attackerEntry.learnableMoves.includes(entry.id)) ?? moves[0];
+  const availableMoves = moves.filter((entry) => attackerEntry.learnableMoves.includes(entry.id));
+  const move =
+    moves.find((entry) => entry.id === selectedMoveId && availableMoves.some((available) => available.id === entry.id)) ??
+    moves.find((entry) => attackerMember.moveIds.includes(entry.id)) ??
+    availableMoves[0] ??
+    moves[0];
+  const derivedSpreadDamage = isSpreadMove(move.targetScope, battleType);
   const normalizedQuery = query.trim().toLowerCase();
   const filteredPokemon = useMemo(
     () =>
@@ -69,6 +90,7 @@ export function CalculatorPage({
   const pickPokemon = (pokemonId: string) => {
     if (activeSide === 'attacker') {
       setAttackerPokemonId(pokemonId);
+      setSelectedMoveId(undefined);
       onPickMember(members.find(({ member }) => member.pokemonId === pokemonId)?.member.id ?? pokemonId);
     } else {
       setDefenderPokemonId(pokemonId);
@@ -79,6 +101,7 @@ export function CalculatorPage({
     if (!member.pokemonId) return;
     if (activeSide === 'attacker') {
       setAttackerPokemonId(member.pokemonId);
+      setSelectedMoveId(undefined);
       onPickMember(member.id);
     } else {
       setDefenderPokemonId(member.pokemonId);
@@ -99,7 +122,11 @@ export function CalculatorPage({
         >
           <p className="text-[11px] text-textSecondary">进攻方</p>
           <p className="truncate text-sm font-semibold">{memberLabel(attackerMember)}</p>
-          <p className="mt-1 text-xs text-textMuted">{attackerEntry.types.join(' / ')}</p>
+          <div className="mt-1 flex gap-1">
+            {attackerEntry.types.map((type) => (
+              <TypeBadge key={type} type={type} size="sm" />
+            ))}
+          </div>
         </button>
         <span className="text-center text-textMuted">→</span>
         <button
@@ -108,25 +135,97 @@ export function CalculatorPage({
         >
           <p className="text-[11px] text-textSecondary">防守方</p>
           <p className="truncate text-sm font-semibold">{memberLabel(defenderMember)}</p>
-          <p className="mt-1 text-xs text-textMuted">{defenderEntry.types.join(' / ')}</p>
+          <div className="mt-1 flex gap-1">
+            {defenderEntry.types.map((type) => (
+              <TypeBadge key={type} type={type} size="sm" />
+            ))}
+          </div>
         </button>
       </div>
 
       <Card>
-        <div className="flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] text-textSecondary">招式</p>
             <h3 className="font-semibold">{move.chineseName} {move.englishName}</h3>
           </div>
           <Badge status="version">示例数据</Badge>
         </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto hide-scrollbar">
-          <Chip active>双打</Chip>
-          <Chip active>分散伤害</Chip>
-          <Chip>天气 ▾</Chip>
-          <Chip>场地 ▾</Chip>
-          <Chip>能力± ▾</Chip>
-          <Chip>Mega状态</Chip>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="col-span-2">
+            <span className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">选择招式</span>
+            <select
+              className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
+              value={move.id}
+              onChange={(event) => setSelectedMoveId(event.target.value)}
+            >
+              {availableMoves.map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.chineseName} / {entry.englishName}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div>
+            <span className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">规则</span>
+            <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border">
+              {(['doubles', 'singles'] as const).map((option) => (
+                <button
+                  key={option}
+                  className={`min-h-9 text-xs font-semibold ${battleType === option ? 'bg-accent text-page' : 'bg-secondary text-textSecondary'}`}
+                  type="button"
+                  onClick={() => setBattleType(option)}
+                >
+                  {option === 'doubles' ? '双打' : '单打'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <label>
+            <span className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">天气</span>
+            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={weather} onChange={(event) => setWeather(event.target.value)}>
+              {weatherOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">场地</span>
+            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={terrain} onChange={(event) => setTerrain(event.target.value)}>
+              {terrainOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">进攻能力</span>
+            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={attackStage} onChange={(event) => setAttackStage(event.target.value)}>
+              {stageOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="col-span-2">
+            <span className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">Mega 状态</span>
+            <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={megaState} onChange={(event) => setMegaState(event.target.value)}>
+              {megaOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] text-textMuted">
+          <span>威力 {move.power ?? '-'}</span>
+          <span>命中 {move.accuracy ?? '-'}</span>
+          <span>{move.category}</span>
         </div>
       </Card>
 

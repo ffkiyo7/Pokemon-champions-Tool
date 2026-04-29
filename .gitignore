@@ -3,5 +3,9 @@ dist
 .npm-cache
 .vite
 *.local
+.vite-lan*.log
 test-results
 playwright-report
+
+# Local-only assets (copyrighted / not for redistribution)
+public/type-icons/

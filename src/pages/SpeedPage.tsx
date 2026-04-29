@@ -1,7 +1,8 @@
-import { Star, X } from 'lucide-react';
+import { Minus, Plus, Star, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { pokemon, speedBenchmarks } from '../data';
 import { buildTeamBenchmarks, calculateSpeedWithMechanismGate } from '../lib/calculations';
+import { MAX_STAT_POINTS_PER_STAT } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
 import type { SpeedBenchmark, Team } from '../types';
 import { Button, Card, Chip, PokemonAvatar, TypeBadge } from '../components/ui';
@@ -101,10 +102,11 @@ export function SpeedPage({
   const { preferences, toggleFavoriteBenchmark } = useAppStore();
   const [filter, setFilter] = useState<BenchmarkFilter>('preset');
   const [selectedBenchmarkId, setSelectedBenchmarkId] = useState<string | null>(null);
+  const [speedStatPoints, setSpeedStatPoints] = useState(MAX_STAT_POINTS_PER_STAT);
   const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? pokemon[0];
   const currentSpeedResult = calculateSpeedWithMechanismGate({
     baseSpeed: selected.baseStats.speed,
-    statPoints: 32,
+    statPoints: speedStatPoints,
     level: 50,
     nature: '爽朗',
     mechanismStatus: 'confirmed',
@@ -151,10 +153,49 @@ export function SpeedPage({
         </select>
         <div className="flex gap-2 overflow-x-auto hide-scrollbar">
           <Chip active>爽朗(+速)</Chip>
-          <Chip active>SP:32</Chip>
+          <Chip active>SP:{speedStatPoints}</Chip>
           <Chip>{selected.canMega ? 'Mega 可用' : '原始形态'}</Chip>
           <Chip>道具 ▾</Chip>
           <Chip>顺风</Chip>
+        </div>
+      </Card>
+
+      <Card className="bg-secondary">
+        <div className="mb-2 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold">速度 SP</p>
+            <p className="text-xs text-textSecondary">手动调整 0-32，基准默认不代表推荐分配</p>
+          </div>
+          <span className="text-lg font-bold text-accent">{speedStatPoints}</span>
+        </div>
+        <div className="grid grid-cols-[32px_1fr_32px] items-center gap-2">
+          <button
+            aria-label="速度 SP -1"
+            className="grid h-8 w-8 place-items-center rounded-lg border border-border text-textSecondary disabled:opacity-40"
+            disabled={speedStatPoints <= 0}
+            type="button"
+            onClick={() => setSpeedStatPoints((value) => Math.max(0, value - 1))}
+          >
+            <Minus size={14} />
+          </button>
+          <input
+            aria-label="速度 SP"
+            className="h-8 w-full accent-accent"
+            max={MAX_STAT_POINTS_PER_STAT}
+            min={0}
+            type="range"
+            value={speedStatPoints}
+            onChange={(event) => setSpeedStatPoints(Number(event.target.value))}
+          />
+          <button
+            aria-label="速度 SP +1"
+            className="grid h-8 w-8 place-items-center rounded-lg border border-border text-textSecondary disabled:opacity-40"
+            disabled={speedStatPoints >= MAX_STAT_POINTS_PER_STAT}
+            type="button"
+            onClick={() => setSpeedStatPoints((value) => Math.min(MAX_STAT_POINTS_PER_STAT, value + 1))}
+          >
+            <Plus size={14} />
+          </button>
         </div>
       </Card>
 
@@ -163,7 +204,7 @@ export function SpeedPage({
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[26px] font-bold text-white">{currentSpeedLabel}</p>
-            <p className="text-xs text-textSecondary">基础速度 {selected.baseStats.speed} · 性格×1.1 · SP+32</p>
+            <p className="text-xs text-textSecondary">基础速度 {selected.baseStats.speed} · 性格×1.1 · SP+{speedStatPoints}</p>
           </div>
           <div className="flex gap-1">
             {selected.types.map((type) => (
@@ -227,7 +268,16 @@ export function SpeedPage({
         {benchmarks.map((benchmark) => {
           const favorite = favoriteIds.includes(benchmark.id);
           return (
-            <button key={benchmark.id} className="w-full text-left" onClick={() => setSelectedBenchmarkId(benchmark.id)}>
+            <div
+              key={benchmark.id}
+              className="w-full text-left"
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedBenchmarkId(benchmark.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') setSelectedBenchmarkId(benchmark.id);
+              }}
+            >
               <Card className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold">{benchmark.name}</h3>
@@ -249,7 +299,7 @@ export function SpeedPage({
                   收藏
                 </Button>
               </Card>
-            </button>
+            </div>
           );
         })}
       </div>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { LegalityStatus, PokemonType } from '../types';
 
@@ -92,13 +93,48 @@ const typeColors: Record<PokemonType, string> = {
   Fairy: '#d685ad',
 };
 
-export function TypeBadge({ type }: { type: PokemonType }) {
+const typeLabels: Record<PokemonType, string> = {
+  Normal: '一般',
+  Fire: '火',
+  Water: '水',
+  Electric: '电',
+  Grass: '草',
+  Ice: '冰',
+  Fighting: '格斗',
+  Poison: '毒',
+  Ground: '地面',
+  Flying: '飞行',
+  Psychic: '超能力',
+  Bug: '虫',
+  Rock: '岩石',
+  Ghost: '幽灵',
+  Dragon: '龙',
+  Dark: '恶',
+  Steel: '钢',
+  Fairy: '妖精',
+};
+
+export function TypeBadge({ type, size = 'md' }: { type: PokemonType; size?: 'sm' | 'md' }) {
+  const dimension = size === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
+  const [missingIcon, setMissingIcon] = useState(false);
   return (
     <span
-      className="inline-flex h-5 min-w-12 shrink-0 items-center justify-center rounded px-1.5 text-[10px] font-semibold leading-none"
-      style={{ backgroundColor: `${typeColors[type]}24`, color: typeColors[type] }}
+      aria-label={`${typeLabels[type]}属性`}
+      className={`inline-flex shrink-0 items-center justify-center ${dimension}`}
+      style={{ color: typeColors[type] }}
+      title={`${typeLabels[type]}属性`}
     >
-      {type}
+      {missingIcon ? (
+        <span aria-hidden="true" className="h-full w-full rounded-full border border-border/60" style={{ backgroundColor: typeColors[type] }} />
+      ) : (
+        <img
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-contain"
+          src={`/type-icons/sv/${type}.png`}
+          onError={() => setMissingIcon(true)}
+        />
+      )}
     </span>
   );
 }
