@@ -102,7 +102,7 @@ export const getPokemon = (id?: string) => pokemon.find((entry) => entry.id === 
 
 export const memberLabel = (member: TeamMember) => {
   const found = getPokemon(member.pokemonId);
-  return found ? `${found.chineseName} ${found.englishName}` : '未选择 Pokémon';
+  return found ? found.chineseName : '未选择 Pokémon';
 };
 
 export const memberSpeed = (member: TeamMember) => {

@@ -57,7 +57,7 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: 'M-A 测试队' }));
     expect(await screen.findByText(/2\/6 成员/)).toBeTruthy();
 
-    await user.click(screen.getByText('烈咬陆鲨 Garchomp'));
+    await user.click(screen.getByText('烈咬陆鲨'));
     expect(await screen.findByText('示例能力值')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /能力配置/ }));
     expect(await screen.findByText('编辑成员')).toBeTruthy();
@@ -70,7 +70,7 @@ describe('App page flows', () => {
   it('keeps member editing focused on Pokemon, moves, nature, item, ability, and six SP fields', async () => {
     const user = await renderApp();
 
-    await user.click(screen.getByText('烈咬陆鲨 Garchomp'));
+    await user.click(screen.getByText('烈咬陆鲨'));
     await user.click(screen.getByTitle('编辑成员'));
 
     expect(await screen.findByText('编辑成员')).toBeTruthy();
@@ -113,14 +113,14 @@ describe('App page flows', () => {
     const recommendedGarchomp = within(selector as HTMLElement).getByRole('button', { name: /烈咬陆鲨/ });
     await user.click(recommendedGarchomp);
     const recommendedDefenderCard = screen.getByRole('button', { name: /防守方/ });
-    expect(within(recommendedDefenderCard).getByText('烈咬陆鲨 Garchomp')).toBeTruthy();
+    expect(within(recommendedDefenderCard).getByText('烈咬陆鲨')).toBeTruthy();
     expect(recommendedGarchomp.getAttribute('aria-pressed')).toBe('true');
 
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Torkoal');
     await user.click(within(selector as HTMLElement).getByText('煤炭龟'));
 
     const defenderCard = screen.getByRole('button', { name: /防守方/ });
-    expect(within(defenderCard).getByText('煤炭龟 Torkoal')).toBeTruthy();
+    expect(within(defenderCard).getByText('煤炭龟')).toBeTruthy();
     expect(screen.getByText('该机制待确认，计算暂不可用')).toBeTruthy();
   });
 
@@ -134,24 +134,33 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: /属性：全部/ }));
     await user.click(screen.getByRole('button', { name: /^火属性$/ }));
     await user.click(screen.getByRole('button', { name: '完成' }));
-    expect(screen.getAllByText('炽焰咆哮虎 Incineroar').length).toBeGreaterThan(0);
-    expect(screen.getByText('煤炭龟 Torkoal')).toBeTruthy();
-    expect(screen.getAllByText('喷火龙 Charizard').length).toBeGreaterThan(0);
-    expect(screen.queryByText('蚊香蛙皇 Politoed')).toBeNull();
+    expect(screen.getAllByText('炽焰咆哮虎').length).toBeGreaterThan(0);
+    expect(screen.getByText('煤炭龟')).toBeTruthy();
+    expect(screen.getAllByText('喷火龙').length).toBeGreaterThan(0);
+    expect(screen.queryByText('蚊香蛙皇')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /属性：火/ }));
     await user.click(screen.getByRole('button', { name: /^飞行属性$/ }));
     await user.click(screen.getByRole('button', { name: '完成' }));
-    expect(screen.getAllByText('喷火龙 Charizard').length).toBeGreaterThan(0);
-    expect(screen.queryByText('炽焰咆哮虎 Incineroar')).toBeNull();
-    expect(screen.queryByText('煤炭龟 Torkoal')).toBeNull();
+    expect(screen.getAllByText('喷火龙').length).toBeGreaterThan(0);
+    expect(screen.queryByText('炽焰咆哮虎')).toBeNull();
+    expect(screen.queryByText('煤炭龟')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: '清空' }));
     await user.click(screen.getByRole('button', { name: /属性：全部/ }));
     await user.click(screen.getByRole('button', { name: /^地面属性$/ }));
     await user.click(screen.getByRole('button', { name: /^龙属性$/ }));
     await user.click(screen.getByRole('button', { name: '完成' }));
-    expect(screen.getAllByText('烈咬陆鲨 Garchomp').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('烈咬陆鲨').length).toBeGreaterThan(0);
     expect(screen.getAllByLabelText('龙属性').length).toBeGreaterThan(0);
+
+    await user.click(screen.getByText('烈咬陆鲨'));
+    expect(await screen.findByText('Garchomp')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '切日文' }));
+    expect(await screen.findByText('ガブリアス')).toBeTruthy();
+    expect(screen.getAllByText('特性').length).toBeGreaterThan(0);
+    expect(screen.getByText('种族值')).toBeTruthy();
+    expect(screen.getByText('当前规则可学会招式')).toBeTruthy();
+    expect(screen.getByText('属性相克')).toBeTruthy();
   });
 });

@@ -310,7 +310,7 @@ export function CalculatorPage({
                   onClick={() => pickTeamMember(member)}
                 >
                   <div className="mb-2">
-                    <PokemonAvatar iconRef={entry.iconRef} label={`${entry.chineseName} ${entry.englishName}`} />
+                    <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} />
                   </div>
                   <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
                   <p className="truncate text-[11px] text-textMuted">{teamName}</p>
@@ -331,10 +331,9 @@ export function CalculatorPage({
                   onClick={() => pickPokemon(entry.id)}
                 >
                   <div className="mb-2 flex items-center gap-2">
-                    <PokemonAvatar iconRef={entry.iconRef} label={`${entry.chineseName} ${entry.englishName}`} />
+                    <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} />
                     <div className="min-w-0">
                       <p className="truncate text-xs font-semibold">{entry.chineseName}</p>
-                      <p className="truncate text-[11px] text-textMuted">{entry.englishName}</p>
                     </div>
                   </div>
                   <div className="flex gap-1">

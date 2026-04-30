@@ -18,7 +18,7 @@ test('captures the mobile visual regression smoke set', async ({ page }) => {
 
   await expect(page).toHaveScreenshot('01-team-compact.png', screenshotOptions);
 
-  await page.getByText('烈咬陆鲨 Garchomp').click();
+  await page.getByText('烈咬陆鲨').click();
   await expect(page.getByText('示例能力值')).toBeVisible();
   await expect(page).toHaveScreenshot('02-team-expanded.png', screenshotOptions);
 
@@ -42,6 +42,10 @@ test('captures the mobile visual regression smoke set', async ({ page }) => {
   await page.getByRole('button', { name: '图鉴', exact: true }).click();
   await expect(page.getByText('规则内图鉴')).toBeVisible();
   await expect(page).toHaveScreenshot('06-dex.png', screenshotOptions);
+  await page.getByText('烈咬陆鲨').click();
+  await expect(page.getByText('当前规则可学会招式')).toBeVisible();
+  await expect(page).toHaveScreenshot('06-dex-detail.png', screenshotOptions);
+  await page.getByRole('button', { name: /返回图鉴列表/ }).click();
   await page.getByRole('button', { name: /属性：全部/ }).click();
   await expect(page.getByText('最多选择 2 个属性')).toBeVisible();
   await expect(page).toHaveScreenshot('06-dex-type-filter.png', screenshotOptions);

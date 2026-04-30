@@ -56,7 +56,7 @@ function MemberCard({
       <button className="block w-full text-left" onClick={() => onToggle(member.id)}>
         <div className={expanded ? 'flex gap-3' : 'flex flex-col items-center text-center'}>
           <div className={expanded ? '' : 'mb-2'}>
-            <PokemonAvatar iconRef={entry?.iconRef} label={entry ? `${entry.chineseName} ${entry.englishName}` : '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
+            <PokemonAvatar iconRef={entry?.iconRef} label={entry?.chineseName ?? '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
           </div>
           <div className="min-w-0 flex-1">
             <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex flex-wrap items-center gap-1.5`}>
@@ -333,7 +333,7 @@ function MemberEditor({
         >
           {pokemon.map((entry) => (
             <option key={entry.id} value={entry.id}>
-              {entry.chineseName} {entry.englishName}
+              {entry.chineseName}
             </option>
           ))}
         </SelectField>

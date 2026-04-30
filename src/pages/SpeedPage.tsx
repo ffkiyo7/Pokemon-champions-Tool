@@ -45,7 +45,7 @@ function BenchmarkDetailSheet({
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Card className="bg-secondary">
           <p className="text-[11px] text-textSecondary">Pokemon</p>
-          <p className="font-semibold">{entry ? `${entry.chineseName} ${entry.englishName}` : benchmark.pokemonId}</p>
+          <p className="font-semibold">{entry ? entry.chineseName : benchmark.pokemonId}</p>
         </Card>
         <Card className="bg-secondary">
           <p className="text-[11px] text-textSecondary">最终速度</p>
@@ -147,7 +147,7 @@ export function SpeedPage({
         >
           {pokemon.map((entry) => (
             <option key={entry.id} value={entry.id}>
-              {entry.chineseName} {entry.englishName}
+              {entry.chineseName}
             </option>
           ))}
         </select>
@@ -232,7 +232,7 @@ export function SpeedPage({
           ))}
           <div className="absolute top-6 -translate-x-1/2 text-center" style={{ left: `${Math.min(96, Math.max(4, (currentSpeed / 250) * 100))}%` }}>
             <div className="mx-auto">
-              <PokemonAvatar iconRef={selected.iconRef} label={`${selected.chineseName} ${selected.englishName}`} size="xs" />
+              <PokemonAvatar iconRef={selected.iconRef} label={selected.chineseName} size="xs" />
             </div>
             <div className="mx-auto h-12 w-px bg-accent/70" />
             <div className="mx-auto h-4 w-4 rotate-45 bg-accent" />

@@ -115,6 +115,7 @@ export type Pokemon = {
   nationalDexNo: number;
   chineseName: string;
   englishName: string;
+  japaneseName: string;
   iconRef: string;
   types: PokemonType[];
   baseStats: BaseStats;
