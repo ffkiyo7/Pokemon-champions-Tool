@@ -1,4 +1,4 @@
-import { ChevronUp, Edit3, Minus, Plus, Save, Trash2, X } from 'lucide-react';
+import { BarChart3, ChevronUp, Edit3, Minus, Plus, Save, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
@@ -52,30 +52,31 @@ function MemberCard({
   ].filter(([, value]) => Number(value) > 0);
 
   return (
-    <Card className={`${expanded ? 'col-span-2' : ''} bg-card`}>
+    <Card className={`${expanded ? 'col-span-2' : 'min-h-[136px]'} bg-card`}>
       <button className="block w-full text-left" onClick={() => onToggle(member.id)}>
         <div className={expanded ? 'flex gap-3' : 'flex flex-col items-center text-center'}>
           <div className={expanded ? '' : 'mb-2'}>
-            <PokemonAvatar iconRef={entry?.iconRef} label={entry ? `${entry.chineseName} ${entry.englishName}` : '未配置 Pokemon'} size={expanded ? 'md' : 'lg'} />
+            <PokemonAvatar iconRef={entry?.iconRef} label={entry ? `${entry.chineseName} ${entry.englishName}` : '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex items-center gap-2`}>
+            <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex flex-wrap items-center gap-1.5`}>
               <h3 className="truncate text-sm font-semibold">{memberLabel(member)}</h3>
-              {expanded && (
-                <Badge status={member.legalityStatus}>
-                  {member.legalityStatus === 'legal' ? '合法' : member.legalityStatus === 'needs-review' ? '需复核' : '缺少配置'}
-                </Badge>
-              )}
+              {expanded &&
+                entry?.types.map((type) => (
+                  <TypeBadge key={type} type={type} size="sm" />
+                ))}
             </div>
-            <p className="truncate text-xs text-textSecondary">
-              {item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'}
-            </p>
             {!expanded && (
-              <div className="mt-2 flex justify-center gap-1">
+              <div className="mt-2 flex min-h-5 justify-center gap-1">
                 {entry?.types.map((type) => (
-                  <TypeBadge key={type} type={type} />
+                  <TypeBadge key={type} type={type} size="sm" />
                 ))}
               </div>
+            )}
+            {expanded && (
+              <p className="truncate text-xs text-textSecondary">
+                {item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'}
+              </p>
             )}
           </div>
         </div>
@@ -85,14 +86,7 @@ function MemberCard({
         <>
           <div className="mt-3 flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs text-textSecondary">
-                {member.nature} · {member.legalityStatus === 'needs-review' ? '需复核' : member.legalityStatus === 'missing-config' ? '缺少配置' : '字段可读'}
-              </p>
-              <div className="mt-2 flex gap-1">
-                {entry?.types.map((type) => (
-                  <TypeBadge key={type} type={type} />
-                ))}
-              </div>
+              <p className="text-xs text-textSecondary">{member.nature}</p>
               <div className="mt-2 flex gap-1 overflow-x-auto pb-1 hide-scrollbar">
                 {(learnedMoves.length ? learnedMoves : ['未配置招式']).map((move) => (
                   <Chip key={move}>{move}</Chip>
@@ -112,12 +106,12 @@ function MemberCard({
           {entry && (
             <>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <div className="rounded-lg bg-elevated p-2">
+                <button className="rounded-lg bg-elevated p-2 text-left active:scale-[0.99]" type="button" onClick={() => onEdit(member)}>
                   <p className="text-[11px] text-textSecondary">能力配置</p>
                   <p className="mt-1 text-xs text-textPrimary">
                     {configuredStats.length > 0 ? configuredStats.map(([label, value]) => `${label}+${value}`).join(' · ') : '未分配 SP'}
                   </p>
-                </div>
+                </button>
                 <div className="rounded-lg bg-elevated p-2">
                   <p className="text-[11px] text-textSecondary">规则等级</p>
                   <p className="mt-1 text-xs text-textPrimary">Lv.50 固定</p>
@@ -326,10 +320,13 @@ function MemberEditor({
           value={selectedPokemon.id}
           onChange={(pokemonId) => {
             const nextPokemon = pokemon.find((entry) => entry.id === pokemonId) ?? pokemon[0];
+            const currentItem = items.find((item) => item.id === draft.itemId);
+            const canKeepItem = !currentItem?.isMegaStone || currentItem.applicablePokemonIds.includes(nextPokemon.id);
             updateDraft({
               pokemonId,
               formId: pokemonId,
               abilityId: nextPokemon.abilities[0],
+              itemId: canKeepItem ? draft.itemId : undefined,
               moveIds: nextPokemon.learnableMoves.slice(0, 2),
             });
           }}
@@ -352,11 +349,14 @@ function MemberEditor({
           </SelectField>
           <SelectField label="道具" value={draft.itemId ?? ''} onChange={(itemId) => updateDraft({ itemId: itemId || undefined })}>
             <option value="">未选择</option>
-            {items.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.chineseName}
+            {items.map((item) => {
+              const disabled = item.isMegaStone && !item.applicablePokemonIds.includes(selectedPokemon.id);
+              return (
+              <option key={item.id} value={item.id} disabled={disabled}>
+                {item.chineseName}{disabled ? '（不适用）' : ''}
               </option>
-            ))}
+              );
+            })}
           </SelectField>
         </div>
 
@@ -533,7 +533,6 @@ export function TeamPage({
   const [showAnalysis, setShowAnalysis] = useState(false);
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
-  const analysisDetails = activeTeam ? buildTeamAnalysisDetails(activeTeam) : null;
 
   const createTeam = async () => {
     const team = await addTeam();
@@ -628,16 +627,10 @@ export function TeamPage({
             </Button>
           )}
 
-          <button className="sticky bottom-[88px] z-10 block w-full text-left" onClick={() => setShowAnalysis(true)}>
-            <Card className="bg-secondary">
-            <p className="mb-2 text-[11px] uppercase tracking-wide text-textMuted">队伍基础分析</p>
-            <div className="flex gap-2 overflow-x-auto hide-scrollbar">
-              {analysisDetails?.chips.map((item) => (
-                <Chip key={item}>{item}</Chip>
-              ))}
-            </div>
-          </Card>
-          </button>
+          <Button variant="ghost" className="w-full" onClick={() => setShowAnalysis(true)}>
+            <BarChart3 size={14} />
+            展开队伍分析
+          </Button>
           {editingMember && (
             <MemberEditor
               team={activeTeam}

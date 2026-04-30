@@ -12,7 +12,7 @@ type BattleTypeOption = 'singles' | 'doubles';
 const weatherOptions = ['无天气', '晴天', '雨天', '沙暴', '雪天'];
 const terrainOptions = ['无场地', '青草场地', '电气场地', '精神场地', '薄雾场地'];
 const stageOptions = ['0', '+1', '+2', '-1', '-2'];
-const megaOptions = ['无 Mega', '进攻方 Mega', '防守方 Mega'];
+type MegaOption = { value: string; label: string; disabled?: boolean };
 
 const isSpreadMove = (targetScope: string, battleType: BattleTypeOption) =>
   battleType === 'doubles' && ['对手全体', '全体邻近目标', '全体'].some((scope) => targetScope.includes(scope));
@@ -48,7 +48,7 @@ export function CalculatorPage({
   const [weather, setWeather] = useState(weatherOptions[0]);
   const [terrain, setTerrain] = useState(terrainOptions[0]);
   const [attackStage, setAttackStage] = useState('0');
-  const [megaState, setMegaState] = useState(megaOptions[0]);
+  const [megaState, setMegaState] = useState('none');
 
   useEffect(() => {
     if (!selectedMemberId) return;
@@ -68,11 +68,32 @@ export function CalculatorPage({
     availableMoves[0] ??
     moves[0];
   const derivedSpreadDamage = isSpreadMove(move.targetScope, battleType);
+  const megaOptions = useMemo<MegaOption[]>(() => {
+    const options: MegaOption[] = [{ value: 'none', label: '无 Mega' }];
+    if (attackerEntry.megaForms.length > 0) {
+      options.push(...attackerEntry.megaForms.map((form) => ({ value: `attacker:${form.id}`, label: `进攻方 ${form.name}` })));
+    } else {
+      options.push({ value: 'attacker:unsupported', label: '进攻方不支持 Mega', disabled: true });
+    }
+    if (defenderEntry.megaForms.length > 0) {
+      options.push(...defenderEntry.megaForms.map((form) => ({ value: `defender:${form.id}`, label: `防守方 ${form.name}` })));
+    } else {
+      options.push({ value: 'defender:unsupported', label: '防守方不支持 Mega', disabled: true });
+    }
+    return options;
+  }, [attackerEntry, defenderEntry]);
+
+  useEffect(() => {
+    if (!megaOptions.some((option) => option.value === megaState && !option.disabled)) {
+      setMegaState('none');
+    }
+  }, [megaOptions, megaState]);
+
   const normalizedQuery = query.trim().toLowerCase();
   const filteredPokemon = useMemo(
     () =>
       normalizedQuery
-        ? pokemon.filter((entry) => `${entry.chineseName} ${entry.englishName} ${entry.types.join(' ')}`.toLowerCase().includes(normalizedQuery))
+        ? pokemon.filter((entry) => `${entry.chineseName} ${entry.englishName}`.toLowerCase().includes(normalizedQuery))
         : [],
     [normalizedQuery],
   );
@@ -215,8 +236,8 @@ export function CalculatorPage({
             <span className="mb-1 block text-[11px] uppercase tracking-wide text-textMuted">Mega 状态</span>
             <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={megaState} onChange={(event) => setMegaState(event.target.value)}>
               {megaOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+                <option key={option.value} value={option.value} disabled={option.disabled}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -269,7 +290,7 @@ export function CalculatorPage({
           <Search size={16} className="text-textMuted" />
           <input
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-textMuted"
-            placeholder="搜索名称或属性"
+            placeholder="搜索名称"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />

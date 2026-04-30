@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { LegalityStatus, PokemonType } from '../types';
 
@@ -115,26 +114,18 @@ const typeLabels: Record<PokemonType, string> = {
 };
 
 export function TypeBadge({ type, size = 'md' }: { type: PokemonType; size?: 'sm' | 'md' }) {
-  const dimension = size === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
-  const [missingIcon, setMissingIcon] = useState(false);
+  const dimensions = size === 'sm' ? 'h-5 w-11 text-[9px]' : 'h-6 w-12 text-[10px]';
   return (
     <span
       aria-label={`${typeLabels[type]}属性`}
-      className={`inline-flex shrink-0 items-center justify-center ${dimension}`}
-      style={{ color: typeColors[type] }}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full border font-semibold leading-none text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${dimensions}`}
+      style={{
+        backgroundColor: `${typeColors[type]}36`,
+        borderColor: `${typeColors[type]}99`,
+      }}
       title={`${typeLabels[type]}属性`}
     >
-      {missingIcon ? (
-        <span aria-hidden="true" className="h-full w-full rounded-full border border-border/60" style={{ backgroundColor: typeColors[type] }} />
-      ) : (
-        <img
-          alt=""
-          aria-hidden="true"
-          className="h-full w-full object-contain"
-          src={`/type-icons/sv/${type}.png`}
-          onError={() => setMissingIcon(true)}
-        />
-      )}
+      <span className="translate-y-px leading-none">{typeLabels[type]}</span>
     </span>
   );
 }
@@ -146,13 +137,14 @@ export function PokemonAvatar({
 }: {
   iconRef?: string;
   label: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }) {
   const sizes = {
     xs: 'h-8 w-8 text-xs',
     sm: 'h-9 w-9 text-xs',
     md: 'h-11 w-11 text-sm',
     lg: 'h-14 w-14 text-lg',
+    xl: 'h-16 w-16 text-lg',
   };
   const isImage = Boolean(iconRef?.startsWith('http://') || iconRef?.startsWith('https://'));
 

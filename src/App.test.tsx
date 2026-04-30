@@ -59,6 +59,9 @@ describe('App page flows', () => {
 
     await user.click(screen.getByText('烈咬陆鲨 Garchomp'));
     expect(await screen.findByText('示例能力值')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /能力配置/ }));
+    expect(await screen.findByText('编辑成员')).toBeTruthy();
+    await user.click(screen.getByTitle('关闭'));
 
     await user.click(screen.getByTitle('收起成员'));
     expect(screen.queryByText('示例能力值')).toBeNull();
@@ -99,6 +102,8 @@ describe('App page flows', () => {
     await user.selectOptions(screen.getByLabelText('天气'), '晴天');
     expect((screen.getByLabelText('选择招式') as HTMLSelectElement).value).toBe('dragon-claw');
     expect((screen.getByLabelText('天气') as HTMLSelectElement).value).toBe('晴天');
+    expect(within(screen.getByLabelText('Mega 状态')).getByText('进攻方 Mega Garchomp')).toBeTruthy();
+    expect(within(screen.getByLabelText('Mega 状态')).getByText('防守方不支持 Mega')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: /防守方/ }));
     expect(await screen.findByText('选择防守方')).toBeTruthy();
@@ -111,7 +116,7 @@ describe('App page flows', () => {
     expect(within(recommendedDefenderCard).getByText('烈咬陆鲨 Garchomp')).toBeTruthy();
     expect(recommendedGarchomp.getAttribute('aria-pressed')).toBe('true');
 
-    await user.type(screen.getByPlaceholderText('搜索名称或属性'), 'Torkoal');
+    await user.type(screen.getByPlaceholderText('搜索名称'), 'Torkoal');
     await user.click(within(selector as HTMLElement).getByText('煤炭龟'));
 
     const defenderCard = screen.getByRole('button', { name: /防守方/ });
@@ -119,27 +124,33 @@ describe('App page flows', () => {
     expect(screen.getByText('该机制待确认，计算暂不可用')).toBeTruthy();
   });
 
-  it('filters the Pokedex Pokemon list by type chips', async () => {
+  it('filters the Pokedex Pokemon list by up to two selected types', async () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '图鉴' }));
     expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+    expect(screen.getByPlaceholderText('搜索名称')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '火' }));
+    await user.click(screen.getByRole('button', { name: /属性：全部/ }));
+    await user.click(screen.getByRole('button', { name: /^火属性$/ }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getAllByText('炽焰咆哮虎 Incineroar').length).toBeGreaterThan(0);
     expect(screen.getByText('煤炭龟 Torkoal')).toBeTruthy();
     expect(screen.getAllByText('喷火龙 Charizard').length).toBeGreaterThan(0);
     expect(screen.queryByText('蚊香蛙皇 Politoed')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '水' }));
-    expect(screen.getAllByText('蚊香蛙皇 Politoed').length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: /属性：火/ }));
+    await user.click(screen.getByRole('button', { name: /^飞行属性$/ }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
+    expect(screen.getAllByText('喷火龙 Charizard').length).toBeGreaterThan(0);
     expect(screen.queryByText('炽焰咆哮虎 Incineroar')).toBeNull();
+    expect(screen.queryByText('煤炭龟 Torkoal')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: '地面' }));
-    expect(screen.getAllByText('烈咬陆鲨 Garchomp').length).toBeGreaterThan(0);
-    expect(screen.getAllByLabelText('地面属性').length).toBeGreaterThan(0);
-
-    await user.click(screen.getByRole('button', { name: '龙' }));
+    await user.click(screen.getByRole('button', { name: '清空' }));
+    await user.click(screen.getByRole('button', { name: /属性：全部/ }));
+    await user.click(screen.getByRole('button', { name: /^地面属性$/ }));
+    await user.click(screen.getByRole('button', { name: /^龙属性$/ }));
+    await user.click(screen.getByRole('button', { name: '完成' }));
     expect(screen.getAllByText('烈咬陆鲨 Garchomp').length).toBeGreaterThan(0);
     expect(screen.getAllByLabelText('龙属性').length).toBeGreaterThan(0);
   });
