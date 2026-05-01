@@ -148,9 +148,31 @@ export function PokemonAvatar({
   };
   const isImage = Boolean(iconRef?.startsWith('http://') || iconRef?.startsWith('https://'));
 
+  if (!isImage) {
+    const fallback = iconRef ?? label.charAt(0);
+    return (
+      <div className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-elevated font-bold text-accent ${sizes[size]}`}>
+        {fallback}
+      </div>
+    );
+  }
+
   return (
     <div className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-elevated font-bold text-accent ${sizes[size]}`}>
-      {isImage ? <img src={iconRef} alt={label} className="h-full w-full object-contain p-0.5" /> : iconRef ?? '?'}
+      <img
+        src={iconRef}
+        alt={label}
+        className="h-full w-full object-contain p-0.5"
+        onError={(e) => {
+          const target = e.currentTarget;
+          target.style.display = 'none';
+          const parent = target.parentElement;
+          if (parent) {
+            parent.classList.add('text-xs');
+            parent.textContent = label.charAt(0);
+          }
+        }}
+      />
     </div>
   );
 }
