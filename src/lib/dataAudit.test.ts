@@ -58,7 +58,12 @@ describe('seed data audit', () => {
   });
 
   it('keeps unverified or out-of-rule items out of the current selector pool', () => {
+    expect(currentRuleSelectableItemIds).toHaveLength(117);
     expect(currentRuleSelectableItemIds).toContain('sitrus-berry');
+    expect(currentRuleSelectableItemIds).toContain('focus-sash');
+    expect(currentRuleSelectableItemIds).toContain('choice-scarf');
+    expect(currentRuleSelectableItemIds).toContain('lum-berry');
+    expect(currentRuleSelectableItemIds).toContain('dragoninite');
     expect(currentRuleSelectableItemIds).toContain('garchompite');
     expect(currentRuleSelectableItemIds).not.toContain('assault-vest');
     expect(currentRuleSelectableItemIds).not.toContain('clear-amulet');

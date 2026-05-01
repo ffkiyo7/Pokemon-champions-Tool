@@ -60,7 +60,7 @@ npm run build
 - [x] 属性展示收敛为项目化胶囊 badge，不再使用本地 PNG 属性图标
 - [x] Reg M-A 官方 Mega allowlist shell 已接入：59 条，含 source refs 与 audit 测试
 - [x] 首批 4 个本地 Mega 形态可用于图鉴、队伍能力值、速度线和计算页形态展示
-- [x] 当前规则可选道具池与原始 seed 道具拆分：突击背心 / 清净坠饰不再进入前端新配置入口，旧存档携带时会被合法性校验拦截
+- [x] 当前规则可选道具池与原始 seed 道具拆分：已接入 117 个 Reg M-A 道具候选，突击背心 / 清净坠饰不再进入前端新配置入口，旧存档携带时会被合法性校验拦截
 - [ ] 完整真实 Reg M-A 数据源接入
 - [ ] Champions 伤害机制确认
 - [ ] 正式伤害计算
@@ -196,7 +196,7 @@ npm run build
 - [x] 首批 seed 道具数据与当前可选池拆分
 - [x] 首批 seed 招式数据
 - [x] 首批 seed 特性数据
-- [ ] 完整真实 Reg M-A 道具 catalog 数据
+- [x] Reg M-A 道具 catalog 第一批：30 个普通携带道具、59 个 Mega Stone、28 个树果，source refs 仍按社区候选 + manual-review 管理
 - [ ] 完整真实 Reg M-A 招式 catalog 数据
 - [ ] Champions 性格 catalog 与效果确认
 - [ ] 完整真实 Reg M-A Pokemon catalog 数据
@@ -256,7 +256,7 @@ npm run build
 - [x] SP 输入最大 32、总量 66、点开式 picker 与刷新 disabled 测试
 - [x] Mega form + Mega Stone 合法性测试
 - [x] 速度线 Mega 形态速度测试
-- [x] 当前规则道具可选池测试：突击背心 / 清净坠饰不进入 selector，seed 中保留但不标可用
+- [x] 当前规则道具可选池测试：117 个候选道具进入 selector pool，突击背心 / 清净坠饰不进入 selector，seed 中保留但不标可用
 
 ## 5. 当前风险与处理状态
 
@@ -272,7 +272,7 @@ npm run build
 - [x] 未确认计算输出风险：通过机制阻断态约束
 - [x] 远程刷新误导风险：刷新入口已 disabled，避免永远失败的操作入口
 - [ ] Mega 数据不完整风险：59 条官方 allowlist 已建 shell，但只有 4 个本地 Mega form 具备可展示 stats/types/ability/sprite
-- [ ] 招式 / 道具 / 性格 catalog 不完整风险：已先用可选池阻断明显不可信道具，仍需分批补齐 Reg M-A 全量数据与来源复核
+- [ ] 招式 / 道具 / 性格 catalog 不完整风险：道具第一批已接入社区候选并保持 manual-review，仍需官方或二源复核；招式与性格仍待分批补齐
 
 ## 6. 下一步开发清单
 
@@ -302,6 +302,7 @@ npm run build
 - [x] 重构图鉴属性筛选以支持完整 18 属性
 - [x] 补 Reg M-A Mega allowlist seed 与 Mega Stone / Mega 状态禁用校验
 - [x] 拆分当前规则道具可选池，移除突击背心 / 清净坠饰等未确认道具入口
+- [x] 接入 Reg M-A 117 个道具候选 catalog，并让 selector pool 从合法道具自动生成
 - [ ] 分批补齐 Reg M-A 213 只基础 catalog
 - [ ] 分批补齐其余 55 个官方允许 Mega 形态数据
 - [ ] 分批补齐 Reg M-A 道具 / 招式 / 性格 catalog

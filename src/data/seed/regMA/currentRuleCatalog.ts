@@ -1,10 +1,6 @@
-export const currentRuleSelectableItemIds = [
-  'sitrus-berry',
-  'venusaurite',
-  'charizardite-x',
-  'charizardite-y',
-  'garchompite',
-] as const;
+import { items } from './catalog';
+
+export const currentRuleSelectableItemIds = items.filter((item) => item.legalInCurrentRule).map((item) => item.id);
 
 export const currentRuleNatureOptions = [
   { id: '爽朗', up: ['速度'], down: ['特攻'] },
@@ -16,7 +12,7 @@ export const currentRuleNatureOptions = [
 ] as const;
 
 export const currentRuleCatalogNotes = {
-  items: 'Selectable item pool is intentionally smaller than seed data until the Reg M-A item catalog is fully joined and reviewed.',
+  items: 'Selectable item pool is generated from the joined Reg M-A item catalog. Rows remain manual-review until cross-checked against a primary source.',
   moves: 'Move choices still use local seed learnsets and remain review-grade, not a complete Reg M-A learnset.',
   natures: 'Nature choices are the current UI subset and must be expanded after the full Champions nature catalog is confirmed.',
 } as const;
