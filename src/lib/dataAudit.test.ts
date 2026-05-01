@@ -71,8 +71,10 @@ describe('seed data audit', () => {
     expect(items.find((item) => item.id === 'clear-amulet')?.legalInCurrentRule).toBe(false);
   });
 
-  it('keeps the first six real catalog rows on real artwork URLs', () => {
-    expect(pokemon.map((entry) => entry.id)).toEqual(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']);
+  it('keeps real catalog rows on real artwork URLs', () => {
+    const ids = pokemon.map((entry) => entry.id);
+    expect(ids).toEqual(expect.arrayContaining(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']));
+    expect(pokemon.length).toBeGreaterThanOrEqual(6);
     expect(pokemon.every((entry) => entry.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
     expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
   });

@@ -1,4 +1,5 @@
 import type { Ability, Item, Move, Pokemon } from '../../../types';
+import { pokemonBatch001, abilitiesBatch001 } from './catalog-batch-001';
 
 const catalogRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const megaRefs = ['reg-ma-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
@@ -169,6 +170,7 @@ export const abilities: Ability[] = [
     legalInCurrentRule: true,
     sourceRefs: catalogRefs,
   },
+  ...abilitiesBatch001,
 ];
 
 const duplicateItemRestriction = '同队不得重复携带同名道具。';
@@ -727,4 +729,5 @@ export const pokemon: Pokemon[] = [
     notes: 'Real first-pass catalog row from official Reg M-A allowlist joined with PokeAPI structured data. Manual review still required.',
     sourceRefs: catalogRefs,
   },
+  ...pokemonBatch001,
 ];
