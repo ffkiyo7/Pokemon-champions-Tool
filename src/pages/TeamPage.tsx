@@ -9,6 +9,7 @@ import { findBattleForm, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
 import type { Team, TeamMember } from '../types';
+import { PokemonPicker } from '../components/PokemonPicker';
 import { RuleSummary, SyncStrip } from '../components/RuleSummary';
 import { Badge, Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
 
@@ -587,6 +588,7 @@ export function TeamPage({
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
 
@@ -604,19 +606,19 @@ export function TeamPage({
     setExpandedMemberId(null);
   };
 
-  const addMember = async () => {
+  const handlePickPokemon = async (entry: typeof pokemon[number]) => {
     if (!activeTeam || activeTeam.members.length >= 6) return;
-    const entry = pokemon[activeTeam.members.length % pokemon.length];
     const member: TeamMember = {
       ...blankMember(),
       pokemonId: entry.id,
       abilityId: entry.abilities[0],
       moveIds: currentRuleMovesForPokemon(entry.id).slice(0, 2).map((move) => move.id),
-      notes: '由 MVP 快速添加生成，可继续编辑。',
+      notes: '快速添加，可继续编辑。',
     };
     const result = evaluateMemberLegality(member, activeTeam);
     await updateMember(activeTeam.id, { ...member, legalityStatus: result.status });
     setExpandedMemberId(member.id);
+    setShowPicker(false);
   };
 
   return (
@@ -680,7 +682,7 @@ export function TeamPage({
           </div>
 
           {activeTeam.members.length < 6 && (
-            <Button variant="ghost" className="w-full" onClick={addMember}>
+            <Button variant="ghost" className="w-full" onClick={() => setShowPicker(true)}>
               <Plus size={14} />
               添加 Pokémon
             </Button>
@@ -702,6 +704,7 @@ export function TeamPage({
             />
           )}
           {showAnalysis && <AnalysisDetailSheet team={activeTeam} onClose={() => setShowAnalysis(false)} />}
+          <PokemonPicker open={showPicker} onClose={() => setShowPicker(false)} onPick={handlePickPokemon} />
         </>
       )}
     </div>
