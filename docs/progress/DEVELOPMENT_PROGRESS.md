@@ -25,6 +25,8 @@ npm run build
 - [x] `npm run build` 通过
 - [x] 本地 PWA 可预览
 
+Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'chrome'`，测试跑本机 Google Chrome，不依赖 Playwright bundled Chromium；本机未安装 Chrome 时需要先安装 Chrome 再运行 `npm run test:pwa` / `npm run test:visual`。
+
 ## 1. 总体进度
 
 - [x] 项目初始化：React + Vite + TypeScript + Tailwind CSS

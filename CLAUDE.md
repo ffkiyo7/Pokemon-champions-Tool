@@ -16,7 +16,7 @@ npm run data:regma:allowlist  # Generate Reg M-A allowlist from official eligibl
 npm run data:regma:abilities  # Refresh ability zh-Hans names/effects from source data
 ```
 
-Playwright uses `npm run build && npm run preview -- --port 4173` as its web server. The PWA visual spec produces snapshot images in `tests/pwa/visual.spec.ts-snapshots/`.
+Playwright uses `npm run build && npm run preview -- --port 4173` as its web server. `playwright.config.ts` runs the PWA project with `channel: 'chrome'`, so local Google Chrome must be installed; it does not rely on Playwright's bundled Chromium browser. The PWA visual spec produces snapshot images in `tests/pwa/visual.spec.ts-snapshots/`.
 
 ## Architecture
 
@@ -81,4 +81,4 @@ All shared types are in `src/types.ts` — RuleSet, DataVersion, Pokemon, Pokemo
 ### Testing
 
 - **Vitest** for unit tests: `*.test.ts` / `*.test.tsx` files co-located with source. Uses `jsdom` environment, `fake-indexeddb` for IndexedDB mocking, `@testing-library/react` for component tests.
-- **Playwright** for PWA integration tests: `tests/pwa/` — offline spec and visual regression spec. Visual tests use `Pixel 5` viewport (390×844) as Chrome mobile.
+- **Playwright** for PWA integration tests: `tests/pwa/` — offline spec and visual regression spec. Visual tests use local Google Chrome with `Pixel 5` viewport (390×844).

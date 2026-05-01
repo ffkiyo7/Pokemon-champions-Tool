@@ -9,6 +9,7 @@
 - `npm test` 通过：9 个测试文件，55 个用例。
 - `npm run build` 通过。
 - `npm run test:pwa` 通过：PWA 离线 + 390px 移动端视觉回归，视觉基线 11 张。
+- Playwright PWA / 视觉测试使用 `playwright.config.ts` 中的 `channel: 'chrome'`，即本机 Google Chrome；不依赖 Playwright bundled Chromium。
 - **Pokemon 基础 catalog 已完成**：181 只基础形态，从 PokeAPI 批量接入，含中文名、日文名、属性、种族值、头像。5 个 batch 文件（001-005），自动化脚本 `scripts/generate-catalog-batch.mjs` 支持增量运行。
 - **特性 catalog 已完成当前批次中文化**：174 个当前 catalog 特性，`scripts/generate-ability-effects.mjs` 从 52poke MediaWiki revisions API 抽取 zh-hans 信息框说明，并用 PokeAPI zh-hans 名称优先补齐；`npm run data:regma:abilities` 可复跑。
 - **图鉴特性列表已做形态级拥有者映射**：拥有者头像最多显示 5 个 + `+N`，展开后显示完整拥有者；Mega 特性显示 Mega 形态头像 / 名称，点击可直接切到 Pokémon Tab 并打开对应详情页。
