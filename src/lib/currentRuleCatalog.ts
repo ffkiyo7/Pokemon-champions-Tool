@@ -16,8 +16,10 @@ export const currentRuleMovesForPokemon = (pokemonId: string): Move[] =>
 export const currentRuleNatures = () => currentRuleNatureOptions.map((option) => option.id);
 
 export const natureOptionLabel = (nature: string) => {
-  const option = currentRuleNatureOptions.find((candidate) => nature.includes(candidate.id.replace('(+速)', '')));
+  const option = currentRuleNatureOptions.find((candidate) => nature.includes(candidate.id));
   if (!option) return nature;
+
+  if (option.neutral) return `${nature}（无修正）`;
 
   const effects = [...option.up.map((label) => `+${label}`), ...option.down.map((label) => `-${label}`)];
   return effects.length > 0 ? `${nature}（${effects.join(' / ')}）` : nature;
