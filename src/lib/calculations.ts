@@ -1,5 +1,6 @@
-import type { BaseStats, Pokemon, PokemonType, SpeedBenchmark, Team, TeamMember } from '../types';
-import { items, pokemon } from '../data';
+import type { BaseStats, PokemonType, SpeedBenchmark, Team, TeamMember } from '../types';
+import { items } from '../data';
+import { findPokemon, getMemberBattleForm, type BattleFormView } from './pokemonForms';
 import { clampStatPointValue } from './statPoints';
 
 const natureSpeedMultiplier: Record<string, number> = {
@@ -98,7 +99,7 @@ export const calculateBattleStats = (baseStats: BaseStats, statPoints: TeamMembe
   speed: calculateNonHpStat(baseStats.speed, statPoints.speed ?? 0, level, nature, 'speed'),
 });
 
-export const getPokemon = (id?: string) => pokemon.find((entry) => entry.id === id);
+export const getPokemon = findPokemon;
 
 export const memberLabel = (member: TeamMember) => {
   const found = getPokemon(member.pokemonId);
@@ -106,7 +107,7 @@ export const memberLabel = (member: TeamMember) => {
 };
 
 export const memberSpeed = (member: TeamMember) => {
-  const found = getPokemon(member.pokemonId);
+  const found = getMemberBattleForm(member);
   const result = calculateSpeedWithMechanismGate({
     baseSpeed: found?.baseStats.speed ?? 50,
     statPoints: member.statPoints.speed ?? 0,
@@ -118,7 +119,7 @@ export const memberSpeed = (member: TeamMember) => {
 };
 
 export const memberBattleStats = (member: TeamMember) => {
-  const found = getPokemon(member.pokemonId);
+  const found = getMemberBattleForm(member);
   return calculateBattleStats(found?.baseStats ?? { hp: 50, attack: 50, defense: 50, specialAttack: 50, specialDefense: 50, speed: 50 }, member.statPoints, member.level, member.nature);
 };
 
@@ -127,14 +128,16 @@ export const buildTeamBenchmarks = (team: Team): SpeedBenchmark[] =>
     .filter((member) => member.pokemonId)
     .map((member) => {
       const found = getPokemon(member.pokemonId);
+      const form = getMemberBattleForm(member);
       return {
         id: `team-${team.id}-${member.id}`,
-        name: found ? `${found.chineseName} 队内` : '队内成员',
+        name: form ? `${form.chineseName} 队内` : '队内成员',
         pokemonId: member.pokemonId ?? 'unknown',
+        formId: form?.isMega ? form.id : undefined,
         nature: member.nature,
         speedStatPoints: member.statPoints.speed ?? 0,
         itemOrStatus: items.find((item) => item.id === member.itemId)?.chineseName ?? '无',
-        isMega: false,
+        isMega: Boolean(form?.isMega),
         finalSpeed: memberSpeed(member),
         tags: ['当前队伍'],
         source: team.name,
@@ -208,10 +211,10 @@ export const defensiveMatchupMultiplier = (attackType: PokemonType, defenderType
     return multiplier;
   }, 1);
 
-const matchupMultiplier = (attackType: PokemonType, defender: Pokemon) => defensiveMatchupMultiplier(attackType, defender.types);
+const matchupMultiplier = (attackType: PokemonType, defender: { types: PokemonType[] }) => defensiveMatchupMultiplier(attackType, defender.types);
 
 export const buildTeamAnalysisDetails = (team: Team): TeamAnalysisDetails => {
-  const members = team.members.map((member) => getPokemon(member.pokemonId)).filter(Boolean) as Pokemon[];
+  const members = team.members.map((member) => getMemberBattleForm(member)).filter((entry): entry is BattleFormView => Boolean(entry));
   const typeCounts = members.flatMap((entry) => entry.types).reduce<Record<string, number>>((acc, type) => {
     acc[type] = (acc[type] ?? 0) + 1;
     return acc;
@@ -219,8 +222,8 @@ export const buildTeamAnalysisDetails = (team: Team): TeamAnalysisDetails => {
   const physicalBias = members.filter((entry) => entry.baseStats.attack >= entry.baseStats.specialAttack).length;
   const speedCoverage = members.filter((entry) => entry.baseStats.speed >= 90).length;
   const membersWithSpeed = team.members
-    .map((member) => ({ member, pokemon: getPokemon(member.pokemonId), speed: memberSpeed(member) }))
-    .filter((entry): entry is { member: TeamMember; pokemon: Pokemon; speed: number } => Boolean(entry.pokemon));
+    .map((member) => ({ member, pokemon: getMemberBattleForm(member), speed: memberSpeed(member) }))
+    .filter((entry): entry is { member: TeamMember; pokemon: NonNullable<ReturnType<typeof getMemberBattleForm>>; speed: number } => Boolean(entry.pokemon));
 
   const weaknessCounts = attackingTypes
     .map((attackType) => ({

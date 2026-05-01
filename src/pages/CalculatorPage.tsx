@@ -2,6 +2,7 @@ import { AlertTriangle, Calculator, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { moves, pokemon } from '../data';
 import { memberLabel } from '../lib/calculations';
+import { findBattleForm } from '../lib/pokemonForms';
 import { useAppStore } from '../state/AppContext';
 import type { Pokemon, TeamMember } from '../types';
 import { Badge, Card, PokemonAvatar, TypeBadge } from '../components/ui';
@@ -61,6 +62,10 @@ export function CalculatorPage({
   const defenderEntry = pokemon.find((entry) => entry.id === defenderPokemonId) ?? pokemon[1] ?? pokemon[0];
   const attackerMember = members.find(({ member }) => member.pokemonId === attackerEntry.id)?.member ?? makeManualMember(attackerEntry);
   const defenderMember = members.find(({ member }) => member.pokemonId === defenderEntry.id)?.member ?? makeManualMember(defenderEntry);
+  const attackerMegaFormId = megaState.startsWith('attacker:') ? megaState.split(':')[1] : undefined;
+  const defenderMegaFormId = megaState.startsWith('defender:') ? megaState.split(':')[1] : undefined;
+  const attackerBattleForm = findBattleForm(attackerEntry.id, attackerMegaFormId) ?? findBattleForm(attackerEntry.id, attackerEntry.id);
+  const defenderBattleForm = findBattleForm(defenderEntry.id, defenderMegaFormId) ?? findBattleForm(defenderEntry.id, defenderEntry.id);
   const availableMoves = moves.filter((entry) => attackerEntry.learnableMoves.includes(entry.id));
   const move =
     moves.find((entry) => entry.id === selectedMoveId && availableMoves.some((available) => available.id === entry.id)) ??
@@ -71,12 +76,12 @@ export function CalculatorPage({
   const megaOptions = useMemo<MegaOption[]>(() => {
     const options: MegaOption[] = [{ value: 'none', label: '无 Mega' }];
     if (attackerEntry.megaForms.length > 0) {
-      options.push(...attackerEntry.megaForms.map((form) => ({ value: `attacker:${form.id}`, label: `进攻方 ${form.name}` })));
+      options.push(...attackerEntry.megaForms.map((form) => ({ value: `attacker:${form.id}`, label: `进攻方 ${form.chineseName}` })));
     } else {
       options.push({ value: 'attacker:unsupported', label: '进攻方不支持 Mega', disabled: true });
     }
     if (defenderEntry.megaForms.length > 0) {
-      options.push(...defenderEntry.megaForms.map((form) => ({ value: `defender:${form.id}`, label: `防守方 ${form.name}` })));
+      options.push(...defenderEntry.megaForms.map((form) => ({ value: `defender:${form.id}`, label: `防守方 ${form.chineseName}` })));
     } else {
       options.push({ value: 'defender:unsupported', label: '防守方不支持 Mega', disabled: true });
     }
@@ -142,9 +147,9 @@ export function CalculatorPage({
           onClick={() => setActiveSide('attacker')}
         >
           <p className="text-[11px] text-textSecondary">进攻方</p>
-          <p className="truncate text-sm font-semibold">{memberLabel(attackerMember)}</p>
+          <p className="truncate text-sm font-semibold">{attackerBattleForm?.chineseName ?? memberLabel(attackerMember)}</p>
           <div className="mt-1 flex gap-1">
-            {attackerEntry.types.map((type) => (
+            {(attackerBattleForm?.types ?? attackerEntry.types).map((type) => (
               <TypeBadge key={type} type={type} size="sm" />
             ))}
           </div>
@@ -155,9 +160,9 @@ export function CalculatorPage({
           onClick={() => setActiveSide('defender')}
         >
           <p className="text-[11px] text-textSecondary">防守方</p>
-          <p className="truncate text-sm font-semibold">{memberLabel(defenderMember)}</p>
+          <p className="truncate text-sm font-semibold">{defenderBattleForm?.chineseName ?? memberLabel(defenderMember)}</p>
           <div className="mt-1 flex gap-1">
-            {defenderEntry.types.map((type) => (
+            {(defenderBattleForm?.types ?? defenderEntry.types).map((type) => (
               <TypeBadge key={type} type={type} size="sm" />
             ))}
           </div>
@@ -257,7 +262,7 @@ export function CalculatorPage({
         </div>
         <div className="text-center">
           <p className="text-[28px] font-bold text-white">68.4% - 80.7%</p>
-          <p className="mt-1 text-sm text-textSecondary">103 - 121 伤害 / 对方 HP: 149</p>
+          <p className="mt-1 text-sm text-textSecondary">103 - 121 伤害 / 对方 HP: {defenderBattleForm?.baseStats.hp ?? defenderEntry.baseStats.hp}</p>
         </div>
         <div className="my-5 h-px bg-divider" />
         <div className="grid grid-cols-3 gap-2 text-center text-xs">

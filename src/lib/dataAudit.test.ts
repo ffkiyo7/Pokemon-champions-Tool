@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { currentDataVersion, dataSourceManifest, defaultTeams, pokemon, regMaPokemonAllowlist, regMaPokemonAllowlistExpectedCount, speedBenchmarks } from '../data';
+import {
+  currentDataVersion,
+  dataSourceManifest,
+  defaultTeams,
+  pokemon,
+  regMaMegaAllowlist,
+  regMaMegaAllowlistExpectedCount,
+  regMaPokemonAllowlist,
+  regMaPokemonAllowlistExpectedCount,
+  speedBenchmarks,
+} from '../data';
 import { auditSeedData, auditSourceRefs } from './dataAudit';
 
 describe('seed data audit', () => {
@@ -12,6 +22,7 @@ describe('seed data audit', () => {
 
     expect(sourceRefIds.has('reg-ma-official-rule')).toBe(true);
     expect(sourceRefIds.has('reg-ma-official-eligible-pokemon')).toBe(true);
+    expect(sourceRefIds.has('reg-ma-official-mega-list')).toBe(true);
     expect(sourceRefIds.has('manual-seed-review')).toBe(true);
     expect(sourceRefIds.has('champions-official-training')).toBe(true);
     expect(sourceRefIds.has('champions-stat-point-review')).toBe(true);
@@ -31,9 +42,22 @@ describe('seed data audit', () => {
     expect(regMaPokemonAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
   });
 
+  it('keeps the official Reg M-A Mega allowlist shell traceable', () => {
+    expect(regMaMegaAllowlistExpectedCount).toBe(59);
+    expect(regMaMegaAllowlist).toHaveLength(regMaMegaAllowlistExpectedCount);
+    expect(regMaMegaAllowlist).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ englishName: 'Mega Garchomp', basePokemonId: 'garchomp', formId: 'mega-garchomp' }),
+        expect.objectContaining({ englishName: 'Mega Dragonite', legalInCurrentRule: true }),
+      ]),
+    );
+    expect(regMaMegaAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
+  });
+
   it('keeps the first six real catalog rows on real artwork URLs', () => {
     expect(pokemon.map((entry) => entry.id)).toEqual(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']);
     expect(pokemon.every((entry) => entry.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
+    expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
   });
 
   it('reports source refs that are not present in the manifest', () => {

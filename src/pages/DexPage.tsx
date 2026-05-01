@@ -1,12 +1,13 @@
 import { ChevronLeft, Filter, Plus, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { abilities, items, moves, pokemon } from '../data';
+import { abilities, items, moves } from '../data';
 import { attackingTypes, defensiveMatchupMultiplier, statRows } from '../lib/calculations';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
+import { getDexFormEntries, type DexFormEntry } from '../lib/pokemonForms';
 import { useAppStore } from '../state/AppContext';
-import type { Pokemon, PokemonType } from '../types';
-import { Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
+import type { PokemonType } from '../types';
+import { Button, Card, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type DexTab = 'pokemon' | 'moves' | 'items' | 'abilities';
 type TypeFilter = { label: string; value: PokemonType };
@@ -105,7 +106,7 @@ function PokemonDetail({
   onOpenSpeed,
   onOpenCalculator,
 }: {
-  entry: Pokemon;
+  entry: DexFormEntry;
   onBack: () => void;
   onOpenSpeed: (pokemonId: string) => void;
   onOpenCalculator: (pokemonId: string) => void;
@@ -117,7 +118,7 @@ function PokemonDetail({
   const entryAbilities = entry.abilities
     .map((id) => abilities.find((ability) => ability.id === id))
     .filter(Boolean) as typeof abilities;
-  const entryMoves = entry.learnableMoves
+  const entryMoves = entry.basePokemon.learnableMoves
     .map((id) => moves.find((move) => move.id === id))
     .filter(Boolean) as typeof moves;
   const weaknesses = attackingTypes
@@ -132,11 +133,11 @@ function PokemonDetail({
     if (!activeTeam || activeTeam.members.length >= 6) return;
     const member = {
       id: createId('member'),
-      pokemonId: entry.id,
+      pokemonId: entry.basePokemon.id,
       formId: entry.id,
       abilityId: entry.abilities[0],
-      itemId: undefined,
-      moveIds: entry.learnableMoves.slice(0, 2),
+      itemId: entry.requiredItemId,
+      moveIds: entry.basePokemon.learnableMoves.slice(0, 2),
       nature: '爽朗',
       statPoints: { speed: 32 },
       level: 50,
@@ -176,7 +177,6 @@ function PokemonDetail({
             {entry.types.map((type) => (
               <TypeBadge key={type} type={type} />
             ))}
-            {entry.canMega && <Chip className="h-5 items-center leading-none">Mega 可用</Chip>}
             </div>
           </div>
         </div>
@@ -267,10 +267,10 @@ function PokemonDetail({
             <Plus size={13} />
             加入队伍
           </Button>
-          <Button variant="ghost" onClick={() => onOpenSpeed(entry.id)}>
+          <Button variant="ghost" onClick={() => onOpenSpeed(entry.basePokemon.id)}>
             → 速度线
           </Button>
-          <Button variant="ghost" onClick={() => onOpenCalculator(entry.id)}>
+          <Button variant="ghost" onClick={() => onOpenCalculator(entry.basePokemon.id)}>
             → 计算
           </Button>
         </div>
@@ -292,17 +292,18 @@ export function DexPage({
   const [selectedTypes, setSelectedTypes] = useState<PokemonType[]>([]);
   const [showTypeFilter, setShowTypeFilter] = useState(false);
   const [detailPokemonId, setDetailPokemonId] = useState<string | null>(null);
+  const dexEntries = useMemo(() => getDexFormEntries(), []);
 
   const filteredPokemon = useMemo(
     () =>
-      pokemon.filter((entry) => {
+      dexEntries.filter((entry) => {
         const matchesQuery = `${entry.chineseName} ${entry.englishName} ${entry.japaneseName}`.toLowerCase().includes(query.toLowerCase());
         const matchesType = selectedTypes.length === 0 || selectedTypes.every((type) => entry.types.includes(type));
         return matchesQuery && matchesType;
       }),
-    [query, selectedTypes],
+    [dexEntries, query, selectedTypes],
   );
-  const detailPokemon = detailPokemonId ? pokemon.find((entry) => entry.id === detailPokemonId) ?? null : null;
+  const detailPokemon = detailPokemonId ? dexEntries.find((entry) => entry.id === detailPokemonId) ?? null : null;
   const typeFilterLabel = selectedTypes.length === 0 ? '属性：全部' : `属性：${selectedTypes.map((type) => typeLabelByValue[type]).join(' + ')}`;
 
   const toggleTypeFilter = (type: PokemonType) => {
@@ -373,7 +374,7 @@ export function DexPage({
                     <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} />
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-sm font-semibold">{entry.chineseName}</h3>
-                      <p className="text-xs text-textSecondary">#{entry.nationalDexNo}</p>
+                      <p className="text-xs text-textSecondary">#{entry.basePokemon.nationalDexNo}</p>
                     </div>
                     <div className="flex gap-1">
                       {entry.types.map((type) => (

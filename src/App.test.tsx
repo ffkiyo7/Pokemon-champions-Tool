@@ -102,8 +102,10 @@ describe('App page flows', () => {
     await user.selectOptions(screen.getByLabelText('天气'), '晴天');
     expect((screen.getByLabelText('选择招式') as HTMLSelectElement).value).toBe('dragon-claw');
     expect((screen.getByLabelText('天气') as HTMLSelectElement).value).toBe('晴天');
-    expect(within(screen.getByLabelText('Mega 状态')).getByText('进攻方 Mega Garchomp')).toBeTruthy();
+    expect(within(screen.getByLabelText('Mega 状态')).getByText('进攻方 超级烈咬陆鲨')).toBeTruthy();
     expect(within(screen.getByLabelText('Mega 状态')).getByText('防守方不支持 Mega')).toBeTruthy();
+    await user.selectOptions(screen.getByLabelText('Mega 状态'), 'attacker:mega-garchomp');
+    expect(within(screen.getByRole('button', { name: /进攻方/ })).getByText('超级烈咬陆鲨')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: /防守方/ }));
     expect(await screen.findByText('选择防守方')).toBeTruthy();
@@ -130,6 +132,7 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '图鉴' }));
     expect(await screen.findByText('规则内图鉴')).toBeTruthy();
     expect(screen.getByPlaceholderText('搜索名称')).toBeTruthy();
+    expect(screen.getByText('超级烈咬陆鲨')).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: /属性：全部/ }));
     await user.click(screen.getByRole('button', { name: /^火属性$/ }));
@@ -162,5 +165,17 @@ describe('App page flows', () => {
     expect(screen.getByText('种族值')).toBeTruthy();
     expect(screen.getByText('当前规则可学会招式')).toBeTruthy();
     expect(screen.getByText('属性相克')).toBeTruthy();
+  });
+
+  it('uses Mega form stats on the speed line when selected', async () => {
+    const user = await renderApp();
+
+    await user.click(screen.getByRole('button', { name: '速度线' }));
+    expect(await screen.findByText('最终速度')).toBeTruthy();
+    await user.selectOptions(screen.getByDisplayValue('原始形态'), 'mega-garchomp');
+
+    expect(screen.getByText('Mega 形态')).toBeTruthy();
+    expect(screen.getByText('基础速度 92 · 性格×1.1 · SP+32')).toBeTruthy();
+    expect(screen.getAllByText('158').length).toBeGreaterThan(0);
   });
 });

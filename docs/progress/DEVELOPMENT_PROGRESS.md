@@ -1,8 +1,8 @@
 # Pokemon Champions 对战助手开发进度表
 
-更新时间：2026-04-30
+更新时间：2026-05-01
 
-当前阶段：**PWA MVP 已完成，已进入“机制边界收紧 + 真实数据骨架 + 手机端体验打磨”阶段。**
+当前阶段：**PWA MVP 已完成，已进入“真实数据扩展 + Mega 形态建模 + 正式计算适配边界”阶段。**
 
 下一轮开发准备：`docs/progress/NEXT_ROUND_PLAN.md`
 
@@ -19,8 +19,8 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：9 个测试文件，45 个用例
-- [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，9 张基线截图
+- [x] `npm test` 通过：9 个测试文件，49 个用例
+- [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，11 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
 - [x] 本地 PWA 可预览
@@ -54,7 +54,12 @@ npm run build
 - [x] 属性相性补齐 18 种攻击属性，配队分析弱点 / 抗性 / 免疫覆盖更完整
 - [x] 远程刷新入口改为 disabled，不再暴露永远失败的刷新操作
 - [x] 伤害计算页招式、单双打、天气、场地、能力阶级、Mega 状态控件已可点击；正式伤害输出继续阻断
-- [x] 属性展示已尝试切换为本地 PNG 原生图标资源；视觉方案下一轮回评
+- [x] 伤害计算页 Mega 状态会切换到对应 Mega 形态的属性 / 种族值展示
+- [x] 图鉴 Pokémon 列表只显示中文名，详情页支持英文 / 日文切换
+- [x] 图鉴详情页展示特性、种族值、示例 learnset、属性相克
+- [x] 属性展示收敛为项目化胶囊 badge，不再使用本地 PNG 属性图标
+- [x] Reg M-A 官方 Mega allowlist shell 已接入：59 条，含 source refs 与 audit 测试
+- [x] 首批 4 个本地 Mega 形态可用于图鉴、队伍能力值、速度线和计算页形态展示
 - [ ] 完整真实 Reg M-A 数据源接入
 - [ ] Champions 伤害机制确认
 - [ ] 正式伤害计算
@@ -105,6 +110,8 @@ npm run build
 
 状态：**主要流程、成员编辑、移动端成员卡片、benchmark 详情与速度 SP 已完成；成员卡信息层级和属性 badge 视觉下一轮继续调**
 
+补充：成员卡信息层级、属性 badge 视觉、图鉴详情页和首批 Mega 形态展示已在后续提交中收敛；下一步重点转向完整 catalog / Mega 数据补齐。
+
 ### P0c：伤害计算 + 合法性校验
 
 - [x] 伤害计算页 UI
@@ -123,6 +130,9 @@ npm run build
 - [x] 招式与 Pokemon 匹配校验
 - [x] 特性与 Pokemon 匹配校验
 - [x] Mega Stone 匹配校验
+- [x] Mega 形态与 Mega Stone 关系校验
+- [x] 队伍成员选择 Mega Stone 时可反映 Mega 后属性 / 能力值
+- [x] 计算页 Mega 状态选择可切换进攻方 / 防守方当前形态展示
 - [ ] 接入正式伤害计算库
 - [x] 验证 `@smogon/calc` 对 Champions 的支持程度
 - [ ] 正式输出伤害范围、击杀概率、一确 / 二确 / 乱数
@@ -179,11 +189,14 @@ npm run build
 - [x] seed data audit 检查首批 Reg M-A allowlist 来源、唯一性和 catalog 映射
 - [x] seed data audit 纳入测试
 - [x] 完整真实 Reg M-A Pokemon allowlist seed
+- [x] Reg M-A 官方 Mega allowlist shell：59 条官方允许 Mega Evolution，未 join 的条目保持待补战斗数据
 - [x] 首批 6 只真实 Pokemon catalog 数据
+- [x] 首批 4 个 Mega form catalog 数据：超级妙蛙花、超级喷火龙X、超级喷火龙Y、超级烈咬陆鲨
 - [x] 首批真实道具数据
 - [x] 首批真实招式数据
 - [x] 首批真实特性数据
 - [ ] 完整真实 Reg M-A Pokemon catalog 数据
+- [ ] 其余 55 个官方允许 Mega 形态的 stats / types / abilities / sprite / Mega Stone 映射
 - [ ] 每条真实数据的来源链接和复核状态
 
 ### 机制确认
@@ -197,7 +210,8 @@ npm run build
 - [x] IV 不再暴露为用户参数；当前速度 / 能力公式隐含 Champions 固定处理
 - [ ] 持续追踪官方一手资料对 IV 固定值、SP 公式和 Stat Alignment 命名的最终表述
 - [x] 确认 Reg M-A Mega 可用、每场一次、重复道具禁止和计时规则
-- [ ] 确认完整 Mega 形态和 Mega Stone 关系数据
+- [x] 建立 Reg M-A 官方 Mega allowlist shell，并将已录入的 4 个 Mega form 接入形态解析
+- [ ] 补齐其余官方允许 Mega 形态和 Mega Stone 关系数据
 - [ ] 确认招式学习关系权威来源
 - [x] 调研 `@smogon/calc`
 - [x] 确认需要项目自有计算适配层
@@ -231,23 +245,28 @@ npm run build
 - [x] 移动端视觉回归测试
 - [x] source ref manifest 解析测试
 - [x] Reg M-A allowlist seed 解析测试
+- [x] Reg M-A Mega allowlist shell 解析测试
 - [x] 首批真实 catalog 头像 URL 测试
+- [x] 首批 Mega form 头像 URL 测试
 - [x] 18 属性相性枚举与 Ghost / Fairy / Poison / Bug / Steel 覆盖测试
 - [x] SP 输入最大 32、总量 66、点开式 picker 与刷新 disabled 测试
+- [x] Mega form + Mega Stone 合法性测试
+- [x] 速度线 Mega 形态速度测试
 
 ## 5. 当前风险与处理状态
 
 - [x] Reg M-A 完整合法列表已接入官方 Eligible Pokemon allowlist seed，但仍需二次复核和 catalog join
 - [x] Champions Stat Points 已按 v1 产品机制启用；后续仍需追踪官方最终措辞
 - [x] `@smogon/calc` 兼容性已调研：主线能力可用，Champions 特有机制仍阻断
-- [ ] 中文名、属性图标、简介资源授权风险仍需产品确认
-- [ ] 当前属性 PNG 图标视觉不满意，下一轮需回评最初英文+色彩 badge 或百科式条形 badge
+- [ ] 中文名、头像、简介资源授权风险仍需产品确认
+- [x] 属性 PNG 图标实验已撤回，当前采用项目化中文胶囊 badge
 - [x] 真实头像风险已按用户接受策略接入 PokeAPI official-artwork 外链
 - [x] 手机局域网测试中新建失败风险：通过 `createId` fallback 兜底
 - [x] seed data 不被误用为强合法结论：通过 `needs-review` 和测试约束
 - [x] 数据引用断裂风险：通过 `auditSeedData` 测试约束
 - [x] 未确认计算输出风险：通过机制阻断态约束
 - [x] 远程刷新误导风险：刷新入口已 disabled，避免永远失败的操作入口
+- [ ] Mega 数据不完整风险：59 条官方 allowlist 已建 shell，但只有 4 个本地 Mega form 具备可展示 stats/types/ability/sprite
 
 ## 6. 下一步开发清单
 
@@ -272,10 +291,13 @@ npm run build
 - [x] 修复 Champions SP 机制边界、18 属性相性和 IndexedDB v2 迁移
 - [x] 伤害计算页条件控件可交互，但正式计算继续阻断
 - [x] 成员编辑 SP 改为手机端点开式 picker
-- [ ] 调整队伍成员卡属性位置与“能力配置”点击编辑入口
-- [ ] 回评属性 badge 视觉方案
-- [ ] 重构图鉴属性筛选以支持完整 18 属性
-- [ ] 补 Reg M-A Mega allowlist seed 与 Mega Stone / Mega 状态禁用校验
+- [x] 调整队伍成员卡属性位置与“能力配置”点击编辑入口
+- [x] 回评并收敛属性 badge 视觉方案
+- [x] 重构图鉴属性筛选以支持完整 18 属性
+- [x] 补 Reg M-A Mega allowlist seed 与 Mega Stone / Mega 状态禁用校验
+- [ ] 分批补齐 Reg M-A 213 只基础 catalog
+- [ ] 分批补齐其余 55 个官方允许 Mega 形态数据
+- [ ] 建立 Reg M-B / 后续规则 registry 草案
 
 ## 7. 提交记录
 
@@ -293,3 +315,6 @@ npm run build
 - [x] `3ef9bf0`：新增 Reg M-A allowlist seed
 - [x] `adccbb3`：接入首批真实 catalog 头像
 - [x] `37e6b5f`：修复 Champions SP 机制、属性相性与本地数据迁移
+- [x] `aee7d82`：优化移动端 SP 编辑与计算页条件控件
+- [x] `5fc4768`：收敛移动端队伍页、图鉴筛选和属性 badge UI
+- [x] `3a0b632`：新增图鉴详情页与中 / 英 / 日名称展示

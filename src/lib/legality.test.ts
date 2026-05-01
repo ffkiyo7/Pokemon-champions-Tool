@@ -67,6 +67,30 @@ describe('legality evaluation', () => {
     expect(result.issues.some((issue) => issue.code === 'stat-points-over-limit')).toBe(true);
   });
 
+  it('accepts a matching Mega form and Mega Stone while keeping seed review visible', () => {
+    const result = evaluateMemberLegality({
+      ...baseMember,
+      formId: 'mega-garchomp',
+      abilityId: 'sand-force',
+      itemId: 'garchompite',
+    });
+
+    expect(result.status).toBe('needs-review');
+    expect(result.issues.some((issue) => issue.code === 'mega-item-mismatch')).toBe(false);
+  });
+
+  it('rejects Mega forms without their required Mega Stone', () => {
+    const result = evaluateMemberLegality({
+      ...baseMember,
+      formId: 'mega-garchomp',
+      abilityId: 'sand-force',
+      itemId: 'clear-amulet',
+    });
+
+    expect(result.status).toBe('illegal');
+    expect(result.issues.some((issue) => issue.code === 'mega-item-mismatch')).toBe(true);
+  });
+
   it('keeps the catalog review flag visible at the data layer', () => {
     expect(catalogNeedsReview()).toBe(true);
   });

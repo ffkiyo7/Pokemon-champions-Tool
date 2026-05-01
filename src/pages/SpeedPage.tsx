@@ -2,6 +2,7 @@ import { Minus, Plus, Star, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { pokemon, speedBenchmarks } from '../data';
 import { buildTeamBenchmarks, calculateSpeedWithMechanismGate } from '../lib/calculations';
+import { findBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
 import type { SpeedBenchmark, Team } from '../types';
@@ -28,6 +29,7 @@ function BenchmarkDetailSheet({
   onToggleFavorite: (benchmarkId: string) => void;
 }) {
   const entry = pokemon.find((candidate) => candidate.id === benchmark.pokemonId);
+  const form = findBattleForm(benchmark.pokemonId, benchmark.formId);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] rounded-t-2xl border border-border bg-card p-4 shadow-none">
@@ -45,7 +47,7 @@ function BenchmarkDetailSheet({
       <div className="grid grid-cols-2 gap-2 text-sm">
         <Card className="bg-secondary">
           <p className="text-[11px] text-textSecondary">Pokemon</p>
-          <p className="font-semibold">{entry ? entry.chineseName : benchmark.pokemonId}</p>
+          <p className="font-semibold">{form?.chineseName ?? entry?.chineseName ?? benchmark.pokemonId}</p>
         </Card>
         <Card className="bg-secondary">
           <p className="text-[11px] text-textSecondary">最终速度</p>
@@ -103,13 +105,15 @@ export function SpeedPage({
   const [filter, setFilter] = useState<BenchmarkFilter>('preset');
   const [selectedBenchmarkId, setSelectedBenchmarkId] = useState<string | null>(null);
   const [speedStatPoints, setSpeedStatPoints] = useState(MAX_STAT_POINTS_PER_STAT);
+  const [selectedFormId, setSelectedFormId] = useState<string | undefined>();
   const selected = pokemon.find((entry) => entry.id === selectedPokemonId) ?? pokemon[0];
+  const selectedForm = findBattleForm(selected.id, selectedFormId) ?? findBattleForm(selected.id, selected.id);
   const currentSpeedResult = calculateSpeedWithMechanismGate({
-    baseSpeed: selected.baseStats.speed,
+    baseSpeed: selectedForm?.baseStats.speed ?? selected.baseStats.speed,
     statPoints: speedStatPoints,
     level: 50,
     nature: '爽朗',
-    mechanismStatus: 'confirmed',
+      mechanismStatus: 'confirmed',
   });
   const currentSpeed = currentSpeedResult.status === 'confirmed' ? currentSpeedResult.finalSpeed : 0;
   const currentSpeedLabel = currentSpeedResult.status === 'confirmed' ? String(currentSpeedResult.finalSpeed) : '待确认';
@@ -143,7 +147,10 @@ export function SpeedPage({
         <select
           className="mb-3 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
           value={selected.id}
-          onChange={(event) => onSelectPokemon(event.target.value)}
+          onChange={(event) => {
+            onSelectPokemon(event.target.value);
+            setSelectedFormId(undefined);
+          }}
         >
           {pokemon.map((entry) => (
             <option key={entry.id} value={entry.id}>
@@ -151,10 +158,24 @@ export function SpeedPage({
             </option>
           ))}
         </select>
+        {selected.megaForms.length > 0 && (
+          <select
+            className="mb-3 w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
+            value={selectedForm?.id ?? selected.id}
+            onChange={(event) => setSelectedFormId(event.target.value)}
+          >
+            <option value={selected.id}>原始形态</option>
+            {selected.megaForms.map((form) => (
+              <option key={form.id} value={form.id}>
+                {form.chineseName}
+              </option>
+            ))}
+          </select>
+        )}
         <div className="flex gap-2 overflow-x-auto hide-scrollbar">
           <Chip active>爽朗(+速)</Chip>
           <Chip active>SP:{speedStatPoints}</Chip>
-          <Chip>{selected.canMega ? 'Mega 可用' : '原始形态'}</Chip>
+          {selectedForm?.isMega && <Chip>Mega 形态</Chip>}
           <Chip>道具 ▾</Chip>
           <Chip>顺风</Chip>
         </div>
@@ -204,10 +225,10 @@ export function SpeedPage({
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[26px] font-bold text-white">{currentSpeedLabel}</p>
-            <p className="text-xs text-textSecondary">基础速度 {selected.baseStats.speed} · 性格×1.1 · SP+{speedStatPoints}</p>
+            <p className="text-xs text-textSecondary">基础速度 {selectedForm?.baseStats.speed ?? selected.baseStats.speed} · 性格×1.1 · SP+{speedStatPoints}</p>
           </div>
           <div className="flex gap-1">
-            {selected.types.map((type) => (
+            {(selectedForm?.types ?? selected.types).map((type) => (
               <TypeBadge key={type} type={type} />
             ))}
           </div>
@@ -232,7 +253,7 @@ export function SpeedPage({
           ))}
           <div className="absolute top-6 -translate-x-1/2 text-center" style={{ left: `${Math.min(96, Math.max(4, (currentSpeed / 250) * 100))}%` }}>
             <div className="mx-auto">
-              <PokemonAvatar iconRef={selected.iconRef} label={selected.chineseName} size="xs" />
+              <PokemonAvatar iconRef={selectedForm?.iconRef ?? selected.iconRef} label={selectedForm?.chineseName ?? selected.chineseName} size="xs" />
             </div>
             <div className="mx-auto h-12 w-px bg-accent/70" />
             <div className="mx-auto h-4 w-4 rotate-45 bg-accent" />

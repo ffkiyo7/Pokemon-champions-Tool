@@ -1,0 +1,86 @@
+import type { MegaEvolutionEntry } from '../../../types';
+
+const sourceRefs = ['reg-ma-official-mega-list', 'manual-seed-review'];
+
+const knownForms: Record<string, Pick<MegaEvolutionEntry, 'basePokemonId' | 'formId'>> = {
+  'Mega Venusaur': { basePokemonId: 'venusaur', formId: 'mega-venusaur' },
+  'Mega Charizard X': { basePokemonId: 'charizard', formId: 'mega-charizard-x' },
+  'Mega Charizard Y': { basePokemonId: 'charizard', formId: 'mega-charizard-y' },
+  'Mega Garchomp': { basePokemonId: 'garchomp', formId: 'mega-garchomp' },
+};
+
+const names = [
+  'Mega Venusaur',
+  'Mega Charizard X',
+  'Mega Charizard Y',
+  'Mega Blastoise',
+  'Mega Beedrill',
+  'Mega Pidgeot',
+  'Mega Clefable',
+  'Mega Alakazam',
+  'Mega Victreebel',
+  'Mega Slowbro',
+  'Mega Gengar',
+  'Mega Kangaskhan',
+  'Mega Starmie',
+  'Mega Pinsir',
+  'Mega Gyarados',
+  'Mega Aerodactyl',
+  'Mega Dragonite',
+  'Mega Meganium',
+  'Mega Feraligatr',
+  'Mega Ampharos',
+  'Mega Steelix',
+  'Mega Scizor',
+  'Mega Heracross',
+  'Mega Skarmory',
+  'Mega Houndoom',
+  'Mega Tyranitar',
+  'Mega Gardevoir',
+  'Mega Sableye',
+  'Mega Aggron',
+  'Mega Medicham',
+  'Mega Manectric',
+  'Mega Sharpedo',
+  'Mega Camerupt',
+  'Mega Altaria',
+  'Mega Banette',
+  'Mega Chimecho',
+  'Mega Absol',
+  'Mega Glalie',
+  'Mega Lopunny',
+  'Mega Garchomp',
+  'Mega Lucario',
+  'Mega Abomasnow',
+  'Mega Gallade',
+  'Mega Froslass',
+  'Mega Emboar',
+  'Mega Excadrill',
+  'Mega Audino',
+  'Mega Chandelure',
+  'Mega Golurk',
+  'Mega Chesnaught',
+  'Mega Delphox',
+  'Mega Greninja',
+  'Mega Floette',
+  'Mega Meowstic',
+  'Mega Hawlucha',
+  'Mega Crabominable',
+  'Mega Drampa',
+  'Mega Scovillain',
+  'Mega Glimmora',
+];
+
+export const regMaMegaAllowlistExpectedCount = 59;
+
+export const regMaMegaAllowlist: MegaEvolutionEntry[] = names.map((englishName) => ({
+  id: englishName.toLowerCase().replaceAll(' ', '-'),
+  englishName,
+  legalInCurrentRule: true,
+  verificationStatus: 'manual-review',
+  sourceRefs,
+  reviewNotes: knownForms[englishName]
+    ? 'Official Reg M-A Mega list entry joined to current local catalog form data.'
+    : 'Official Reg M-A Mega list entry. Battle data, sprites, item mapping, and base catalog row still need a follow-up data pass.',
+  ...knownForms[englishName],
+}));

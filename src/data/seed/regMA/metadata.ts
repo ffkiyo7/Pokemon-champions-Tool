@@ -85,6 +85,16 @@ export const dataSourceManifest: DataSourceManifest = {
       notes: 'Official public web-view Eligible Pokemon page. Local allowlist rows are generated from its public payload and remain manual-review until a second pass verifies row count and normalization.',
     },
     {
+      id: 'reg-ma-official-mega-list',
+      url: currentRuleSet.officialSourceUrl,
+      sourceType: 'official',
+      licenseRisk: 'low',
+      retrievedAt: '2026-05-01T00:00:00.000Z',
+      sourceVersion: 'mega-count-59',
+      fieldsUsed: ['megaEvolution.englishName', 'megaEvolution.legalInCurrentRule'],
+      notes: 'Official Pokemon HOME Regulation Set M-A announcement lists the Mega Evolutions permitted in this ruleset. Local form stats, sprites, and Mega Stone IDs still require catalog-level source refs.',
+    },
+    {
       id: 'pokeapi-pokemon-data',
       url: 'https://pokeapi.co/api/v2/pokemon/',
       sourceType: 'community',

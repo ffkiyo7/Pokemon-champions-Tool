@@ -101,6 +101,10 @@ export type PokemonForm = {
   id: string;
   pokemonId: string;
   name: string;
+  chineseName: string;
+  englishName: string;
+  japaneseName: string;
+  iconRef: string;
   isMega: boolean;
   requiredItemId?: string;
   types: PokemonType[];
@@ -108,6 +112,17 @@ export type PokemonForm = {
   abilities: string[];
   legalInCurrentRule: boolean;
   sourceRefs: string[];
+};
+
+export type MegaEvolutionEntry = {
+  id: string;
+  englishName: string;
+  basePokemonId?: string;
+  formId?: string;
+  legalInCurrentRule: boolean;
+  verificationStatus: VerificationStatus;
+  sourceRefs: string[];
+  reviewNotes: string;
 };
 
 export type Pokemon = {
@@ -172,6 +187,8 @@ export type Ability = {
 
 export type StatPoints = Partial<Record<keyof BaseStats, number>>;
 
+export type MegaSelectionState = 'none' | `${'attacker' | 'defender'}:${string}`;
+
 export type TeamMember = {
   id: string;
   pokemonId?: string;
@@ -206,7 +223,7 @@ export type DamageCalcContext = {
   weather: string;
   terrain: string;
   statStages: Record<string, number>;
-  megaState: 'none' | 'attacker' | 'defender';
+  megaState: MegaSelectionState;
   additionalChampionsMechanics: 'pending';
   dataVersionId: string;
 };

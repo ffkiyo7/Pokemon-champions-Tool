@@ -4,6 +4,7 @@ import { abilities, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
+import { findBattleForm, findMegaFormByItem, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
 import type { Team, TeamMember } from '../types';
@@ -38,6 +39,7 @@ function MemberCard({
   onOpenSpeed: (pokemonId: string) => void;
 }) {
   const entry = pokemon.find((item) => item.id === member.pokemonId);
+  const battleForm = getMemberBattleForm(member);
   const item = items.find((candidate) => candidate.id === member.itemId);
   const ability = abilities.find((candidate) => candidate.id === member.abilityId);
   const learnedMoves = member.moveIds.map((id) => moves.find((move) => move.id === id)?.chineseName).filter(Boolean);
@@ -56,19 +58,19 @@ function MemberCard({
       <button className="block w-full text-left" onClick={() => onToggle(member.id)}>
         <div className={expanded ? 'flex gap-3' : 'flex flex-col items-center text-center'}>
           <div className={expanded ? '' : 'mb-2'}>
-            <PokemonAvatar iconRef={entry?.iconRef} label={entry?.chineseName ?? '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
+            <PokemonAvatar iconRef={battleForm?.iconRef ?? entry?.iconRef} label={battleForm?.chineseName ?? entry?.chineseName ?? '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
           </div>
           <div className="min-w-0 flex-1">
             <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex flex-wrap items-center gap-1.5`}>
-              <h3 className="truncate text-sm font-semibold">{memberLabel(member)}</h3>
+              <h3 className="truncate text-sm font-semibold">{battleForm?.chineseName ?? memberLabel(member)}</h3>
               {expanded &&
-                entry?.types.map((type) => (
+                battleForm?.types.map((type) => (
                   <TypeBadge key={type} type={type} size="sm" />
                 ))}
             </div>
             {!expanded && (
               <div className="mt-2 flex min-h-5 justify-center gap-1">
-                {entry?.types.map((type) => (
+                {battleForm?.types.map((type) => (
                   <TypeBadge key={type} type={type} size="sm" />
                 ))}
               </div>
@@ -103,7 +105,7 @@ function MemberCard({
             </div>
           </div>
 
-          {entry && (
+          {battleForm && (
             <>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button className="rounded-lg bg-elevated p-2 text-left active:scale-[0.99]" type="button" onClick={() => onEdit(member)}>
@@ -134,7 +136,7 @@ function MemberCard({
                 <Button variant="ghost" onClick={() => onOpenCalculator(member.id)}>
                   → 伤害计算
                 </Button>
-                <Button variant="ghost" onClick={() => onOpenSpeed(entry.id)}>
+                <Button variant="ghost" onClick={() => onOpenSpeed(battleForm.pokemonId)}>
                   → 速度线
                 </Button>
               </div>
@@ -269,8 +271,10 @@ function MemberEditor({
   const [draft, setDraft] = useState<TeamMember>(member);
   const [editingStatKey, setEditingStatKey] = useState<keyof TeamMember['statPoints'] | null>(null);
   const selectedPokemon = pokemon.find((entry) => entry.id === draft.pokemonId) ?? pokemon[0];
+  const selectedForm = findBattleForm(selectedPokemon.id, draft.formId);
   const availableMoves = moves.filter((move) => move.learnableByPokemonIds.includes(selectedPokemon.id));
-  const availableAbilities = abilities.filter((ability) => selectedPokemon.abilities.includes(ability.id));
+  const availableAbilityIds = Array.from(new Set([...selectedPokemon.abilities, ...(selectedForm?.abilities ?? [])]));
+  const availableAbilities = abilities.filter((ability) => availableAbilityIds.includes(ability.id));
   const legality = useMemo(() => evaluateMemberLegality(draft, team), [draft, team]);
   const totalStatPoints = statPointTotal(draft.statPoints);
   const editingStat = statPointControls.find((control) => control.key === editingStatKey);
@@ -322,10 +326,11 @@ function MemberEditor({
             const nextPokemon = pokemon.find((entry) => entry.id === pokemonId) ?? pokemon[0];
             const currentItem = items.find((item) => item.id === draft.itemId);
             const canKeepItem = !currentItem?.isMegaStone || currentItem.applicablePokemonIds.includes(nextPokemon.id);
+            const keptMegaForm = canKeepItem ? findMegaFormByItem(nextPokemon, draft.itemId) : undefined;
             updateDraft({
               pokemonId,
-              formId: pokemonId,
-              abilityId: nextPokemon.abilities[0],
+              formId: keptMegaForm?.id ?? pokemonId,
+              abilityId: keptMegaForm?.abilities[0] ?? nextPokemon.abilities[0],
               itemId: canKeepItem ? draft.itemId : undefined,
               moveIds: nextPokemon.learnableMoves.slice(0, 2),
             });
@@ -338,6 +343,28 @@ function MemberEditor({
           ))}
         </SelectField>
 
+        {selectedPokemon.megaForms.length > 0 && (
+          <SelectField
+            label="形态"
+            value={selectedForm?.id ?? selectedPokemon.id}
+            onChange={(formId) => {
+              const nextForm = findBattleForm(selectedPokemon.id, formId);
+              updateDraft({
+                formId,
+                itemId: nextForm?.isMega ? nextForm.requiredItemId : draft.itemId && items.find((item) => item.id === draft.itemId)?.isMegaStone ? undefined : draft.itemId,
+                abilityId: nextForm?.isMega ? nextForm.abilities[0] : selectedPokemon.abilities[0],
+              });
+            }}
+          >
+            <option value={selectedPokemon.id}>原始形态</option>
+            {selectedPokemon.megaForms.map((form) => (
+              <option key={form.id} value={form.id}>
+                {form.chineseName}
+              </option>
+            ))}
+          </SelectField>
+        )}
+
         <div className="grid grid-cols-2 gap-2">
           <SelectField label="特性" value={draft.abilityId ?? ''} onChange={(abilityId) => updateDraft({ abilityId })}>
             <option value="">未选择</option>
@@ -347,7 +374,18 @@ function MemberEditor({
               </option>
             ))}
           </SelectField>
-          <SelectField label="道具" value={draft.itemId ?? ''} onChange={(itemId) => updateDraft({ itemId: itemId || undefined })}>
+          <SelectField
+            label="道具"
+            value={draft.itemId ?? ''}
+            onChange={(itemId) => {
+              const nextMegaForm = findMegaFormByItem(selectedPokemon, itemId || undefined);
+              updateDraft({
+                itemId: itemId || undefined,
+                formId: nextMegaForm?.id ?? (itemId && items.find((item) => item.id === itemId)?.isMegaStone ? draft.formId : selectedPokemon.id),
+                abilityId: nextMegaForm?.abilities[0] ?? (items.find((item) => item.id === itemId)?.isMegaStone ? draft.abilityId : selectedPokemon.abilities[0]),
+              });
+            }}
+          >
             <option value="">未选择</option>
             {items.map((item) => {
               const disabled = item.isMegaStone && !item.applicablePokemonIds.includes(selectedPokemon.id);

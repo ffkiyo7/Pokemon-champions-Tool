@@ -9,6 +9,8 @@ import {
   pokemon,
   regMaPokemonAllowlist,
   regMaPokemonAllowlistExpectedCount,
+  regMaMegaAllowlist,
+  regMaMegaAllowlistExpectedCount,
   speedBenchmarks,
 } from '../data';
 
@@ -20,6 +22,7 @@ export type DataAuditIssue = {
     | 'allowlist-count-mismatch'
     | 'duplicate-allowlist-entry'
     | 'allowlist-catalog-mismatch'
+    | 'mega-allowlist-catalog-mismatch'
     | 'version-mismatch'
     | 'missing-pokemon-ref'
     | 'missing-ability-ref'
@@ -63,12 +66,22 @@ export function auditSeedData(): DataAuditIssue[] {
   const moveIds = new Set(moves.map((entry) => entry.id));
   const itemIds = new Set(items.map((entry) => entry.id));
   const allowlistChampionsFormIds = new Set<string>();
+  const megaAllowlistIds = new Set<string>();
 
   if (regMaPokemonAllowlist.length !== regMaPokemonAllowlistExpectedCount) {
     issues.push(
       issue(
         'allowlist-count-mismatch',
         `Reg M-A allowlist has ${regMaPokemonAllowlist.length} rows, expected ${regMaPokemonAllowlistExpectedCount}.`,
+      ),
+    );
+  }
+
+  if (regMaMegaAllowlist.length !== regMaMegaAllowlistExpectedCount) {
+    issues.push(
+      issue(
+        'allowlist-count-mismatch',
+        `Reg M-A Mega allowlist has ${regMaMegaAllowlist.length} rows, expected ${regMaMegaAllowlistExpectedCount}.`,
       ),
     );
   }
@@ -130,6 +143,23 @@ export function auditSeedData(): DataAuditIssue[] {
 
     if (!entry.championsFormId.startsWith(entry.nationalDexNo.toString().padStart(4, '0'))) {
       issues.push(issue('allowlist-catalog-mismatch', `Allowlist ${entry.id} does not match its National Dex number.`));
+    }
+  });
+
+  regMaMegaAllowlist.forEach((entry) => {
+    issues.push(...auditSourceRefs(`Mega allowlist ${entry.id}`, entry.sourceRefs));
+    if (megaAllowlistIds.has(entry.id)) {
+      issues.push(issue('duplicate-allowlist-entry', `Mega allowlist entry ${entry.id} appears more than once.`));
+    }
+    megaAllowlistIds.add(entry.id);
+    if (entry.basePokemonId && !pokemonIds.has(entry.basePokemonId)) {
+      issues.push(issue('mega-allowlist-catalog-mismatch', `Mega allowlist ${entry.id} maps to unknown Pokemon ${entry.basePokemonId}.`));
+    }
+    if (entry.formId) {
+      const base = pokemon.find((candidate) => candidate.id === entry.basePokemonId);
+      if (!base?.megaForms.some((form) => form.id === entry.formId)) {
+        issues.push(issue('mega-allowlist-catalog-mismatch', `Mega allowlist ${entry.id} maps to unknown form ${entry.formId}.`));
+      }
     }
   });
 

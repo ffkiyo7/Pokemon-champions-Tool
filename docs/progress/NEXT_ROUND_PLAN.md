@@ -1,137 +1,72 @@
 # 下一轮开发准备
 
-更新时间：2026-04-30
+更新时间：2026-05-01
 
 ## 当前状态
 
-- `master` 本地领先 `origin/master` 1 个提交，最新提交：`37e6b5f Fix Champions SP mechanics and local data migrations`。
-- 本地已有未提交开发改动：伤害计算页条件控件、属性 PNG 图标实验、速度 SP 手动调整、成员编辑 SP picker、移动端视觉基线更新。
-- `npm test` 通过：9 个测试文件，45 个用例。
-- `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，9 张基线截图。
-- `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归。
-- `npm run build` 通过：生产包可生成。
-- 手机端核心体验已完成多轮修正：多队伍切换、成员缩略卡、展开 / 收起、点开式 SP picker、示例能力值、计算页攻防双方选择、全图鉴搜索、速度 SP 手动调整。
-- 机制边界已收紧：Champions SP v1 速度 / 能力公式启用，伤害公式、Mega 细节、完整 learnset 仍阻断。
-- 当前主要风险集中在真实 Reg M-A 数据扩展、Mega allowlist / Mega Stone 映射、正式伤害计算适配和属性 badge 视觉方案。
-- Reg M-A 将于 2026-06-17 01:59 UTC 结束；下一轮预留 Reg M-B 数据注册表 / 切换设计占位，避免规则切换时散改 seed re-export。
-- 用户已在手机端发现若干待修体验问题，已记录在“新增用户反馈待处理”；下一轮优先进入 UI 回评和 Mega 数据合法性设计。
+- 本地最新已提交基线为 `3a0b632 Add Pokedex detail view`；本轮正在收口 Mega 形态数据骨架、形态展示和文档更新，完成后提交并推送。
+- `npm test` 通过：9 个测试文件，49 个用例。
+- `npm run build` 通过。
+- `npm run test:pwa` 通过：PWA 离线 + 390px 移动端视觉回归，视觉基线 11 张。
+- 图鉴已经拆成列表与详情页：列表只显示中文名，详情支持英文 / 日文切换，展示特性、种族值、示例 learnset、属性相克。
+- 属性 badge 已收敛为项目化胶囊：描边、半透明填充、白色中文、固定尺寸；不再使用本地 PNG 属性图标。
+- 队伍页小卡片信息层级已调整：小卡片只显示头像、中文名、属性；特性 / 道具 / 校验结果只在展开或编辑页出现。
+- 伤害计算页条件控件可交互，Mega 状态选择会切换当前展示的 Mega 形态属性 / 种族值；正式伤害公式仍阻断。
+- 速度线支持 SP 手动调整，并支持对已有本地数据的 Mega 形态进行速度计算；不支持 Mega 的 Pokémon 不再显示“原始形态”标签。
+- Reg M-A 官方 Pokémon allowlist 已有 213 行 seed；Reg M-A 官方 Mega allowlist 已有 59 行 shell。
+- 当前本地 catalog 只有首批 6 只基础 Pokémon，其中已录入 4 个可用 Mega 形态：超级妙蛙花、超级喷火龙X、超级喷火龙Y、超级烈咬陆鲨。
+- 其余 55 个官方允许 Mega 形态只保留 allowlist shell，不伪造 stats / types / ability / sprite / Mega Stone 映射。
+- Reg M-A 将于 2026-06-17 01:59 UTC 结束；仍需预留 Reg M-B 数据注册表 / 切换设计。
 
-## 明日优先事项
+## 下一轮优先事项
 
-1. 先处理队伍页成员卡信息层级：属性放到名字旁，“能力配置”可直接进入编辑。
-2. 回评属性 badge：最初英文+代表色方案 vs 百科式条形圆角方案，并用 390px 截图判断。
-3. 重构图鉴属性筛选，保证完整 18 属性可用且不挤压首屏。
-4. 核实并建模 Reg M-A Mega allowlist / Mega Stone 映射，补计算页和组队页禁用 / 校验。
-5. 每个 UI 改动补组件测试或 Playwright 视觉覆盖；修复后跑 `npm test`、`npm run build`、`npm run test:pwa`。
+1. 扩展 Reg M-A catalog join
+   - 以官方 Eligible Pokémon 213 行为主表，分批补 `Pokemon` 基础条目。
+   - 每批约 40-55 只，保证 `sourceRefs`、头像、types、baseStats、abilities、learnableMoves 的来源状态清晰。
+   - 继续保持 `manual-review`，不输出强合法结论。
 
-## 新增用户反馈待处理
+2. Mega 数据第二阶段
+   - 对 59 个官方 Mega allowlist 做 catalog join。
+   - 已完成本地 form 数据的 4 个继续保留；其余 55 个按来源状态分为：
+     - 旧主系列 / PokeAPI 或 Showdown 可确认：可补 stats / types / abilities / sprite / item mapping。
+     - Champions 新 Mega：只在官方或可靠结构源出现后补战斗字段。
+   - 需要新增测试：allowlist entry 与 catalog form 映射、Mega Stone 到 form 的一一关系、缺数据时 UI 显示“官方允许，战斗数据待确认”。
 
-1. 队伍页成员卡信息层级调整
-   - 属性图标应放在 Pokemon 名字旁边，然后再显示“需复核”等状态，不应放在性格下方、招式上方。
-   - “能力配置”区域应可直接点击进入成员编辑页，不能只依赖右上角编辑图标。
-   - 需要补组件测试或 Playwright 覆盖：点击能力配置打开编辑 bottom sheet，成员卡标题行在窄屏下不重叠。
+3. 队伍 Mega 体验继续细化
+   - 当前编辑页可通过“形态”或 Mega Stone 体现 Mega 后能力值 / 属性。
+   - 下一轮需要补“队内最多一个计划 Mega”的轻量提示，但不强阻断，因为实战每场只能 Mega 一次，队伍可携带多个 Mega Stone 的产品边界仍需确认。
+   - 需要决定 base ability 与 Mega ability 在队伍编辑中的呈现方式：当前允许 base / Mega ability 均通过校验，后续应区分“登场特性”和“Mega 后特性”。
 
-2. 属性图标视觉方案回评
-   - 当前原生 PNG 图标观感不理想，下一轮需要回评两种方向：
-     - 回到最初的英文缩写 + 可辨识属性代表色 icon / badge 风格。
-     - 参考神奇宝贝百科的“属性图标 + 属性文字 + 属性代表色底色”的条形圆角 badge 风格。
-   - 评估重点：移动端 390px 宽度下是否撑高列表、双属性并排是否溢出、中文 / 英文标签是否影响扫描效率。
-   - 若继续使用外部图标资源，先确认来源、尺寸、裁切和本地缓存策略；不再使用本地自绘图标作为默认方案。
+4. 图鉴详情 learnset 数据补齐
+   - 当前“当前规则可学会招式”仍来自 seed 示例，不代表完整 Champions Reg M-A learnset。
+   - 下一轮需要建立 learnset 数据来源与字段口径：是否可训练、形态 / Mega 形态是否影响、目标范围与分散伤害标记是否与 Champions 实机一致。
+   - 数据补齐前继续标注“示例待补齐”，不能作为正式配招合法性结论。
 
-3. 图鉴搜索与属性筛选重构
-   - 搜索框 placeholder 只提示可搜索名称；属性搜索价值较低，且下方已有筛选入口。
-   - 属性筛选需要为完整 18 属性做扩展设计，不能继续依赖一排 chip 硬塞。
-   - 候选交互：点开式下拉 / bottom sheet 多选、横向滚动分组、或紧凑网格筛选；优先用手机端实际截图判断。
-   - 验收：完整 18 属性可选，筛选状态清晰，可一键清空，不挤压图鉴列表首屏。
+5. 伤害计算适配层
+   - 保持正式伤害输出阻断。
+   - 下一轮只做适配层边界：输入结构、Mega form stats/types、spread damage 派生、weather/terrain/stage 映射。
+   - 不在 Champions 伤害公式确认前输出正式伤害范围或 KO 概率。
 
-4. Reg M-A Mega 合法性与 UI 禁用策略
-   - 需要先核实当前最新可靠来源：Reg M-A 中哪些 Pokemon 可参赛、哪些 Pokemon 拥有 Mega 形态、哪些 Mega 形态 / Mega Stone 在当前规则中可用。
-   - 数据层建立 `canMegaEvolve` / `megaForms` / `requiredMegaItem` 或等价字段，并记录 source refs 与复核状态。
-   - 伤害计算页：不支持 Mega 的 Pokemon 应禁用 Mega 状态选项；若历史数据或导入数据带有非法 Mega 状态，应显示不支持 / 不合法提示。
-   - 组队编辑页：不支持 Mega 的 Pokemon 不应可选无效 Mega 道具；若导入或旧数据已携带非法 Mega 道具，合法性校验应报错或至少标记需复核。
-   - 测试覆盖：支持 Mega / 不支持 Mega 两类 Pokemon、合法 Mega Stone / 非法 Mega Stone、计算页 Mega toggle 禁用与导入旧数据校验。
+6. Regulation 切换设计
+   - 增加 Reg registry 草案，避免未来从 Reg M-A 切 Reg M-B 时散改 `data/index.ts`。
+   - 记录数据版本、规则状态、过期提醒和本地队伍跨规则迁移策略。
 
-5. 图鉴详情 learnset 数据补齐
-   - 当前图鉴详情页已展示“当前规则可学会招式”的属性、分类、威力、命中、目标范围，但数据仍来自现有 seed 示例招式，不代表完整 Champions Reg M-A learnset。
-   - 下一轮需要建立当前规则 learnset 数据来源与字段口径：招式是否可训练、是否受形态 / Mega 形态影响、目标范围与分散伤害标记是否与 Champions 实机一致。
-   - 数据补齐前，图鉴详情继续标注“示例待补齐”，不能作为正式配招合法性结论。
-
-## 建议本轮目标
-
-建议下一轮定为：**手机端信息层级回评 + Mega 合法性数据轮**。
-
-核心目标不是继续堆页面，而是把用户手机端已经指出的扫描效率问题解决掉，同时补 Mega 合法性所需的数据骨架。这样后续接正式伤害计算时，Mega 状态、Mega Stone 和不支持 Mega 的 Pokemon 不会在 UI 与合法性层各自散落。
-
-## 推荐任务顺序
-
-1. 增加页面级组件测试
-   - 覆盖底部 Tab 导航和规则详情入口。
-   - 覆盖组队页：新建队伍、切换队伍、添加成员、展开 / 收起成员卡。
-   - 覆盖成员编辑：六项 SP 输入、固定 Lv.50、不展示等级编辑。
-   - 覆盖计算页：进攻方 / 防守方切换、全图鉴搜索、队伍推荐选择、机制阻断态。
-   - 状态：已完成。
-
-2. 增加 PWA 离线自动化测试
-   - 检测 service worker 注册。
-   - 模拟 offline 后刷新页面，确认 app shell 可打开。
-   - 用 IndexedDB fixture 验证本地队伍和 benchmark 收藏离线可读。
-   - 状态：已完成。
-
-3. 补移动端视觉回归最小集
-   - 选取 390px 宽移动视口。
-   - 截取组队、计算、速度线、图鉴、设置、规则详情。
-   - 重点检查：底部导航、成员展开卡、编辑 bottom sheet、计算页选择器、长文本和按钮不重叠。
-   - 状态：已完成，基线位于 `tests/pwa/visual.spec.ts-snapshots/`。
-
-4. 建立真实数据 provenance 骨架
-   - 新增 source ref manifest 类型和种子示例。
-   - 让 catalog rows 的 `sourceRefs` 可以解析到真实来源记录。
-   - 在 seed data audit 中增加 source ref 存在性检查。
-   - 保持 mock / manual-review 数据不能输出强合法结论。
-   - 状态：已完成。
-
-5. 准备首批真实 Reg M-A allowlist seed
-   - 按 `docs/research/DATA_SOURCE_RESEARCH.md` 的首批范围执行。
-   - 优先接官方规则元信息、Eligible Pokemon allowlist、Mega allowlist。
-   - 每条数据必须有 source ref、检索时间和复核状态。
-   - 在二次复核前全部保持 `manual-review`。
-   - 状态：已完成完整 Pokemon allowlist seed（213 行）和生成脚本，并接入首批 6 只真实 catalog 与头像；Mega allowlist 待扩展。
-
-6. 修正机制边界和本地数据升级
-   - Champions SP 范围固定为单项 0-32、总量 66。
-   - 速度线和队伍 benchmark 走 `calculateSpeedWithMechanismGate`。
-   - 属性相性补齐 18 种攻击属性。
-   - IndexedDB 升到 v2 并迁移旧 EV-like `statPoints`。
-   - 刷新入口 disabled。
-   - 状态：已完成并提交 `37e6b5f`。
-
-7. 当前未提交 UI 实验和待收口事项
-   - 伤害计算页条件控件已可点击，但结果仍阻断。
-   - 速度线支持手动速度 SP。
-   - 成员编辑 SP 改为点开式 picker。
-   - 属性 PNG 图标已接入，但视觉不满意，下一轮回评并可能替换。
-   - 状态：代码已实现且测试已复跑，待最终视觉取舍和提交。
-
-## 本轮验收标准
+## 验收标准
 
 - `npm test` 通过。
-- `npm run test:visual` 通过。
-- `npm run test:pwa` 通过。
 - `npm run build` 通过。
-- 页面级组件测试、PWA 离线自动化测试和移动端视觉回归最小集已完成，并覆盖 SP picker 展开态。
-- 新增测试不依赖外部网络。
-- 真实数据接入前，所有 mock / manual-review 数据仍不能产生强合法性或正式计算结论。
-- `DEVELOPMENT_PROGRESS.md` 与本计划同步更新。
+- `npm run test:pwa` 通过。
+- 新增数据必须有可解析 `sourceRefs`。
+- 未完成复核的数据必须保留 `manual-review` 或等价状态。
+- 缺失 Mega 战斗字段时，不得伪造 stats/types/ability/sprite。
+- 文档同步更新 `DEVELOPMENT_PROGRESS.md` 与本计划。
 
 ## 开工入口
 
-建议从测试设施开始：
-
 ```bash
 npm test
-npm run test:visual
-npm run test:pwa
 npm run build
+npm run test:pwa
 ```
 
-下一步先处理用户反馈的手机端信息层级与属性 badge 视觉；UI 收敛后，从 Mega 合法性数据继续：补 Reg M-A Mega allowlist seed、Mega Stone 映射、计算页 Mega 状态禁用和组队页道具校验。页面级组件测试已使用 React Testing Library / jsdom；PWA 离线和视觉回归测试已使用 Playwright，并配置为使用本机 Chrome，避免依赖 Playwright Chromium 下载。
+建议下一轮从 “Mega 数据第二阶段 + catalog 分批 join” 开始；UI 现在已经能承接 Mega 形态，瓶颈转回数据完整性和来源复核。
