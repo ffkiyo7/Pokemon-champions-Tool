@@ -29,11 +29,11 @@ export function PokemonPicker({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-30 mx-auto max-w-[430px]">
+    <div className="fixed inset-0 z-30">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="absolute inset-x-0 bottom-0 flex max-h-[70vh] flex-col rounded-t-xl bg-card">
+      <div className="absolute bottom-0 left-1/2 flex max-h-[70vh] min-h-[40vh] w-full max-w-[430px] -translate-x-1/2 flex-col rounded-t-xl bg-card">
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+        <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
           <Search size={18} className="shrink-0 text-textSecondary" />
           <input
             autoFocus
@@ -53,7 +53,7 @@ export function PokemonPicker({
         </div>
 
         {/* List */}
-        <div className="overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+        <div className="flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
           {results.length === 0 ? (
             <p className="px-4 py-8 text-center text-sm text-textMuted">未找到匹配的 Pokémon</p>
           ) : (
