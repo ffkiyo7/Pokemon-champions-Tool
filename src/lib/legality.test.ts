@@ -79,6 +79,17 @@ describe('legality evaluation', () => {
     expect(result.issues.some((issue) => issue.code === 'mega-item-mismatch')).toBe(false);
   });
 
+  it('allows a base-form team preview to carry its matching Mega Stone', () => {
+    const result = evaluateMemberLegality({
+      ...baseMember,
+      formId: 'garchomp',
+      itemId: 'garchompite',
+    });
+
+    expect(result.status).toBe('needs-review');
+    expect(result.issues.some((issue) => issue.code === 'mega-item-mismatch')).toBe(false);
+  });
+
   it('rejects Mega forms without their required Mega Stone', () => {
     const result = evaluateMemberLegality({
       ...baseMember,

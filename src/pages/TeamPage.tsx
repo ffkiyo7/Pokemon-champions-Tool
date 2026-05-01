@@ -5,7 +5,7 @@ import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } fr
 import { currentRuleMovesForPokemon, currentRuleNatures, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../lib/currentRuleCatalog';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
-import { findBattleForm, findMegaFormByItem, getMemberBattleForm } from '../lib/pokemonForms';
+import { findBattleForm, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
 import type { Team, TeamMember } from '../types';
@@ -28,6 +28,7 @@ function MemberCard({
   expanded,
   onToggle,
   onEdit,
+  onDelete,
   onOpenCalculator,
   onOpenSpeed,
 }: {
@@ -36,6 +37,7 @@ function MemberCard({
   expanded: boolean;
   onToggle: (memberId: string) => void;
   onEdit: (member: TeamMember) => void;
+  onDelete: (memberId: string) => void | Promise<void>;
   onOpenCalculator: (memberId: string) => void;
   onOpenSpeed: (pokemonId: string) => void;
 }) {
@@ -55,7 +57,20 @@ function MemberCard({
   ].filter(([, value]) => Number(value) > 0);
 
   return (
-    <Card className={`${expanded ? 'col-span-2' : 'min-h-[136px]'} bg-card`}>
+    <Card className={`relative ${expanded ? 'col-span-2' : 'min-h-[136px]'} bg-card`}>
+      {!expanded && (
+        <button
+          className="absolute right-1.5 top-1.5 z-10 grid h-7 w-7 place-items-center rounded-lg text-textMuted active:scale-[0.98]"
+          title="删除成员"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            void onDelete(member.id);
+          }}
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
       <button className="block w-full text-left" onClick={() => onToggle(member.id)}>
         <div className={expanded ? 'flex gap-3' : 'flex flex-col items-center text-center'}>
           <div className={expanded ? '' : 'mb-2'}>
@@ -171,7 +186,7 @@ function SelectField({
   return (
     <div>
       <FieldLabel>{label}</FieldLabel>
-      <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={value} onChange={(event) => onChange(event.target.value)}>
+      <select aria-label={label} className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={value} onChange={(event) => onChange(event.target.value)}>
         {children}
       </select>
     </div>
@@ -326,49 +341,42 @@ function MemberEditor({
       </div>
 
       <div className="max-h-[68vh] space-y-3 overflow-y-auto pr-1">
-        <SelectField
-          label="Pokemon"
-          value={selectedPokemon.id}
-          onChange={(pokemonId) => {
-            const nextPokemon = pokemon.find((entry) => entry.id === pokemonId) ?? pokemon[0];
-            const canKeepItem = currentRuleSelectableItemsForPokemon(nextPokemon.id).some((item) => item.id === draft.itemId);
-            const keptMegaForm = canKeepItem ? findMegaFormByItem(nextPokemon, draft.itemId) : undefined;
-            updateDraft({
-              pokemonId,
-              formId: keptMegaForm?.id ?? pokemonId,
-              abilityId: keptMegaForm?.abilities[0] ?? nextPokemon.abilities[0],
-              itemId: canKeepItem ? draft.itemId : undefined,
-              moveIds: currentRuleMovesForPokemon(nextPokemon.id).slice(0, 2).map((move) => move.id),
-            });
-          }}
-        >
-          {pokemon.map((entry) => (
-            <option key={entry.id} value={entry.id}>
-              {entry.chineseName}
-            </option>
-          ))}
-        </SelectField>
+        <Card className="bg-secondary">
+          <div className="flex items-center gap-3">
+            <PokemonAvatar iconRef={selectedForm?.iconRef ?? selectedPokemon.iconRef} label={selectedForm?.chineseName ?? selectedPokemon.chineseName} size="md" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{selectedForm?.chineseName ?? selectedPokemon.chineseName}</p>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {(selectedForm?.types ?? selectedPokemon.types).map((type) => (
+                  <TypeBadge key={type} type={type} size="sm" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
 
         {selectedPokemon.megaForms.length > 0 && (
-          <SelectField
-            label="形态"
-            value={selectedForm?.id ?? selectedPokemon.id}
-            onChange={(formId) => {
-              const nextForm = findBattleForm(selectedPokemon.id, formId);
-              updateDraft({
-                formId,
-                itemId: nextForm?.isMega ? nextForm.requiredItemId : draft.itemId && items.find((item) => item.id === draft.itemId)?.isMegaStone ? undefined : draft.itemId,
-                abilityId: nextForm?.isMega ? nextForm.abilities[0] : selectedPokemon.abilities[0],
-              });
-            }}
-          >
-            <option value={selectedPokemon.id}>原始形态</option>
-            {selectedPokemon.megaForms.map((form) => (
-              <option key={form.id} value={form.id}>
-                {form.chineseName}
-              </option>
-            ))}
-          </SelectField>
+          <div>
+            <SelectField
+              label="形态预览"
+              value={selectedForm?.id ?? selectedPokemon.id}
+              onChange={(formId) => {
+                const nextForm = findBattleForm(selectedPokemon.id, formId);
+                updateDraft({
+                  formId,
+                  abilityId: nextForm?.isMega ? nextForm.abilities[0] : selectedPokemon.abilities[0],
+                });
+              }}
+            >
+              <option value={selectedPokemon.id}>原始形态</option>
+              {selectedPokemon.megaForms.map((form) => (
+                <option key={form.id} value={form.id}>
+                  {form.chineseName}
+                </option>
+              ))}
+            </SelectField>
+            <p className="mt-1 text-[11px] text-textMuted">形态预览只影响能力值 / 属性展示；Mega Stone 作为道具独立配置。</p>
+          </div>
         )}
 
         <div className="grid grid-cols-2 gap-2">
@@ -384,11 +392,8 @@ function MemberEditor({
             label="道具"
             value={draft.itemId ?? ''}
             onChange={(itemId) => {
-              const nextMegaForm = findMegaFormByItem(selectedPokemon, itemId || undefined);
               updateDraft({
                 itemId: itemId || undefined,
-                formId: nextMegaForm?.id ?? (itemId && items.find((item) => item.id === itemId)?.isMegaStone ? draft.formId : selectedPokemon.id),
-                abilityId: nextMegaForm?.abilities[0] ?? (items.find((item) => item.id === itemId)?.isMegaStone ? draft.abilityId : selectedPokemon.abilities[0]),
               });
             }}
           >
@@ -664,6 +669,10 @@ export function TeamPage({
                 expanded={expandedMemberId === member.id}
                 onToggle={(memberId) => setExpandedMemberId((current) => (current === memberId ? null : memberId))}
                 onEdit={(nextMember) => setEditingMemberId(nextMember.id)}
+                onDelete={async (memberId) => {
+                  await saveTeam({ ...activeTeam, members: activeTeam.members.filter((candidate) => candidate.id !== memberId) });
+                  setExpandedMemberId((current) => (current === memberId ? null : current));
+                }}
                 onOpenCalculator={onOpenCalculator}
                 onOpenSpeed={onOpenSpeed}
               />

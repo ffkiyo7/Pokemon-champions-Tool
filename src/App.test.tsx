@@ -67,19 +67,27 @@ describe('App page flows', () => {
     expect(screen.queryByText('示例能力值')).toBeNull();
   });
 
-  it('keeps member editing focused on Pokemon, moves, nature, item, ability, and six SP fields', async () => {
+  it('keeps member editing focused on the selected Pokemon, moves, nature, item, ability, and six SP fields', async () => {
     const user = await renderApp();
 
     await user.click(screen.getByText('烈咬陆鲨'));
     await user.click(screen.getByTitle('编辑成员'));
 
     expect(await screen.findByText('编辑成员')).toBeTruthy();
+    expect(screen.getByText('形态预览只影响能力值 / 属性展示；Mega Stone 作为道具独立配置。')).toBeTruthy();
+    expect(screen.queryByLabelText('Pokemon')).toBeNull();
     expect(screen.queryByText('等级')).toBeNull();
     expect(screen.queryByText('备注')).toBeNull();
     expect(screen.getByRole('option', { name: '文柚果' })).toBeTruthy();
     expect(screen.getByRole('option', { name: '烈咬陆鲨进化石' })).toBeTruthy();
     expect(screen.queryByRole('option', { name: /突击背心/ })).toBeNull();
     expect(screen.queryByRole('option', { name: /清净坠饰/ })).toBeNull();
+    await user.selectOptions(screen.getByLabelText('道具'), 'garchompite');
+    expect((screen.getByLabelText('形态预览') as HTMLSelectElement).value).toBe('garchomp');
+    await user.selectOptions(screen.getByLabelText('形态预览'), 'mega-garchomp');
+    expect((screen.getByLabelText('道具') as HTMLSelectElement).value).toBe('garchompite');
+    await user.selectOptions(screen.getByLabelText('形态预览'), 'garchomp');
+    expect((screen.getByLabelText('道具') as HTMLSelectElement).value).toBe('garchompite');
 
     ['HP SP', '攻击 SP', '防御 SP', '特攻 SP', '特防 SP', '速度 SP'].forEach((label) => {
       expect(screen.getAllByText(label.replace(' SP', '')).length).toBeGreaterThan(0);
@@ -91,6 +99,14 @@ describe('App page flows', () => {
     expect(screen.getByRole('slider', { name: '速度 SP' }).getAttribute('max')).toBe('32');
     expect(screen.getByRole('button', { name: 'min' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'max' })).toBeTruthy();
+  });
+
+  it('deletes a compact team member directly from the team grid', async () => {
+    const user = await renderApp();
+
+    expect(await screen.findByText(/2\/6 成员/)).toBeTruthy();
+    await user.click(screen.getAllByTitle('删除成员')[0]);
+    expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
   });
 
   it('selects both calculator sides from searchable current-rule Pokemon and team recommendations', async () => {

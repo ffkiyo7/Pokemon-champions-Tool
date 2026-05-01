@@ -72,10 +72,7 @@ export const findMegaFormByItem = (entry: Pokemon, itemId?: string) => {
 export const getMemberBattleForm = (member: TeamMember): BattleFormView | undefined => {
   const entry = findPokemon(member.pokemonId);
   if (!entry) return undefined;
-  const explicitForm = findBattleForm(entry.id, member.formId);
-  if (explicitForm?.isMega) return explicitForm;
-  const itemMegaForm = findMegaFormByItem(entry, member.itemId);
-  return itemMegaForm ? toMegaFormView(itemMegaForm) : explicitForm ?? toBaseFormView(entry);
+  return findBattleForm(entry.id, member.formId) ?? toBaseFormView(entry);
 };
 
 export const getDexFormEntries = (): DexFormEntry[] =>
