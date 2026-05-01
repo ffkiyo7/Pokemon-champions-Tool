@@ -1,4 +1,4 @@
-import { ChevronLeft, Filter, Plus, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronUp, Filter, Plus, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, moves } from '../data';
 import { attackingTypes, defensiveMatchupMultiplier, statRows } from '../lib/calculations';
@@ -46,6 +46,8 @@ const statLabels = {
   '特防': '特防',
   '速': '速度',
 } as const;
+
+const ABILITY_OWNER_PREVIEW_LIMIT = 5;
 
 function TypeFilterSheet({
   selectedTypes,
@@ -296,6 +298,7 @@ export function DexPage({
   const [selectedTypes, setSelectedTypes] = useState<PokemonType[]>([]);
   const [showTypeFilter, setShowTypeFilter] = useState(false);
   const [detailPokemonId, setDetailPokemonId] = useState<string | null>(null);
+  const [expandedAbilityListIds, setExpandedAbilityListIds] = useState<string[]>([]);
   const dexEntries = useMemo(() => getDexFormEntries(), []);
 
   const filteredPokemon = useMemo(
@@ -324,7 +327,7 @@ export function DexPage({
     [query, selectableItems],
   );
   const filteredAbilities = useMemo(
-    () => abilities.filter((ability) => matchesSearch(ability.chineseName, ability.englishName, ability.effectSummary)),
+    () => abilities.filter((ability) => matchesSearch(ability.chineseName, ability.englishName)),
     [query],
   );
 
@@ -334,6 +337,16 @@ export function DexPage({
       if (current.length >= 2) return current;
       return [...current, type];
     });
+  };
+  const toggleAbilityListItem = (abilityId: string) => {
+    setExpandedAbilityListIds((current) => (current.includes(abilityId) ? current.filter((id) => id !== abilityId) : [...current, abilityId]));
+  };
+  const openAbilityOwner = (entry: DexFormEntry) => {
+    setTab('pokemon');
+    setQuery('');
+    setSelectedTypes([]);
+    setShowTypeFilter(false);
+    setDetailPokemonId(entry.id);
   };
 
   return (
@@ -460,15 +473,55 @@ export function DexPage({
           <EmptyState title="没有找到相关特性" action={<Button onClick={() => setQuery('')}>清除搜索</Button>} />
         ) : (
         <div className="space-y-2">
-          {filteredAbilities.map((ability) => (
-            <Card key={ability.id}>
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-semibold">{ability.chineseName} {ability.englishName}</h3>
-                <span className="text-[11px] text-textMuted">{ability.pokemonIds.length}个 Pokémon</span>
-              </div>
-              <p className="mt-1 text-xs text-textSecondary">{ability.effectSummary}</p>
-            </Card>
-          ))}
+          {filteredAbilities.map((ability) => {
+            const expanded = expandedAbilityListIds.includes(ability.id);
+            const abilityEntries = dexEntries.filter((entry) => entry.abilities.includes(ability.id));
+            const previewEntries = abilityEntries.slice(0, ABILITY_OWNER_PREVIEW_LIMIT);
+            const hiddenEntryCount = Math.max(0, abilityEntries.length - previewEntries.length);
+            return (
+              <Card key={ability.id}>
+                <div className="flex items-start gap-3">
+                  <button
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-border text-textSecondary"
+                    type="button"
+                    aria-label={expanded ? `收起${ability.chineseName}说明` : `展开${ability.chineseName}说明`}
+                    aria-expanded={expanded}
+                    onClick={() => toggleAbilityListItem(ability.id)}
+                  >
+                    {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="min-w-0 text-sm font-semibold">{ability.chineseName} {ability.englishName}</h3>
+                      <div className="-space-x-2 flex shrink-0 justify-end">
+                        {previewEntries.map((entry) => (
+                          <PokemonAvatar key={entry.id} iconRef={entry.iconRef} label={entry.chineseName} size="xs" />
+                        ))}
+                        {hiddenEntryCount > 0 && (
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-elevated text-[10px] font-semibold text-textSecondary">
+                            +{hiddenEntryCount}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {expanded && (
+                      <div className="mt-2 border-t border-divider pt-2">
+                        <p className="text-xs text-textSecondary">{ability.effectSummary}</p>
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {abilityEntries.map((entry) => (
+                            <button key={entry.id} className="flex min-w-0 items-center gap-2 rounded-lg bg-secondary p-1.5 text-left" type="button" onClick={() => openAbilityOwner(entry)}>
+                              <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} size="xs" />
+                              <span className="truncate text-[11px] font-semibold text-textPrimary">{entry.chineseName}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
         </div>
         )
       )}

@@ -114,6 +114,16 @@ export const dataSourceManifest: DataSourceManifest = {
       notes: 'PokeAPI structured Pokemon data used for the first six real catalog rows. Rows remain manual-review.',
     },
     {
+      id: 'pokemon-zhwiki-ability-text',
+      url: 'https://wiki.52poke.com/wiki/神奇宝贝百科:机器读取守则',
+      sourceType: 'community',
+      licenseRisk: 'high',
+      retrievedAt: '2026-05-01T00:00:00.000Z',
+      sourcePath: 'scripts/generate-ability-effects.mjs',
+      fieldsUsed: ['abilities.chineseName', 'abilities.effectSummary'],
+      notes: 'Chinese ability text is generated from Pokemon Wiki MediaWiki revisions API using the infobox zh-hans text field, with PokeAPI zh-hans names preferred when present.',
+    },
+    {
       id: 'pokeapi-official-artwork',
       url: 'https://github.com/PokeAPI/sprites/tree/master/sprites/pokemon/other/official-artwork',
       sourceType: 'community',

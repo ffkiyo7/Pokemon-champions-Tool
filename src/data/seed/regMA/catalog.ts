@@ -6,6 +6,7 @@ import { pokemonBatch002, abilitiesBatch002 } from './catalog-batch-002';
 import { pokemonBatch001, abilitiesBatch001 } from './catalog-batch-001';
 
 const catalogRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
+const abilityRefs = ['pokemon-zhwiki-ability-text', 'pokeapi-pokemon-data'];
 const megaRefs = ['reg-ma-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const itemCandidateRefs = ['reg-ma-community-item-snapshot', 'manual-seed-review'];
 const megaItemRefs = ['reg-ma-official-mega-list', 'reg-ma-community-item-snapshot', 'manual-seed-review'];
@@ -13,7 +14,7 @@ const megaItemRefs = ['reg-ma-official-mega-list', 'reg-ma-community-item-snapsh
 const artwork = (nationalDexNo: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${nationalDexNo}.png`;
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
 
-export const abilities: Ability[] = [
+const abilityRows: Ability[] = [
   ...abilitiesBatch005,
   ...abilitiesBatch004,
   ...abilitiesBatch003,
@@ -23,161 +24,161 @@ export const abilities: Ability[] = [
     id: 'overgrow',
     chineseName: '茂盛',
     englishName: 'Overgrow',
-    effectSummary: 'HP 降低时强化草属性招式。',
+    effectSummary: 'ＨＰ减少的时候，草属性的招式威力会提高。',
     pokemonIds: ['venusaur'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'chlorophyll',
     chineseName: '叶绿素',
     englishName: 'Chlorophyll',
-    effectSummary: '晴天下速度提升。',
+    effectSummary: '晴朗天气时，速度会提高。',
     pokemonIds: ['venusaur'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'thick-fat',
     chineseName: '厚脂肪',
     englishName: 'Thick Fat',
-    effectSummary: '降低受到的火属性和冰属性伤害。',
+    effectSummary: '因为被厚厚的脂肪保护着，会让火属性和冰属性的招式伤害减半。',
     pokemonIds: ['venusaur'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'blaze',
     chineseName: '猛火',
     englishName: 'Blaze',
-    effectSummary: 'HP 降低时强化火属性招式。',
+    effectSummary: 'ＨＰ减少的时候，火属性的招式威力会提高。',
     pokemonIds: ['charizard', 'incineroar'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'solar-power',
     chineseName: '太阳之力',
     englishName: 'Solar Power',
-    effectSummary: '晴天下提升特攻并持续损失 HP。',
+    effectSummary: '晴朗天气时，特攻会提高，而每回合ＨＰ会减少。',
     pokemonIds: ['charizard'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'tough-claws',
     chineseName: '硬爪',
     englishName: 'Tough Claws',
-    effectSummary: '强化接触类招式。',
+    effectSummary: '接触到对手的招式威力会提高。',
     pokemonIds: ['charizard'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'drought',
     chineseName: '日照',
     englishName: 'Drought',
-    effectSummary: '登场时开启晴天。',
+    effectSummary: '出场时，会将天气变为晴朗。',
     pokemonIds: ['charizard', 'torkoal'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'water-absorb',
     chineseName: '储水',
     englishName: 'Water Absorb',
-    effectSummary: '受到水属性招式时回复 HP。',
+    effectSummary: '受到水属性的招式攻击时，不会受到伤害，而是会回复。',
     pokemonIds: ['politoed'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'damp',
     chineseName: '湿气',
     englishName: 'Damp',
-    effectSummary: '阻止自爆类招式。',
+    effectSummary: '通过把周围都弄湿，使谁都无法使用自爆等爆炸类的招式。',
     pokemonIds: ['politoed'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'drizzle',
     chineseName: '降雨',
     englishName: 'Drizzle',
-    effectSummary: '登场时开启雨天。',
+    effectSummary: '出场时，会将天气变为下雨。',
     pokemonIds: ['politoed'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'white-smoke',
     chineseName: '白色烟雾',
     englishName: 'White Smoke',
-    effectSummary: '防止能力被对手降低。',
+    effectSummary: '被白色烟雾保护着，不会被对手降低能力。',
     pokemonIds: ['torkoal'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'shell-armor',
     chineseName: '硬壳盔甲',
     englishName: 'Shell Armor',
-    effectSummary: '不会被击中要害。',
+    effectSummary: '被坚硬的壳保护着，对手的攻击不会击中要害。',
     pokemonIds: ['torkoal'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'sand-veil',
     chineseName: '沙隐',
     englishName: 'Sand Veil',
-    effectSummary: '沙暴中提升闪避。',
+    effectSummary: '在沙暴的时候，闪避率会提高。',
     pokemonIds: ['garchomp'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'rough-skin',
     chineseName: '粗糙皮肤',
     englishName: 'Rough Skin',
-    effectSummary: '受到接触招式时给予对手反伤。',
+    effectSummary: '受到攻击时，用粗糙的皮肤弄伤接触到自己的对手。',
     pokemonIds: ['garchomp'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'sand-force',
     chineseName: '沙之力',
     englishName: 'Sand Force',
-    effectSummary: '沙暴中强化部分属性招式。',
+    effectSummary: '沙暴天气时，岩石属性、地面属性和钢属性的招式威力会提高。',
     pokemonIds: ['garchomp'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
   {
     id: 'intimidate',
     chineseName: '威吓',
     englishName: 'Intimidate',
-    effectSummary: '登场时降低对手攻击。',
+    effectSummary: '出场时威吓对手，让其退缩，降低对手的攻击。',
     pokemonIds: ['incineroar'],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
-    sourceRefs: catalogRefs,
+    sourceRefs: abilityRefs,
   },
 ];
 
@@ -743,3 +744,16 @@ export const pokemon: Pokemon[] = [
     sourceRefs: catalogRefs,
   },
 ];
+
+const abilityPokemonIdsById = pokemon.reduce<Record<string, string[]>>((index, entry) => {
+  const abilityIds = new Set([...entry.abilities, ...entry.megaForms.flatMap((form) => form.abilities)]);
+  abilityIds.forEach((abilityId) => {
+    index[abilityId] = [...(index[abilityId] ?? []), entry.id];
+  });
+  return index;
+}, {});
+
+export const abilities: Ability[] = abilityRows.map((ability) => ({
+  ...ability,
+  pokemonIds: abilityPokemonIdsById[ability.id] ?? [],
+}));

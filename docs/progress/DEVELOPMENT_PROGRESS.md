@@ -1,6 +1,6 @@
 # Pokemon Champions 对战助手开发进度表
 
-更新时间：2026-05-01
+更新时间：2026-05-02
 
 当前阶段：**PWA MVP 已完成，已进入“真实数据扩展 + Mega 形态建模 + 正式计算适配边界”阶段。**
 
@@ -19,7 +19,7 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：9 个测试文件，54 个用例
+- [x] `npm test` 通过：9 个测试文件，55 个用例
 - [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，11 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
@@ -65,6 +65,8 @@ npm run build
 - [x] 图鉴详情页种族值总和显示
 - [x] 队伍添加 Pokémon 底部搜索选择器，支持按中文名/英文名搜索
 - [x] 自动化批量数据接入脚本（PokeAPI → 本地 seed 文件），含缓存、去重、Mega 交叉比对
+- [x] 特性说明改为自动化中文来源：`scripts/generate-ability-effects.mjs` 从 52poke MediaWiki revisions API 抽取 zh-hans 信息框说明，并用 PokeAPI zh-hans 名称补齐
+- [x] 图鉴特性列表改为形态级拥有者映射：Mega 特性显示对应 Mega 形态头像和名称，点击可跳转到对应 Pokémon / Mega 详情页
 - [ ] 完整真实 Reg M-A 招式 / learnset 数据接入
 - [ ] 32 只地区形态 Pokémon 数据接入
 - [ ] Champions 伤害机制确认
@@ -198,7 +200,7 @@ npm run build
 - [x] Reg M-A 官方 Mega allowlist shell：59 条官方允许 Mega Evolution，未 join 的条目保持待补战斗数据
 - [x] 首批 6 只真实 Pokemon catalog 数据
 - [x] 181 只基础形态 Pokemon 完整 catalog：含中文名、日文名、属性、种族值、特性（中文描述）、可学招式（来自已有招式目录）、PokeAPI 头像
-- [x] 108 特性完整 catalog，含 PokeAPI 中文名与项目化中文效果描述
+- [x] 174 个当前 catalog 特性完整中文说明，含 PokeAPI 中文名优先、52poke zh-hans 信息框说明、source refs 与自动化生成脚本
 - [x] 首批 4 个 Mega form catalog 数据：超级妙蛙花、超级喷火龙X、超级喷火龙Y、超级烈咬陆鲨
 - [x] 首批 seed 道具数据与当前可选池拆分
 - [x] 首批 seed 招式数据
@@ -266,6 +268,8 @@ npm run build
 - [x] Mega form + Mega Stone 合法性测试
 - [x] 速度线 Mega 形态速度测试
 - [x] 当前规则道具可选池测试：117 个候选道具进入 selector pool，突击背心 / 清净坠饰不进入 selector，seed 中保留但不标可用
+- [x] 特性数据完整性测试：174 个特性无占位说明，`pokemonIds` 与当前 Pokémon / Mega form catalog 反向映射一致
+- [x] 图鉴特性列表测试：搜索只匹配特性中英文名，拥有者头像折叠显示，Mega 特性跳转到对应 Mega 详情页
 
 ## 5. 当前风险与处理状态
 
@@ -281,6 +285,8 @@ npm run build
 - [x] 未确认计算输出风险：通过机制阻断态约束
 - [x] 远程刷新误导风险：刷新入口已 disabled，避免永远失败的操作入口
 - [x] Pokemon 基础数据已完整接入：181 只基础形态已从 PokeAPI 正式拉取，含中文名/日文名/属性/种族值/特性/中文特性描述/头像
+- [x] 特性说明占位风险已收敛：当前 174 个特性均有中文说明，列表搜索不再匹配说明文本，避免“威吓”误搜到说明里包含威吓的其他特性
+- [ ] 52poke 中文特性说明 source license 风险：当前仅作为自用 seed 数据源接入，公开分发前需确认 CC BY-NC-SA 署名 / 非商业 / 相同方式共享要求
 - [ ] Mega 数据不完整风险：59 条官方 allowlist 已建 shell，但只有 4 个本地 Mega form 具备可展示 stats/types/ability/sprite
 - [ ] 地区形态数据缺失：32 只地区形态（Alolan/Galarian/Hisuian/Paldean）尚未录入 catalog
 - [ ] 招式 / learnset / 性格 catalog 不完整风险：招式与性格仍为 seed 示例级数据，learnset 来自 PokeAPI 但需与 Champions 实机规则对齐后正式启用
@@ -316,6 +322,7 @@ npm run build
 - [x] 接入 Reg M-A 117 个道具候选 catalog，并让 selector pool 从合法道具自动生成
 - [x] 分批补齐 Reg M-A 181 只基础形态 catalog（基础形态 100%，剩余 32 只地区形态待补充）
 - [x] 特性描述全部改为中文，不再使用英文 API 原文
+- [x] 特性说明改为自动化中文来源，并支持形态级拥有者 / Mega 详情跳转
 - [x] 队伍添加 Pokémon 改为底部搜索 Picker，不再按顺序循环
 - [x] 图鉴详情页种族值加上总和数值
 - [ ] 分批补齐 32 只地区形态 Pokémon 数据

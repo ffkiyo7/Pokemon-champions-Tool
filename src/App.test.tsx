@@ -207,8 +207,35 @@ describe('App page flows', () => {
     await user.clear(screen.getByPlaceholderText('搜索名称'));
     await user.click(screen.getByRole('button', { name: '特性' }));
     await user.type(screen.getByPlaceholderText('搜索名称'), '威吓');
-    expect(screen.getByText(/威吓 Intimidate/)).toBeTruthy();
+    const intimidateCard = screen.getByText(/威吓 Intimidate/).closest('section')!;
+    expect(screen.queryByText(/精神力 Inner Focus/)).toBeNull();
     expect(screen.queryByText(/猛火 Blaze/)).toBeNull();
+    expect(screen.queryByText('出场时威吓对手，让其退缩，降低对手的攻击。')).toBeNull();
+    expect(within(intimidateCard).getByText('+3')).toBeTruthy();
+    expect(within(intimidateCard).queryByText('炽焰咆哮虎')).toBeNull();
+    await user.click(within(intimidateCard).getByRole('button', { name: '展开威吓说明' }));
+    expect(within(intimidateCard).getByText('出场时威吓对手，让其退缩，降低对手的攻击。')).toBeTruthy();
+    expect(within(intimidateCard).getByText('炽焰咆哮虎')).toBeTruthy();
+
+    await user.clear(screen.getByPlaceholderText('搜索名称'));
+    await user.type(screen.getByPlaceholderText('搜索名称'), '引火');
+    const flashFireCard = screen.getByText(/引火 Flash Fire/).closest('section')!;
+    expect(within(flashFireCard).getByText(/\+\d+/)).toBeTruthy();
+    expect(within(flashFireCard).queryByText('火暴兽')).toBeNull();
+    await user.click(within(flashFireCard).getByRole('button', { name: '展开引火说明' }));
+    expect(within(flashFireCard).getByText('火暴兽')).toBeTruthy();
+
+    await user.clear(screen.getByPlaceholderText('搜索名称'));
+    await user.type(screen.getByPlaceholderText('搜索名称'), '厚脂肪');
+    const thickFatCard = screen.getByText(/厚脂肪 Thick Fat/).closest('section')!;
+    expect(within(thickFatCard).getByAltText('超级妙蛙花')).toBeTruthy();
+    expect(within(thickFatCard).queryByAltText('妙蛙花')).toBeNull();
+    await user.click(within(thickFatCard).getByRole('button', { name: '展开厚脂肪说明' }));
+    expect(within(thickFatCard).getByText('超级妙蛙花')).toBeTruthy();
+    expect(within(thickFatCard).queryByText(/^妙蛙花$/)).toBeNull();
+    await user.click(within(thickFatCard).getByRole('button', { name: /超级妙蛙花/ }));
+    expect(await screen.findByText('Mega Venusaur')).toBeTruthy();
+    expect(screen.getByText('种族值')).toBeTruthy();
   });
 
   it('uses Mega form stats on the speed line when selected', async () => {

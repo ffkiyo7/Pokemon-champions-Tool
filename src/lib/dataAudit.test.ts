@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  abilities,
   currentDataVersion,
   currentRuleSelectableItemIds,
   dataSourceManifest,
@@ -29,6 +30,7 @@ describe('seed data audit', () => {
     expect(sourceRefIds.has('manual-seed-review')).toBe(true);
     expect(sourceRefIds.has('champions-official-training')).toBe(true);
     expect(sourceRefIds.has('champions-stat-point-review')).toBe(true);
+    expect(sourceRefIds.has('pokemon-zhwiki-ability-text')).toBe(true);
     expect(auditSourceRefs('Test row', ['reg-ma-official-rule'])).toEqual([]);
   });
 
@@ -77,6 +79,23 @@ describe('seed data audit', () => {
     expect(pokemon.length).toBeGreaterThanOrEqual(6);
     expect(pokemon.every((entry) => entry.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
     expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
+  });
+
+  it('keeps ability text complete and maps abilities back to current Pokemon', () => {
+    expect(abilities).toHaveLength(174);
+    expect(abilities.every((ability) => ability.effectSummary && !ability.effectSummary.includes('待确认'))).toBe(true);
+
+    const expectedPokemonIdsByAbility = new Map<string, string[]>();
+    pokemon.forEach((entry) => {
+      const abilityIds = new Set([...entry.abilities, ...entry.megaForms.flatMap((form) => form.abilities)]);
+      abilityIds.forEach((abilityId) => {
+        expectedPokemonIdsByAbility.set(abilityId, [...(expectedPokemonIdsByAbility.get(abilityId) ?? []), entry.id]);
+      });
+    });
+
+    abilities.forEach((ability) => {
+      expect(ability.pokemonIds).toEqual(expectedPokemonIdsByAbility.get(ability.id) ?? []);
+    });
   });
 
   it('reports source refs that are not present in the manifest', () => {
