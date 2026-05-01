@@ -1,7 +1,8 @@
 import { ChevronLeft, Filter, Plus, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { abilities, items, moves } from '../data';
+import { abilities, moves } from '../data';
 import { attackingTypes, defensiveMatchupMultiplier, statRows } from '../lib/calculations';
+import { currentRuleMovesForPokemon, currentRuleSelectableItems } from '../lib/currentRuleCatalog';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { getDexFormEntries, type DexFormEntry } from '../lib/pokemonForms';
@@ -118,9 +119,7 @@ function PokemonDetail({
   const entryAbilities = entry.abilities
     .map((id) => abilities.find((ability) => ability.id === id))
     .filter(Boolean) as typeof abilities;
-  const entryMoves = entry.basePokemon.learnableMoves
-    .map((id) => moves.find((move) => move.id === id))
-    .filter(Boolean) as typeof moves;
+  const entryMoves = currentRuleMovesForPokemon(entry.basePokemon.id);
   const weaknesses = attackingTypes
     .map((type) => ({ type, multiplier: defensiveMatchupMultiplier(type, entry.types) }))
     .filter((matchup) => matchup.multiplier > 1);
@@ -137,7 +136,7 @@ function PokemonDetail({
       formId: entry.id,
       abilityId: entry.abilities[0],
       itemId: entry.requiredItemId,
-      moveIds: entry.basePokemon.learnableMoves.slice(0, 2),
+      moveIds: currentRuleMovesForPokemon(entry.basePokemon.id).slice(0, 2).map((move) => move.id),
       nature: '爽朗',
       statPoints: { speed: 32 },
       level: 50,
@@ -413,7 +412,7 @@ export function DexPage({
 
       {tab === 'items' && (
         <div className="space-y-2">
-          {items.map((item) => (
+          {currentRuleSelectableItems().map((item) => (
             <Card key={item.id} className="flex items-center gap-3">
               <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs text-accent">{item.isMegaStone ? 'M' : 'I'}</div>
               <div className="min-w-0 flex-1">

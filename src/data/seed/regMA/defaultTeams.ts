@@ -16,7 +16,6 @@ export const defaultTeams: Team[] = [
         pokemonId: 'garchomp',
         formId: 'garchomp',
         abilityId: 'rough-skin',
-        itemId: 'clear-amulet',
         moveIds: ['earthquake', 'protect'],
         nature: '爽朗',
         statPoints: { attack: 32, speed: 32, hp: 1 },

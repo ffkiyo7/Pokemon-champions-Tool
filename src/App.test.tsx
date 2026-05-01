@@ -76,6 +76,10 @@ describe('App page flows', () => {
     expect(await screen.findByText('编辑成员')).toBeTruthy();
     expect(screen.queryByText('等级')).toBeNull();
     expect(screen.queryByText('备注')).toBeNull();
+    expect(screen.getByRole('option', { name: '文柚果' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: '烈咬陆鲨进化石' })).toBeTruthy();
+    expect(screen.queryByRole('option', { name: /突击背心/ })).toBeNull();
+    expect(screen.queryByRole('option', { name: /清净坠饰/ })).toBeNull();
 
     ['HP SP', '攻击 SP', '防御 SP', '特攻 SP', '特防 SP', '速度 SP'].forEach((label) => {
       expect(screen.getAllByText(label.replace(' SP', '')).length).toBeGreaterThan(0);

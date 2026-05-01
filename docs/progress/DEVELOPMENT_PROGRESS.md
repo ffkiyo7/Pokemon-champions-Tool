@@ -19,7 +19,7 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：9 个测试文件，49 个用例
+- [x] `npm test` 通过：9 个测试文件，51 个用例
 - [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，11 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
@@ -60,6 +60,7 @@ npm run build
 - [x] 属性展示收敛为项目化胶囊 badge，不再使用本地 PNG 属性图标
 - [x] Reg M-A 官方 Mega allowlist shell 已接入：59 条，含 source refs 与 audit 测试
 - [x] 首批 4 个本地 Mega 形态可用于图鉴、队伍能力值、速度线和计算页形态展示
+- [x] 当前规则可选道具池与原始 seed 道具拆分：突击背心 / 清净坠饰不再进入前端新配置入口，旧存档携带时会被合法性校验拦截
 - [ ] 完整真实 Reg M-A 数据源接入
 - [ ] Champions 伤害机制确认
 - [ ] 正式伤害计算
@@ -192,9 +193,12 @@ npm run build
 - [x] Reg M-A 官方 Mega allowlist shell：59 条官方允许 Mega Evolution，未 join 的条目保持待补战斗数据
 - [x] 首批 6 只真实 Pokemon catalog 数据
 - [x] 首批 4 个 Mega form catalog 数据：超级妙蛙花、超级喷火龙X、超级喷火龙Y、超级烈咬陆鲨
-- [x] 首批真实道具数据
-- [x] 首批真实招式数据
-- [x] 首批真实特性数据
+- [x] 首批 seed 道具数据与当前可选池拆分
+- [x] 首批 seed 招式数据
+- [x] 首批 seed 特性数据
+- [ ] 完整真实 Reg M-A 道具 catalog 数据
+- [ ] 完整真实 Reg M-A 招式 catalog 数据
+- [ ] Champions 性格 catalog 与效果确认
 - [ ] 完整真实 Reg M-A Pokemon catalog 数据
 - [ ] 其余 55 个官方允许 Mega 形态的 stats / types / abilities / sprite / Mega Stone 映射
 - [ ] 每条真实数据的来源链接和复核状态
@@ -252,6 +256,7 @@ npm run build
 - [x] SP 输入最大 32、总量 66、点开式 picker 与刷新 disabled 测试
 - [x] Mega form + Mega Stone 合法性测试
 - [x] 速度线 Mega 形态速度测试
+- [x] 当前规则道具可选池测试：突击背心 / 清净坠饰不进入 selector，seed 中保留但不标可用
 
 ## 5. 当前风险与处理状态
 
@@ -267,6 +272,7 @@ npm run build
 - [x] 未确认计算输出风险：通过机制阻断态约束
 - [x] 远程刷新误导风险：刷新入口已 disabled，避免永远失败的操作入口
 - [ ] Mega 数据不完整风险：59 条官方 allowlist 已建 shell，但只有 4 个本地 Mega form 具备可展示 stats/types/ability/sprite
+- [ ] 招式 / 道具 / 性格 catalog 不完整风险：已先用可选池阻断明显不可信道具，仍需分批补齐 Reg M-A 全量数据与来源复核
 
 ## 6. 下一步开发清单
 
@@ -295,8 +301,10 @@ npm run build
 - [x] 回评并收敛属性 badge 视觉方案
 - [x] 重构图鉴属性筛选以支持完整 18 属性
 - [x] 补 Reg M-A Mega allowlist seed 与 Mega Stone / Mega 状态禁用校验
+- [x] 拆分当前规则道具可选池，移除突击背心 / 清净坠饰等未确认道具入口
 - [ ] 分批补齐 Reg M-A 213 只基础 catalog
 - [ ] 分批补齐其余 55 个官方允许 Mega 形态数据
+- [ ] 分批补齐 Reg M-A 道具 / 招式 / 性格 catalog
 - [ ] 建立 Reg M-B / 后续规则 registry 草案
 
 ## 7. 提交记录
@@ -318,3 +326,5 @@ npm run build
 - [x] `aee7d82`：优化移动端 SP 编辑与计算页条件控件
 - [x] `5fc4768`：收敛移动端队伍页、图鉴筛选和属性 badge UI
 - [x] `3a0b632`：新增图鉴详情页与中 / 英 / 日名称展示
+- [x] `0e6bd9d`：新增 Mega form 数据骨架与 UI 接入
+- [x] `db671dc`：优化队伍页能力值与属性 badge 细节

@@ -8,7 +8,7 @@ const baseMember: TeamMember = {
   pokemonId: 'garchomp',
   formId: 'garchomp',
   abilityId: 'rough-skin',
-  itemId: 'clear-amulet',
+  itemId: 'sitrus-berry',
   moveIds: ['earthquake', 'protect'],
   nature: '爽朗',
   statPoints: { attack: 32, speed: 32, hp: 1 },
@@ -46,7 +46,7 @@ describe('legality evaluation', () => {
         {
           ...defaultTeams[0].members[1],
           id: 'test-incineroar',
-          itemId: 'clear-amulet',
+          itemId: 'sitrus-berry',
         },
       ],
     };
@@ -84,11 +84,21 @@ describe('legality evaluation', () => {
       ...baseMember,
       formId: 'mega-garchomp',
       abilityId: 'sand-force',
-      itemId: 'clear-amulet',
+      itemId: 'sitrus-berry',
     });
 
     expect(result.status).toBe('illegal');
     expect(result.issues.some((issue) => issue.code === 'mega-item-mismatch')).toBe(true);
+  });
+
+  it('rejects items that are present in seed data but not in the current rule item pool', () => {
+    const result = evaluateMemberLegality({
+      ...baseMember,
+      itemId: 'assault-vest',
+    });
+
+    expect(result.status).toBe('illegal');
+    expect(result.issues.some((issue) => issue.code === 'item-not-in-rule')).toBe(true);
   });
 
   it('keeps the catalog review flag visible at the data layer', () => {

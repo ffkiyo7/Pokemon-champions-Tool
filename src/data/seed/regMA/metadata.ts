@@ -95,6 +95,16 @@ export const dataSourceManifest: DataSourceManifest = {
       notes: 'Official Pokemon HOME Regulation Set M-A announcement lists the Mega Evolutions permitted in this ruleset. Local form stats, sprites, and Mega Stone IDs still require catalog-level source refs.',
     },
     {
+      id: 'reg-ma-community-item-snapshot',
+      url: 'https://rotompicks.com/en/items/',
+      sourceType: 'community',
+      licenseRisk: 'medium',
+      retrievedAt: '2026-05-01T00:00:00.000Z',
+      sourceVersion: 'reg-ma-items-snapshot',
+      fieldsUsed: ['items.id', 'items.englishName', 'items.legalInCurrentRule'],
+      notes: 'Community item snapshot used only to narrow the visible item selector while the official item catalog is unavailable. Rows remain manual-review.',
+    },
+    {
       id: 'pokeapi-pokemon-data',
       url: 'https://pokeapi.co/api/v2/pokemon/',
       sourceType: 'community',

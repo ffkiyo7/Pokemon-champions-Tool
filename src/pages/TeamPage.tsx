@@ -2,6 +2,7 @@ import { BarChart3, ChevronUp, Edit3, Minus, Plus, Save, Trash2, X } from 'lucid
 import { useMemo, useState } from 'react';
 import { abilities, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
+import { currentRuleMovesForPokemon, currentRuleNatures, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../lib/currentRuleCatalog';
 import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { findBattleForm, findMegaFormByItem, getMemberBattleForm } from '../lib/pokemonForms';
@@ -20,26 +21,6 @@ const blankMember = (): TeamMember => ({
   notes: '',
   legalityStatus: 'missing-config',
 });
-
-const natureProfiles: Record<string, { up: string[]; down: string[] }> = {
-  爽朗: { up: ['速度'], down: ['特攻'] },
-  胆小: { up: ['速度'], down: ['攻击'] },
-  固执: { up: ['攻击'], down: ['特攻'] },
-  慎重: { up: ['特防'], down: ['特攻'] },
-  冷静: { up: ['特攻'], down: ['速度'] },
-  怕慢: { up: ['速度'], down: [] },
-};
-
-const natureProfileFor = (nature: string) => {
-  const key = Object.keys(natureProfiles).find((candidate) => nature.includes(candidate));
-  return key ? natureProfiles[key] : { up: [], down: [] };
-};
-
-const natureOptionLabel = (nature: string) => {
-  const profile = natureProfileFor(nature);
-  const effects = [...profile.up.map((label) => `+${label}`), ...profile.down.map((label) => `-${label}`)];
-  return effects.length > 0 ? `${nature}（${effects.join(' / ')}）` : nature;
-};
 
 function MemberCard({
   team,
@@ -295,7 +276,10 @@ function MemberEditor({
   const [editingStatKey, setEditingStatKey] = useState<keyof TeamMember['statPoints'] | null>(null);
   const selectedPokemon = pokemon.find((entry) => entry.id === draft.pokemonId) ?? pokemon[0];
   const selectedForm = findBattleForm(selectedPokemon.id, draft.formId);
-  const availableMoves = moves.filter((move) => move.learnableByPokemonIds.includes(selectedPokemon.id));
+  const availableMoves = currentRuleMovesForPokemon(selectedPokemon.id);
+  const availableItems = currentRuleSelectableItemsForPokemon(selectedPokemon.id);
+  const selectedItem = draft.itemId ? items.find((item) => item.id === draft.itemId) : undefined;
+  const itemOptions = selectedItem && !availableItems.some((item) => item.id === selectedItem.id) ? [selectedItem, ...availableItems] : availableItems;
   const availableAbilityIds = Array.from(new Set([...selectedPokemon.abilities, ...(selectedForm?.abilities ?? [])]));
   const availableAbilities = abilities.filter((ability) => availableAbilityIds.includes(ability.id));
   const legality = useMemo(() => evaluateMemberLegality(draft, team), [draft, team]);
@@ -347,15 +331,14 @@ function MemberEditor({
           value={selectedPokemon.id}
           onChange={(pokemonId) => {
             const nextPokemon = pokemon.find((entry) => entry.id === pokemonId) ?? pokemon[0];
-            const currentItem = items.find((item) => item.id === draft.itemId);
-            const canKeepItem = !currentItem?.isMegaStone || currentItem.applicablePokemonIds.includes(nextPokemon.id);
+            const canKeepItem = currentRuleSelectableItemsForPokemon(nextPokemon.id).some((item) => item.id === draft.itemId);
             const keptMegaForm = canKeepItem ? findMegaFormByItem(nextPokemon, draft.itemId) : undefined;
             updateDraft({
               pokemonId,
               formId: keptMegaForm?.id ?? pokemonId,
               abilityId: keptMegaForm?.abilities[0] ?? nextPokemon.abilities[0],
               itemId: canKeepItem ? draft.itemId : undefined,
-              moveIds: nextPokemon.learnableMoves.slice(0, 2),
+              moveIds: currentRuleMovesForPokemon(nextPokemon.id).slice(0, 2).map((move) => move.id),
             });
           }}
         >
@@ -410,11 +393,12 @@ function MemberEditor({
             }}
           >
             <option value="">未选择</option>
-            {items.map((item) => {
-              const disabled = item.isMegaStone && !item.applicablePokemonIds.includes(selectedPokemon.id);
+            {itemOptions.map((item) => {
+              const selectable = availableItems.some((candidate) => candidate.id === item.id);
+              const disabled = !selectable;
               return (
               <option key={item.id} value={item.id} disabled={disabled}>
-                {item.chineseName}{disabled ? '（不适用）' : ''}
+                {item.chineseName}{disabled ? '（当前规则未确认）' : ''}
               </option>
               );
             })}
@@ -422,7 +406,7 @@ function MemberEditor({
         </div>
 
         <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
-          {['爽朗', '胆小', '固执', '慎重', '冷静', '怕慢(+速)'].map((nature) => (
+          {currentRuleNatures().map((nature) => (
             <option key={nature} value={nature}>
               {natureOptionLabel(nature)}
             </option>
@@ -440,11 +424,17 @@ function MemberEditor({
                 onChange={(event) => updateMoveSlot(slot, event.target.value)}
               >
                 <option value="">空招式位</option>
-                {availableMoves.map((move) => (
-                  <option key={move.id} value={move.id}>
-                    {move.chineseName}
+                {[
+                  ...(draft.moveIds[slot] && !availableMoves.some((move) => move.id === draft.moveIds[slot]) ? moves.filter((move) => move.id === draft.moveIds[slot]) : []),
+                  ...availableMoves,
+                ].map((move) => {
+                  const selectable = availableMoves.some((candidate) => candidate.id === move.id);
+                  return (
+                  <option key={move.id} value={move.id} disabled={!selectable}>
+                    {move.chineseName}{selectable ? '' : '（当前规则未确认）'}
                   </option>
-                ))}
+                  );
+                })}
               </select>
             ))}
           </div>
@@ -616,8 +606,7 @@ export function TeamPage({
       ...blankMember(),
       pokemonId: entry.id,
       abilityId: entry.abilities[0],
-      itemId: activeTeam.members.length === 0 ? 'clear-amulet' : 'assault-vest',
-      moveIds: entry.learnableMoves.slice(0, 2),
+      moveIds: currentRuleMovesForPokemon(entry.id).slice(0, 2).map((move) => move.id),
       notes: '由 MVP 快速添加生成，可继续编辑。',
     };
     const result = evaluateMemberLegality(member, activeTeam);

@@ -7,6 +7,8 @@ import {
   items,
   moves,
   pokemon,
+  currentRuleSelectableItemIds,
+  currentRuleNatureOptions,
   regMaPokemonAllowlist,
   regMaPokemonAllowlistExpectedCount,
   regMaMegaAllowlist,
@@ -28,6 +30,8 @@ export type DataAuditIssue = {
     | 'missing-ability-ref'
     | 'missing-move-ref'
     | 'missing-item-ref'
+    | 'current-rule-item-mismatch'
+    | 'current-rule-nature-missing'
     | 'invalid-mega-ref'
     | 'default-team-rule-mismatch';
   message: string;
@@ -65,6 +69,7 @@ export function auditSeedData(): DataAuditIssue[] {
   const abilityIds = new Set(abilities.map((entry) => entry.id));
   const moveIds = new Set(moves.map((entry) => entry.id));
   const itemIds = new Set(items.map((entry) => entry.id));
+  const selectableItemIds = new Set<string>(currentRuleSelectableItemIds);
   const allowlistChampionsFormIds = new Set<string>();
   const megaAllowlistIds = new Set<string>();
 
@@ -120,7 +125,23 @@ export function auditSeedData(): DataAuditIssue[] {
     entry.applicablePokemonIds.forEach((pokemonId) => {
       if (!pokemonIds.has(pokemonId)) issues.push(issue('missing-pokemon-ref', `Item ${entry.id} references unknown Pokemon ${pokemonId}.`));
     });
+    if (entry.legalInCurrentRule && !selectableItemIds.has(entry.id)) {
+      issues.push(issue('current-rule-item-mismatch', `Item ${entry.id} is legalInCurrentRule but missing from the selectable Reg M-A item pool.`));
+    }
   });
+
+  currentRuleSelectableItemIds.forEach((itemId) => {
+    const item = items.find((entry) => entry.id === itemId);
+    if (!item) {
+      issues.push(issue('missing-item-ref', `Selectable Reg M-A item pool references unknown item ${itemId}.`));
+    } else if (!item.legalInCurrentRule) {
+      issues.push(issue('current-rule-item-mismatch', `Selectable Reg M-A item ${itemId} is not marked legalInCurrentRule.`));
+    }
+  });
+
+  if (Array.from(currentRuleNatureOptions).length === 0) {
+    issues.push(issue('current-rule-nature-missing', 'Current rule nature selector has no options.'));
+  }
 
   abilities.forEach((entry) => {
     issues.push(...auditSourceRefs(`Ability ${entry.id}`, entry.sourceRefs));

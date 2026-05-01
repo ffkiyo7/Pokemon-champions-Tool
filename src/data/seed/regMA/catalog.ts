@@ -2,7 +2,8 @@ import type { Ability, Item, Move, Pokemon } from '../../../types';
 
 const catalogRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const megaRefs = ['reg-ma-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
-const ruleRefs = ['reg-ma-official-rule', 'manual-seed-review'];
+const itemCandidateRefs = ['reg-ma-community-item-snapshot', 'manual-seed-review'];
+const megaItemRefs = ['reg-ma-official-mega-list', 'reg-ma-community-item-snapshot', 'manual-seed-review'];
 
 const artwork = (nationalDexNo: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${nationalDexNo}.png`;
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
@@ -176,11 +177,11 @@ export const items: Item[] = [
     chineseName: '清净坠饰',
     englishName: 'Clear Amulet',
     effectSummary: '防止能力被对手降低。',
-    legalInCurrentRule: true,
+    legalInCurrentRule: false,
     isMegaStone: false,
     applicablePokemonIds: [],
-    teamRestrictionNotes: '同队不得重复携带同名道具。',
-    sourceRefs: ruleRefs,
+    teamRestrictionNotes: '当前 Reg M-A 道具池未确认，暂不进入前端可选池。',
+    sourceRefs: ['manual-seed-review'],
   },
   {
     id: 'venusaurite',
@@ -191,7 +192,7 @@ export const items: Item[] = [
     isMegaStone: true,
     applicablePokemonIds: ['venusaur'],
     teamRestrictionNotes: '每场战斗只能 Mega Evolution 一次。',
-    sourceRefs: ruleRefs,
+    sourceRefs: megaItemRefs,
   },
   {
     id: 'charizardite-x',
@@ -202,7 +203,7 @@ export const items: Item[] = [
     isMegaStone: true,
     applicablePokemonIds: ['charizard'],
     teamRestrictionNotes: '每场战斗只能 Mega Evolution 一次。',
-    sourceRefs: ruleRefs,
+    sourceRefs: megaItemRefs,
   },
   {
     id: 'charizardite-y',
@@ -213,7 +214,7 @@ export const items: Item[] = [
     isMegaStone: true,
     applicablePokemonIds: ['charizard'],
     teamRestrictionNotes: '每场战斗只能 Mega Evolution 一次。',
-    sourceRefs: ruleRefs,
+    sourceRefs: megaItemRefs,
   },
   {
     id: 'garchompite',
@@ -224,7 +225,7 @@ export const items: Item[] = [
     isMegaStone: true,
     applicablePokemonIds: ['garchomp'],
     teamRestrictionNotes: '每场战斗只能 Mega Evolution 一次。',
-    sourceRefs: ruleRefs,
+    sourceRefs: megaItemRefs,
   },
   {
     id: 'sitrus-berry',
@@ -235,18 +236,18 @@ export const items: Item[] = [
     isMegaStone: false,
     applicablePokemonIds: [],
     teamRestrictionNotes: '同队不得重复携带同名道具。',
-    sourceRefs: ruleRefs,
+    sourceRefs: itemCandidateRefs,
   },
   {
     id: 'assault-vest',
     chineseName: '突击背心',
     englishName: 'Assault Vest',
     effectSummary: '提升特防，但只能使用攻击招式。',
-    legalInCurrentRule: true,
+    legalInCurrentRule: false,
     isMegaStone: false,
     applicablePokemonIds: [],
-    teamRestrictionNotes: '同队不得重复携带同名道具。',
-    sourceRefs: ruleRefs,
+    teamRestrictionNotes: '当前 Reg M-A 道具池未确认，暂不进入前端可选池。',
+    sourceRefs: ['manual-seed-review'],
   },
 ];
 

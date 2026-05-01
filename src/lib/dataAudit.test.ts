@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   currentDataVersion,
+  currentRuleSelectableItemIds,
   dataSourceManifest,
   defaultTeams,
+  items,
   pokemon,
   regMaMegaAllowlist,
   regMaMegaAllowlistExpectedCount,
@@ -23,6 +25,7 @@ describe('seed data audit', () => {
     expect(sourceRefIds.has('reg-ma-official-rule')).toBe(true);
     expect(sourceRefIds.has('reg-ma-official-eligible-pokemon')).toBe(true);
     expect(sourceRefIds.has('reg-ma-official-mega-list')).toBe(true);
+    expect(sourceRefIds.has('reg-ma-community-item-snapshot')).toBe(true);
     expect(sourceRefIds.has('manual-seed-review')).toBe(true);
     expect(sourceRefIds.has('champions-official-training')).toBe(true);
     expect(sourceRefIds.has('champions-stat-point-review')).toBe(true);
@@ -52,6 +55,15 @@ describe('seed data audit', () => {
       ]),
     );
     expect(regMaMegaAllowlist.every((entry) => entry.verificationStatus === 'manual-review')).toBe(true);
+  });
+
+  it('keeps unverified or out-of-rule items out of the current selector pool', () => {
+    expect(currentRuleSelectableItemIds).toContain('sitrus-berry');
+    expect(currentRuleSelectableItemIds).toContain('garchompite');
+    expect(currentRuleSelectableItemIds).not.toContain('assault-vest');
+    expect(currentRuleSelectableItemIds).not.toContain('clear-amulet');
+    expect(items.find((item) => item.id === 'assault-vest')?.legalInCurrentRule).toBe(false);
+    expect(items.find((item) => item.id === 'clear-amulet')?.legalInCurrentRule).toBe(false);
   });
 
   it('keeps the first six real catalog rows on real artwork URLs', () => {

@@ -2,6 +2,7 @@ import { AlertTriangle, Calculator, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { moves, pokemon } from '../data';
 import { memberLabel } from '../lib/calculations';
+import { currentRuleMovesForPokemon } from '../lib/currentRuleCatalog';
 import { findBattleForm } from '../lib/pokemonForms';
 import { useAppStore } from '../state/AppContext';
 import type { Pokemon, TeamMember } from '../types';
@@ -22,7 +23,7 @@ const makeManualMember = (entry: Pokemon) => ({
   id: `manual-${entry.id}`,
   pokemonId: entry.id,
   abilityId: entry.abilities[0],
-  moveIds: entry.learnableMoves.slice(0, 2),
+  moveIds: currentRuleMovesForPokemon(entry.id).slice(0, 2).map((move) => move.id),
   nature: '爽朗',
   statPoints: { speed: 32 },
   level: 50,
@@ -66,7 +67,7 @@ export function CalculatorPage({
   const defenderMegaFormId = megaState.startsWith('defender:') ? megaState.split(':')[1] : undefined;
   const attackerBattleForm = findBattleForm(attackerEntry.id, attackerMegaFormId) ?? findBattleForm(attackerEntry.id, attackerEntry.id);
   const defenderBattleForm = findBattleForm(defenderEntry.id, defenderMegaFormId) ?? findBattleForm(defenderEntry.id, defenderEntry.id);
-  const availableMoves = moves.filter((entry) => attackerEntry.learnableMoves.includes(entry.id));
+  const availableMoves = currentRuleMovesForPokemon(attackerEntry.id);
   const move =
     moves.find((entry) => entry.id === selectedMoveId && availableMoves.some((available) => available.id === entry.id)) ??
     moves.find((entry) => attackerMember.moveIds.includes(entry.id)) ??

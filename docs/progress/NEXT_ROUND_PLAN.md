@@ -4,8 +4,8 @@
 
 ## 当前状态
 
-- 本地最新已提交基线为 `3a0b632 Add Pokedex detail view`；本轮正在收口 Mega 形态数据骨架、形态展示和文档更新，完成后提交并推送。
-- `npm test` 通过：9 个测试文件，49 个用例。
+- 本地最新已提交基线为 `db671dc Refine team stat UI`；本轮正在收口当前规则 catalog 可信分层，完成后提交。
+- `npm test` 通过：9 个测试文件，51 个用例。
 - `npm run build` 通过。
 - `npm run test:pwa` 通过：PWA 离线 + 390px 移动端视觉回归，视觉基线 11 张。
 - 图鉴已经拆成列表与详情页：列表只显示中文名，详情支持英文 / 日文切换，展示特性、种族值、示例 learnset、属性相克。
@@ -16,6 +16,8 @@
 - Reg M-A 官方 Pokémon allowlist 已有 213 行 seed；Reg M-A 官方 Mega allowlist 已有 59 行 shell。
 - 当前本地 catalog 只有首批 6 只基础 Pokémon，其中已录入 4 个可用 Mega 形态：超级妙蛙花、超级喷火龙X、超级喷火龙Y、超级烈咬陆鲨。
 - 其余 55 个官方允许 Mega 形态只保留 allowlist shell，不伪造 stats / types / ability / sprite / Mega Stone 映射。
+- `currentRuleCatalog` 已开始拆分前端可选池与原始 seed：道具选择器只展示当前可选池，突击背心 / 清净坠饰等未确认或不在池内的 seed 道具不再进入新配置入口；旧存档若仍携带会被合法性校验拦截。
+- 招式和性格仍是 seed 级候选，当前仅通过 UI 标注、`needs-review` 和后续计划约束，尚未完成 Reg M-A 全量 join。
 - Reg M-A 将于 2026-06-17 01:59 UTC 结束；仍需预留 Reg M-B 数据注册表 / 切换设计。
 
 ## 下一轮优先事项
@@ -42,12 +44,18 @@
    - 下一轮需要建立 learnset 数据来源与字段口径：是否可训练、形态 / Mega 形态是否影响、目标范围与分散伤害标记是否与 Champions 实机一致。
    - 数据补齐前继续标注“示例待补齐”，不能作为正式配招合法性结论。
 
-5. 伤害计算适配层
+5. 道具 / 招式 / 性格 catalog 可信分层
+   - 继续扩展 `currentRuleCatalog`：把道具、招式、性格从 seed 示例池拆成当前规则确认池、社区候选池、示例 / 开发池。
+   - 道具优先完成：补齐 Reg M-A 允许道具列表、来源、中文名、效果、是否 Mega Stone、适用 Pokémon。
+   - 招式第二批处理：补目标范围、威力、命中、分类、learnset 关系，并保留分散伤害派生字段。
+   - 性格需要确认 Champions 是否全量沿用主系列名称 / 效果；确认前继续只作为 UI seed 子集。
+
+6. 伤害计算适配层
    - 保持正式伤害输出阻断。
    - 下一轮只做适配层边界：输入结构、Mega form stats/types、spread damage 派生、weather/terrain/stage 映射。
    - 不在 Champions 伤害公式确认前输出正式伤害范围或 KO 概率。
 
-6. Regulation 切换设计
+7. Regulation 切换设计
    - 增加 Reg registry 草案，避免未来从 Reg M-A 切 Reg M-B 时散改 `data/index.ts`。
    - 记录数据版本、规则状态、过期提醒和本地队伍跨规则迁移策略。
 
