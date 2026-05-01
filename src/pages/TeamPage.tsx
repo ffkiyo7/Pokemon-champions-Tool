@@ -21,6 +21,26 @@ const blankMember = (): TeamMember => ({
   legalityStatus: 'missing-config',
 });
 
+const natureProfiles: Record<string, { up: string[]; down: string[] }> = {
+  爽朗: { up: ['速度'], down: ['特攻'] },
+  胆小: { up: ['速度'], down: ['攻击'] },
+  固执: { up: ['攻击'], down: ['特攻'] },
+  慎重: { up: ['特防'], down: ['特攻'] },
+  冷静: { up: ['特攻'], down: ['速度'] },
+  怕慢: { up: ['速度'], down: [] },
+};
+
+const natureProfileFor = (nature: string) => {
+  const key = Object.keys(natureProfiles).find((candidate) => nature.includes(candidate));
+  return key ? natureProfiles[key] : { up: [], down: [] };
+};
+
+const natureOptionLabel = (nature: string) => {
+  const profile = natureProfileFor(nature);
+  const effects = [...profile.up.map((label) => `+${label}`), ...profile.down.map((label) => `-${label}`)];
+  return effects.length > 0 ? `${nature}（${effects.join(' / ')}）` : nature;
+};
+
 function MemberCard({
   team,
   member,
@@ -88,7 +108,10 @@ function MemberCard({
         <>
           <div className="mt-3 flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs text-textSecondary">{member.nature}</p>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs text-textSecondary">
+                <span>性格</span>
+                <span className="font-semibold text-textPrimary">{member.nature}</span>
+              </div>
               <div className="mt-2 flex gap-1 overflow-x-auto pb-1 hide-scrollbar">
                 {(learnedMoves.length ? learnedMoves : ['未配置招式']).map((move) => (
                   <Chip key={move}>{move}</Chip>
@@ -401,7 +424,7 @@ function MemberEditor({
         <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
           {['爽朗', '胆小', '固执', '慎重', '冷静', '怕慢(+速)'].map((nature) => (
             <option key={nature} value={nature}>
-              {nature}
+              {natureOptionLabel(nature)}
             </option>
           ))}
         </SelectField>

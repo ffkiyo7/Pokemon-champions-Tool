@@ -114,7 +114,7 @@ const typeLabels: Record<PokemonType, string> = {
 };
 
 export function TypeBadge({ type, size = 'md' }: { type: PokemonType; size?: 'sm' | 'md' }) {
-  const dimensions = size === 'sm' ? 'h-5 w-11 text-[9px]' : 'h-6 w-12 text-[10px]';
+  const dimensions = size === 'sm' ? 'h-5 w-10 text-[10px]' : 'h-6 w-11 text-[11px]';
   return (
     <span
       aria-label={`${typeLabels[type]}属性`}
