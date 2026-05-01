@@ -38,12 +38,6 @@ const knownForms: Record<string, Pick<MegaEvolutionEntry, 'basePokemonId' | 'for
   'Mega Lucario': { basePokemonId: 'lucario', formId: 'mega-lucario' },
   'Mega Abomasnow': { basePokemonId: 'abomasnow', formId: 'mega-abomasnow' },
   'Mega Gallade': { basePokemonId: 'gallade', formId: 'mega-gallade' },
-  'Mega Clefable': { basePokemonId: 'clefable', formId: 'mega-clefable' },
-  'Mega Victreebel': { basePokemonId: 'victreebel', formId: 'mega-victreebel' },
-  'Mega Starmie': { basePokemonId: 'starmie', formId: 'mega-starmie' },
-  'Mega Dragonite': { basePokemonId: 'dragonite', formId: 'mega-dragonite' },
-  'Mega Meganium': { basePokemonId: 'meganium', formId: 'mega-meganium' },
-  'Mega Feraligatr': { basePokemonId: 'feraligatr', formId: 'mega-feraligatr' },
 };
 
 const names = [
