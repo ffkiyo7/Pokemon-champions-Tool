@@ -172,6 +172,7 @@ export type Item = {
   applicablePokemonIds: string[];
   teamRestrictionNotes: string;
   sourceRefs: string[];
+  iconRef?: string;
 };
 
 export type Ability = {

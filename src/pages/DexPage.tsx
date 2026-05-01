@@ -457,7 +457,7 @@ export function DexPage({
         <div className="space-y-2">
           {filteredItems.map((item) => (
             <Card key={item.id} className="flex items-center gap-3">
-              <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs text-accent">{item.isMegaStone ? 'M' : 'I'}</div>
+              <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="sm" />
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm font-semibold">{item.chineseName}</h3>
                 <p className="truncate text-xs text-textSecondary">{item.effectSummary}</p>

@@ -314,6 +314,8 @@ const megaStoneRows: ReadonlyArray<MegaStoneRow> = [
   ['victreebelite', '大食花进化石', 'Victreebelite'],
 ] as const;
 
+const itemSprite = (id: string) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${id}.png`;
+
 const heldItem = ([id, chineseName, englishName, effectSummary]: (typeof heldItemRows)[number] | (typeof berryRows)[number]): Item => ({
   id,
   chineseName,
@@ -324,6 +326,7 @@ const heldItem = ([id, chineseName, englishName, effectSummary]: (typeof heldIte
   applicablePokemonIds: [],
   teamRestrictionNotes: duplicateItemRestriction,
   sourceRefs: itemCandidateRefs,
+  iconRef: itemSprite(id),
 });
 
 const megaStone = ([id, chineseName, englishName, applicablePokemonIds = []]: MegaStoneRow): Item => ({
@@ -336,6 +339,7 @@ const megaStone = ([id, chineseName, englishName, applicablePokemonIds = []]: Me
   applicablePokemonIds: [...applicablePokemonIds],
   teamRestrictionNotes: megaRestriction,
   sourceRefs: megaItemRefs,
+  iconRef: itemSprite(id),
 });
 
 const unavailableItem = (id: string, chineseName: string, englishName: string, effectSummary: string): Item => ({
@@ -348,6 +352,7 @@ const unavailableItem = (id: string, chineseName: string, englishName: string, e
   applicablePokemonIds: [],
   teamRestrictionNotes: '当前 Reg M-A 道具池未确认，暂不进入前端可选池。',
   sourceRefs: ['manual-seed-review'],
+  iconRef: itemSprite(id),
 });
 
 export const items: Item[] = [

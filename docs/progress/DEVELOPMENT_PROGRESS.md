@@ -67,6 +67,9 @@ npm run build
 - [x] 自动化批量数据接入脚本（PokeAPI → 本地 seed 文件），含缓存、去重、Mega 交叉比对
 - [x] 特性说明改为自动化中文来源：`scripts/generate-ability-effects.mjs` 从 52poke MediaWiki revisions API 抽取 zh-hans 信息框说明，并用 PokeAPI zh-hans 名称补齐
 - [x] 图鉴特性列表改为形态级拥有者映射：Mega 特性显示对应 Mega 形态头像和名称，点击可跳转到对应 Pokémon / Mega 详情页
+- [x] 性格完整接入：25 个主系列性格从 PokeAPI 接入，含中文名、增减能力、neutral 标记
+- [x] Mega 形态数据大批量接入：41 个旧主系列 Mega 拥有完整 stats/types/abilities/sprite/Mega Stone 映射，18 个 Champions 新 Mega 保留 shell
+- [x] 道具图片接入：119 个道具从 PokeAPI sprites 获取 iconRef，DexPage 道具 tab 使用 PokemonAvatar 渲染
 - [ ] 完整真实 Reg M-A 招式 / learnset 数据接入
 - [ ] 32 只地区形态 Pokémon 数据接入
 - [ ] Champions 伤害机制确认
