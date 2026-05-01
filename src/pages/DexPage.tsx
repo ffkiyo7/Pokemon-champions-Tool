@@ -208,6 +208,11 @@ function PokemonDetail({
                 </span>
               </div>
             ))}
+            <div className="grid grid-cols-[42px_34px_1fr] items-center gap-2 border-t border-divider pt-1.5 text-[11px]">
+              <span className="text-textSecondary">总和</span>
+              <span className="font-semibold text-textPrimary">{Object.values(entry.baseStats).reduce((a, b) => a + b, 0)}</span>
+              <span />
+            </div>
           </div>
         </div>
 

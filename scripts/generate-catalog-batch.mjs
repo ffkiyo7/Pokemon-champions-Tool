@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
 const BATCH_SIZE = 40;
-const BATCH_NUMBER = 2;
+const BATCH_NUMBER = 5;
 const CACHE_DIR = resolve(ROOT, '.npm-cache', 'pokeapi');
 const POKEAPI = 'https://pokeapi.co/api/v2';
 
@@ -183,89 +183,126 @@ function extractLearnableMoves(poke) {
 
 // ── Ability effect summary generation ──────────────────────────
 
-async function fetchAbilityChineseData(abilityName) {
+async function fetchAbilityChineseName(abilityName) {
   try {
     const data = await pokeapi(`/ability/${abilityName}/`);
     const zhName = findName(data.names, 'zh-hans');
-    const zhEffect = data.effect_entries?.find((e) => e.language?.name === 'zh-hans');
-    const enEffect = data.effect_entries?.find((e) => e.language?.name === 'en');
-    const shortEntry = zhEffect || enEffect;
-    const effectSummary = shortEntry
-      ? shortEntry.short_effect?.replace(/\n/g, ' ').trim()
-      : undefined;
-    return { zhName, effectSummary };
+    return zhName;
   } catch {
-    return { zhName: undefined, effectSummary: undefined };
+    return undefined;
   }
 }
 
 // ── Generate ability effect summary ────────────────────────────
 
-function abilityEffectSummary(abilityId, apiSummary) {
-  if (apiSummary) return apiSummary;
-  // Fallback based on known ability IDs
+function abilityEffectSummary(abilityId) {
+  // Chinese effect summaries — always preferred over English API data
   const known = {
-    'static': '被接触时可能麻痹对手。',
-    'lightning-rod': '吸引电属性招式并提升特攻。',
-    'torrent': 'HP 降低时强化水属性招式。',
-    'swarm': 'HP 降低时强化虫属性招式。',
-    'keen-eye': '命中率不会被降低。',
-    'tangled-feet': '混乱时提升闪避。',
-    'shed-skin': '每回合有概率解除异常状态。',
-    'inner-focus': '不会被畏缩。',
-    'steadfast': '畏缩时速度提升。',
-    'flash-fire': '受到火属性招式时提升自身火属性威力。',
-    'unnerve': '让对手无法使用树果。',
-    'mold-breaker': '无视对手特性造成招式效果。',
-    'poison-point': '被接触时可能使对手中毒。',
-    'rivalry': '面对同性对手时威力提升，异性时降低。',
-    'cute-charm': '被接触时可能使对手着迷。',
-    'magic-guard': '只受到攻击伤害，不受其他方式造成的伤害。',
-    'unaware': '无视对手能力变化。',
-    'limber': '不会被麻痹。',
-    'water-veil': '不会被灼伤。',
+    'analytic': '目标换人时，对该目标的招式威力提升。',
     'anger-point': '被击中要害后攻击大幅提升。',
-    'defiant': '能力被降低时攻击提升。',
-    'justified': '被恶属性招式打中后攻击提升。',
-    'rattled': '被恶/幽灵/虫属性招式影响时速度提升。',
-    'magic-bounce': '反射部分变化招式。',
-    'prankster': '先制使用变化招式。',
-    'regenerator': '换下场时回复 HP。',
-    'sturdy': '满 HP 时不会被一击打倒。',
-    'multiscale': '满 HP 时受到的伤害降低。',
-    'scrappy': '一般/格斗属性招式也能击中幽灵属性对手。',
-    'speed-boost': '每回合结束时速度提升。',
-    'compound-eyes': '命中率提升。',
-    'no-guard': '双方招式均必定命中。',
-    'huge-power': '攻击力大幅提升。',
-    'pure-power': '攻击力大幅提升。',
-    'adaptability': '同属性加成进一步增强。',
-    'technician': '弱威力招式威力提升。',
-    'iron-fist': '拳击类招式威力提升。',
-    'reckless': '有反作用伤害的招式威力提升。',
-    'sheer-force': '有追加效果的招式威力提升，但不再触发附加效果。',
-    'pressure': '对手使用招式时消耗更多 PP。',
-    'snow-warning': '登场时开启冰雹。',
-    'sand-stream': '登场时开启沙暴。',
-    'electric-surge': '登场时开启电场。',
-    'psychic-surge': '登场时开启精神场地。',
-    'grassy-surge': '登场时开启青草场地。',
-    'misty-surge': '登场时开启薄雾场地。',
-    'truant': '每两回合中只能行动一回。',
-    'slow-start': '登场后一段时间内攻击和速度降低。',
-    'defeatist': 'HP 降低时攻击下降。',
-    'guts': '异常状态时攻击提升。',
-    'marvel-scale': '异常状态时防御提升。',
-    'quick-feet': '异常状态时速度提升。',
-    'toxic-boost': '中毒时物理招式威力提升。',
-    'flare-boost': '灼伤时特殊招式威力提升。',
-    'harvest': '消耗树果后有概率再生。',
-    'infiltrator': '可以突破光墙/反射壁/替身。',
+    'anticipation': '感知对手是否持有危险招式。',
+    'big-pecks': '防御不会被降低。',
+    'cloud-nine': '场上天气效果失效。',
     'competitive': '能力被降低时特攻提升。',
-    'strong-jaw': '啃咬类招式威力提升。',
-    'mega-launcher': '波动类招式威力提升。',
+    'contrary': '能力变化反转，提升变降低、降低变提升。',
+    'cursed-body': '受到招式时有概率使该招式被封印。',
+    'cute-charm': '被接触时可能使对手着迷。',
+    'damp': '阻止自爆类招式。',
+    'dry-skin': '受到水属性招式时回复 HP，受火属性招式伤害增加。',
+    'drought': '登场时开启晴天。',
+    'drizzle': '登场时开启雨天。',
+    'early-bird': '更快从睡眠中醒来。',
+    'flash-fire': '受到火属性招式时提升自身火属性威力。',
+    'forecast': '根据天气改变形态。',
+    'frisk': '登场时可以查看对手携带的道具。',
+    'gluttony': 'HP 降低时更早食用树果。',
+    'guts': '异常状态时攻击提升。',
+    'heavy-metal': '体重变为原来的两倍。',
+    'huge-power': '攻击力大幅提升。',
+    'hydration': '下雨时解除异常状态。',
+    'hyper-cutter': '攻击不会被降低。',
+    'ice-body': '冰雹天气中每回合回复 HP。',
+    'illuminate': '更容易遇到野生 Pokémon。',
+    'immunity': '不会陷入中毒状态。',
+    'imposter': '登场后变为与对手相同的形态。',
+    'infiltrator': '可以突破光墙/反射壁/替身。',
+    'inner-focus': '不会被畏缩。',
+    'insomnia': '不会陷入睡眠状态。',
+    'intimidate': '登场时降低对手攻击。',
+    'iron-fist': '拳击类招式威力提升。',
+    'justified': '被恶属性招式打中后攻击提升。',
+    'keen-eye': '命中率不会被降低。',
+    'klutz': '无法使用携带的道具。',
+    'leaf-guard': '晴天下不会陷入异常状态。',
+    'levitate': '不受地面属性招式影响。',
+    'light-metal': '体重变为原来的一半。',
+    'lightning-rod': '吸引电属性招式并提升特攻。',
+    'limber': '不会被麻痹。',
+    'magic-bounce': '反射部分变化招式。',
+    'magic-guard': '只受到攻击伤害，不受其他方式造成的伤害。',
+    'magma-armor': '不会被冰冻。',
+    'marvel-scale': '异常状态时防御提升。',
+    'minus': '有正电特性的同伴在场时特攻提升。',
+    'mold-breaker': '无视对手特性造成招式效果。',
+    'moody': '每回合一项能力提升、另一项降低。',
     'moxie': '打倒对手后攻击提升。',
-    'beast-boost': '打倒对手后最高一项能力提升。',
+    'multiscale': '满 HP 时受到的伤害降低。',
+    'natural-cure': '换下场时自动解除异常状态。',
+    'no-guard': '双方招式均必定命中。',
+    'oblivious': '不会被着迷或挑衅。',
+    'overcoat': '不受天气伤害和粉末类招式影响。',
+    'own-tempo': '不会被混乱。',
+    'pickpocket': '被接触时夺取对手携带的道具。',
+    'plus': '有负电特性的同伴在场时特攻提升。',
+    'poison-heal': '中毒时每回合回复 HP。',
+    'poison-point': '被接触时可能使对手中毒。',
+    'poison-touch': '使用接触招式时可能使对手中毒。',
+    'prankster': '先制使用变化招式。',
+    'pressure': '对手使用招式时消耗更多 PP。',
+    'pure-power': '攻击力大幅提升。',
+    'quick-feet': '异常状态时速度提升。',
+    'rain-dish': '下雨时每回合回复 HP。',
+    'reckless': '有反作用伤害的招式威力提升。',
+    'regenerator': '换下场时回复 HP。',
+    'rivalry': '面对同性对手时威力提升，异性时降低。',
+    'rock-head': '不会受到自身招式的反作用伤害。',
+    'rough-skin': '受到接触招式时给予对手反伤。',
+    'sand-force': '沙暴中强化部分属性招式。',
+    'sand-stream': '登场时开启沙暴。',
+    'sand-veil': '沙暴中提升闪避。',
+    'sap-sipper': '被草属性招式攻击后攻击提升。',
+    'scrappy': '一般/格斗属性招式也能击中幽灵属性对手。',
+    'sharpness': '切割类招式威力提升。',
+    'shed-skin': '每回合有概率解除异常状态。',
+    'sheer-force': '有追加效果的招式威力提升，但不再触发附加效果。',
+    'shell-armor': '不会被击中要害。',
+    'sniper': '击中要害时伤害更高。',
+    'snow-cloak': '冰雹中提升闪避。',
+    'snow-warning': '登场时开启冰雹。',
+    'solar-power': '晴天下提升特攻并持续损失 HP。',
+    'solid-rock': '受到效果绝佳招式时伤害降低。',
+    'soundproof': '免疫声音类招式。',
+    'speed-boost': '每回合结束时速度提升。',
+    'stall': '总是后手使用招式。',
+    'static': '被接触时可能麻痹对手。',
+    'steadfast': '畏缩时速度提升。',
+    'sturdy': '满 HP 时不会被一击打倒。',
+    'super-luck': '击中要害率提升。',
+    'swarm': 'HP 降低时强化虫属性招式。',
+    'synchronize': '中毒/麻痹/灼伤时，对手也陷入相同状态。',
+    'tangled-feet': '混乱时提升闪避。',
+    'technician': '弱威力招式威力提升。',
+    'telepathy': '不会被同伴的全体招式击中。',
+    'thick-fat': '降低受到的火属性和冰属性伤害。',
+    'torrent': 'HP 降低时强化水属性招式。',
+    'tough-claws': '强化接触类招式。',
+    'trace': '登场时复制对手的特性。',
+    'unaware': '无视对手能力变化。',
+    'unnerve': '让对手无法使用树果。',
+    'volt-absorb': '受到电属性招式时回复 HP。',
+    'water-absorb': '受到水属性招式时回复 HP。',
+    'weak-armor': '受到物理招式时防御降低、速度提升。',
+    'white-smoke': '防止能力被对手降低。',
   };
   return known[abilityId] ?? '待确认特性效果。';
 }
@@ -376,32 +413,31 @@ async function main() {
 
   // Fetch ability Chinese names
   console.log(`\nFetching Chinese names for ${allAbilityIds.size} new abilities...`);
-  const abilityData = new Map();
+  const abilityZhNames = new Map();
   let abIdx = 0;
   for (const abId of allAbilityIds) {
     abIdx++;
     try {
-      const { zhName, effectSummary } = await fetchAbilityChineseData(abId);
-      abilityData.set(abId, { zhName, effectSummary });
+      const zhName = await fetchAbilityChineseName(abId);
+      abilityZhNames.set(abId, zhName);
       if (abIdx % 10 === 0) console.log(`  Ability ${abIdx}/${allAbilityIds.size}`);
     } catch {
-      abilityData.set(abId, { zhName: undefined, effectSummary: undefined });
+      abilityZhNames.set(abId, undefined);
     }
     if (abIdx < allAbilityIds.size) await new Promise((r) => setTimeout(r, 100));
   }
 
   // Build ability entries
-  for (const [abId, { zhName, effectSummary }] of abilityData) {
+  for (const [abId, zhName] of abilityZhNames) {
     const pokemonWithAbility = newPokemon
       .filter((p) => p.abilities.includes(abId))
       .map((p) => p.id);
 
-    const knownEffect = abilityEffectSummary(abId, effectSummary);
     newAbilities.push({
       id: abId,
       chineseName: zhName || abId.charAt(0).toUpperCase() + abId.slice(1),
       englishName: abId.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-      effectSummary: knownEffect,
+      effectSummary: abilityEffectSummary(abId),
       pokemonIds: pokemonWithAbility,
       calculationImpact: 'pending',
       legalInCurrentRule: true,

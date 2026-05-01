@@ -1,4 +1,7 @@
 import type { Ability, Item, Move, Pokemon } from '../../../types';
+import { pokemonBatch005, abilitiesBatch005 } from './catalog-batch-005';
+import { pokemonBatch004, abilitiesBatch004 } from './catalog-batch-004';
+import { pokemonBatch003, abilitiesBatch003 } from './catalog-batch-003';
 import { pokemonBatch002, abilitiesBatch002 } from './catalog-batch-002';
 import { pokemonBatch001, abilitiesBatch001 } from './catalog-batch-001';
 
@@ -11,7 +14,11 @@ const artwork = (nationalDexNo: number) => `https://raw.githubusercontent.com/Po
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
 
 export const abilities: Ability[] = [
+  ...abilitiesBatch005,
+  ...abilitiesBatch004,
+  ...abilitiesBatch003,
   ...abilitiesBatch002,
+  ...abilitiesBatch001,
   {
     id: 'overgrow',
     chineseName: '茂盛',
@@ -172,7 +179,6 @@ export const abilities: Ability[] = [
     legalInCurrentRule: true,
     sourceRefs: catalogRefs,
   },
-  ...abilitiesBatch001,
 ];
 
 const duplicateItemRestriction = '同队不得重复携带同名道具。';
@@ -556,7 +562,11 @@ export const moves: Move[] = [
 ];
 
 export const pokemon: Pokemon[] = [
+  ...pokemonBatch005,
+  ...pokemonBatch004,
+  ...pokemonBatch003,
   ...pokemonBatch002,
+  ...pokemonBatch001,
   {
     id: 'venusaur',
     nationalDexNo: 3,
@@ -732,5 +742,4 @@ export const pokemon: Pokemon[] = [
     notes: 'Real first-pass catalog row from official Reg M-A allowlist joined with PokeAPI structured data. Manual review still required.',
     sourceRefs: catalogRefs,
   },
-  ...pokemonBatch001,
 ];

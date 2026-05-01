@@ -19,7 +19,7 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：9 个测试文件，51 个用例
+- [x] `npm test` 通过：9 个测试文件，54 个用例
 - [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，11 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
@@ -61,7 +61,12 @@ npm run build
 - [x] Reg M-A 官方 Mega allowlist shell 已接入：59 条，含 source refs 与 audit 测试
 - [x] 首批 4 个本地 Mega 形态可用于图鉴、队伍能力值、速度线和计算页形态展示
 - [x] 当前规则可选道具池与原始 seed 道具拆分：已接入 117 个 Reg M-A 道具候选，突击背心 / 清净坠饰不再进入前端新配置入口，旧存档携带时会被合法性校验拦截
-- [ ] 完整真实 Reg M-A 数据源接入
+- [x] 完整真实 Reg M-A 基础数据源接入：181 只基础形态 Pokémon + 108 特性，含中文名、日文名、中文特性描述、种族值、PokeAPI 头像
+- [x] 图鉴详情页种族值总和显示
+- [x] 队伍添加 Pokémon 底部搜索选择器，支持按中文名/英文名搜索
+- [x] 自动化批量数据接入脚本（PokeAPI → 本地 seed 文件），含缓存、去重、Mega 交叉比对
+- [ ] 完整真实 Reg M-A 招式 / learnset 数据接入
+- [ ] 32 只地区形态 Pokémon 数据接入
 - [ ] Champions 伤害机制确认
 - [ ] 正式伤害计算
 - [x] 正式速度计算结论（基于当前 Champions SP v1 公式与 gate）
@@ -192,14 +197,18 @@ npm run build
 - [x] 完整真实 Reg M-A Pokemon allowlist seed
 - [x] Reg M-A 官方 Mega allowlist shell：59 条官方允许 Mega Evolution，未 join 的条目保持待补战斗数据
 - [x] 首批 6 只真实 Pokemon catalog 数据
+- [x] 181 只基础形态 Pokemon 完整 catalog：含中文名、日文名、属性、种族值、特性（中文描述）、可学招式（来自已有招式目录）、PokeAPI 头像
+- [x] 108 特性完整 catalog，含 PokeAPI 中文名与项目化中文效果描述
 - [x] 首批 4 个 Mega form catalog 数据：超级妙蛙花、超级喷火龙X、超级喷火龙Y、超级烈咬陆鲨
 - [x] 首批 seed 道具数据与当前可选池拆分
 - [x] 首批 seed 招式数据
 - [x] 首批 seed 特性数据
 - [x] Reg M-A 道具 catalog 第一批：30 个普通携带道具、59 个 Mega Stone、28 个树果，source refs 仍按社区候选 + manual-review 管理
 - [ ] 完整真实 Reg M-A 招式 catalog 数据
+- [ ] 完整真实 learnset 数据（招式与 Pokémon 学习关系）
 - [ ] Champions 性格 catalog 与效果确认
-- [ ] 完整真实 Reg M-A Pokemon catalog 数据
+- [x] 完整真实 Reg M-A 基础形态 Pokemon catalog 数据（181/213 基础形态）
+- [ ] 32 只地区形态 Pokémon 数据接入
 - [ ] 其余 55 个官方允许 Mega 形态的 stats / types / abilities / sprite / Mega Stone 映射
 - [ ] 每条真实数据的来源链接和复核状态
 
@@ -271,8 +280,10 @@ npm run build
 - [x] 数据引用断裂风险：通过 `auditSeedData` 测试约束
 - [x] 未确认计算输出风险：通过机制阻断态约束
 - [x] 远程刷新误导风险：刷新入口已 disabled，避免永远失败的操作入口
+- [x] Pokemon 基础数据已完整接入：181 只基础形态已从 PokeAPI 正式拉取，含中文名/日文名/属性/种族值/特性/中文特性描述/头像
 - [ ] Mega 数据不完整风险：59 条官方 allowlist 已建 shell，但只有 4 个本地 Mega form 具备可展示 stats/types/ability/sprite
-- [ ] 招式 / 道具 / 性格 catalog 不完整风险：道具第一批已接入社区候选并保持 manual-review，仍需官方或二源复核；招式与性格仍待分批补齐
+- [ ] 地区形态数据缺失：32 只地区形态（Alolan/Galarian/Hisuian/Paldean）尚未录入 catalog
+- [ ] 招式 / learnset / 性格 catalog 不完整风险：招式与性格仍为 seed 示例级数据，learnset 来自 PokeAPI 但需与 Champions 实机规则对齐后正式启用
 
 ## 6. 下一步开发清单
 
@@ -303,9 +314,13 @@ npm run build
 - [x] 补 Reg M-A Mega allowlist seed 与 Mega Stone / Mega 状态禁用校验
 - [x] 拆分当前规则道具可选池，移除突击背心 / 清净坠饰等未确认道具入口
 - [x] 接入 Reg M-A 117 个道具候选 catalog，并让 selector pool 从合法道具自动生成
-- [ ] 分批补齐 Reg M-A 213 只基础 catalog
+- [x] 分批补齐 Reg M-A 181 只基础形态 catalog（基础形态 100%，剩余 32 只地区形态待补充）
+- [x] 特性描述全部改为中文，不再使用英文 API 原文
+- [x] 队伍添加 Pokémon 改为底部搜索 Picker，不再按顺序循环
+- [x] 图鉴详情页种族值加上总和数值
+- [ ] 分批补齐 32 只地区形态 Pokémon 数据
 - [ ] 分批补齐其余 55 个官方允许 Mega 形态数据
-- [ ] 分批补齐 Reg M-A 道具 / 招式 / 性格 catalog
+- [ ] 分批补齐 Reg M-A 招式 / learnset / 性格 catalog
 - [ ] 建立 Reg M-B / 后续规则 registry 草案
 
 ## 7. 提交记录

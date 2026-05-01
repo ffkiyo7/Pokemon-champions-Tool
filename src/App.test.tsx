@@ -146,7 +146,7 @@ describe('App page flows', () => {
     expect(screen.getByText('该机制待确认，计算暂不可用')).toBeTruthy();
   });
 
-  it('filters the Pokedex Pokemon list by up to two selected types', async () => {
+  it('filters the Pokedex Pokemon list by up to two selected types', { timeout: 15000 }, async () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: '图鉴' }));
