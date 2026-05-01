@@ -4,6 +4,7 @@ import { pokemonBatch004, abilitiesBatch004 } from './catalog-batch-004';
 import { pokemonBatch003, abilitiesBatch003 } from './catalog-batch-003';
 import { pokemonBatch002, abilitiesBatch002 } from './catalog-batch-002';
 import { pokemonBatch001, abilitiesBatch001 } from './catalog-batch-001';
+import { megaFormsByParentId, megaStoneParentMap, megaCapableBaseIds } from './mega-catalog';
 
 const catalogRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const abilityRefs = ['pokemon-zhwiki-ability-text', 'pokeapi-pokemon-data'];
@@ -351,7 +352,10 @@ const unavailableItem = (id: string, chineseName: string, englishName: string, e
 
 export const items: Item[] = [
   ...heldItemRows.map(heldItem),
-  ...megaStoneRows.map(megaStone),
+  ...megaStoneRows.map((row) => ({
+    ...megaStone(row),
+    applicablePokemonIds: (megaStoneParentMap[row[0]] ? [megaStoneParentMap[row[0]]] : [...(row[3] ?? [])]) as string[],
+  })),
   ...berryRows.map(heldItem),
   unavailableItem('clear-amulet', '清净坠饰', 'Clear Amulet', '防止能力被对手降低。'),
   unavailableItem('assault-vest', '突击背心', 'Assault Vest', '提升特防，但只能使用攻击招式。'),
@@ -744,6 +748,18 @@ export const pokemon: Pokemon[] = [
     sourceRefs: catalogRefs,
   },
 ];
+
+// ── Merge mega forms from mega-catalog into parent Pokemon ──
+for (let i = 0; i < pokemon.length; i++) {
+  const entry = pokemon[i];
+  if (megaCapableBaseIds.has(entry.id) && entry.megaForms.length === 0) {
+    pokemon[i] = {
+      ...entry,
+      canMega: true,
+      megaForms: megaFormsByParentId[entry.id] ?? [],
+    };
+  }
+}
 
 const abilityPokemonIdsById = pokemon.reduce<Record<string, string[]>>((index, entry) => {
   const abilityIds = new Set([...entry.abilities, ...entry.megaForms.flatMap((form) => form.abilities)]);
