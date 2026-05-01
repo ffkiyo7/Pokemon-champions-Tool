@@ -1,4 +1,4 @@
-import { writeFile, readFile, mkdir } from 'node:fs/promises';
+import { writeFile, readFile, readdir, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
 const BATCH_SIZE = 40;
-const BATCH_NUMBER = 1;
+const BATCH_NUMBER = 2;
 const CACHE_DIR = resolve(ROOT, '.npm-cache', 'pokeapi');
 const POKEAPI = 'https://pokeapi.co/api/v2';
 
@@ -94,28 +94,39 @@ async function parseAllowlist() {
 // ── Existing catalog IDs ───────────────────────────────────────
 
 async function getExistingIds() {
-  const text = await readFile(CATALOG_PATH, 'utf8');
   const pokemonIds = new Set();
   const abilityIds = new Set();
   const moveIds = new Set();
-  const pokeRe = /id:\s*'([^']+)'/g;
-  // Collect pokemon IDs from the pokemon array
-  const pokeSection = text.slice(text.indexOf('export const pokemon: Pokemon[]'));
+  const existingDexNos = new Set();
+
+  // Read catalog.ts and all batch files
+  const CATALOG_DIR = dirname(CATALOG_PATH);
+  const catalogText = await readFile(CATALOG_PATH, 'utf8');
+  const batchFiles = (await readdir(CATALOG_DIR)).filter((f) => f.startsWith('catalog-batch-') && f.endsWith('.ts'));
+  const allTexts = [catalogText];
+  for (const f of batchFiles) {
+    allTexts.push(await readFile(resolve(CATALOG_DIR, f), 'utf8'));
+  }
+  const combined = allTexts.join('\n');
+
+  // nationalDexNo is unique to Pokemon entries
+  const dexRe = /nationalDexNo:\s*(\d+)/g;
+  let d;
+  while ((d = dexRe.exec(combined))) {
+    existingDexNos.add(Number(d[1]));
+  }
+
+  // Collect ALL id values from all files (Pokemon, ability, and move namespaces don't overlap in practice)
+  const idRe = /id:\s*'([^']+)'/g;
   let m;
-  while ((m = pokeRe.exec(pokeSection))) {
-    pokemonIds.add(m[1]);
+  while ((m = idRe.exec(combined))) {
+    const id = m[1];
+    pokemonIds.add(id);
+    abilityIds.add(id);
+    moveIds.add(id);
   }
-  // Collect ability IDs from abilities array
-  const abilitySection = text.slice(0, text.indexOf('export const items:'));
-  while ((m = pokeRe.exec(abilitySection))) {
-    abilityIds.add(m[1]);
-  }
-  // Collect move IDs from moves array
-  const moveSection = text.slice(text.indexOf('export const moves: Move[]'));
-  while ((m = pokeRe.exec(moveSection))) {
-    moveIds.add(m[1]);
-  }
-  return { pokemonIds, abilityIds, moveIds };
+
+  return { pokemonIds, abilityIds, moveIds, existingDexNos };
 }
 
 // ── PokeAPI data fetching ──────────────────────────────────────
@@ -266,17 +277,17 @@ async function main() {
   const allowlist = await parseAllowlist();
   console.log(`Found ${allowlist.length} allowlist entries`);
 
-  const { pokemonIds: existingPokeIds, abilityIds: existingAbilityIds, moveIds: existingMoveIds } = await getExistingIds();
-  console.log(`Existing catalog: ${existingPokeIds.size} pokemon, ${existingAbilityIds.size} abilities, ${existingMoveIds.size} moves`);
+  const { pokemonIds: existingPokeIds, abilityIds: existingAbilityIds, moveIds: existingMoveIds, existingDexNos } = await getExistingIds();
+  console.log(`Existing catalog: ${existingPokeIds.size} pokemon (${existingDexNos.size} unique dex), ${existingAbilityIds.size} abilities, ${existingMoveIds.size} moves`);
 
-  // Select batch: base-form entries without catalog pokemonId
-  const candidates = allowlist.filter((e) => !e.formName && !existingPokeIds.has(e.pokemonId ?? `poke-${e.nationalDexNo}`));
-  // Remove already-processed ones by checking if their pokemonId exists in catalog
-  const batch = candidates.filter((e) => {
-    // Entry already has a pokemonId that's in the catalog - skip
+  // Select batch: base-form entries not yet in catalog (check by nationalDexNo and pokemonId)
+  const candidates = allowlist.filter((e) => {
+    if (e.formName) return false;
+    if (existingDexNos.has(e.nationalDexNo)) return false;
     if (e.pokemonId && existingPokeIds.has(e.pokemonId)) return false;
     return true;
-  }).slice(0, BATCH_SIZE);
+  });
+  const batch = candidates.slice(0, BATCH_SIZE);
 
   console.log(`Processing batch of ${batch.length} Pokemon...`);
 

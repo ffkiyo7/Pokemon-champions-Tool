@@ -1,4 +1,5 @@
 import type { Ability, Item, Move, Pokemon } from '../../../types';
+import { pokemonBatch002, abilitiesBatch002 } from './catalog-batch-002';
 import { pokemonBatch001, abilitiesBatch001 } from './catalog-batch-001';
 
 const catalogRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
@@ -10,6 +11,7 @@ const artwork = (nationalDexNo: number) => `https://raw.githubusercontent.com/Po
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
 
 export const abilities: Ability[] = [
+  ...abilitiesBatch002,
   {
     id: 'overgrow',
     chineseName: '茂盛',
@@ -554,6 +556,7 @@ export const moves: Move[] = [
 ];
 
 export const pokemon: Pokemon[] = [
+  ...pokemonBatch002,
   {
     id: 'venusaur',
     nationalDexNo: 3,
