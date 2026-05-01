@@ -9,3 +9,4 @@ playwright-report
 
 # Local-only assets (copyrighted / not for redistribution)
 public/type-icons/
+.claude/settings.local.json

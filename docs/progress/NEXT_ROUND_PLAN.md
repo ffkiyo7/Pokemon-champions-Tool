@@ -4,7 +4,8 @@
 
 ## 当前状态
 
-- 本地最新基线：`fd4cf09 Fix PokemonPicker width overflow and collapse behind keyboard`
+- 本地最新基线：`463337a Add onError fallback to PokemonAvatar for broken item sprites`
+- 本地当前领先 `origin/master` 11 个提交；本轮仅补文档后统一推送。
 - `npm test` 通过：9 个测试文件，55 个用例。
 - `npm run build` 通过。
 - `npm run test:pwa` 通过：PWA 离线 + 390px 移动端视觉回归，视觉基线 11 张。
@@ -19,32 +20,34 @@
 - 速度线支持 SP 手动调整，支持已有本地数据的 Mega 形态速度计算。
 - Reg M-A 官方 Pokémon allowlist 213 行；Reg M-A 官方 Mega allowlist 59 行 shell。
 - `currentRuleCatalog` 已接入 Reg M-A 道具候选 catalog：当前规则可选池 117 个道具。
+- 道具图片当前仍以 PokeAPI item sprites 为临时来源，已确认覆盖不完整；明日改为 PokéBase Champions 当前可选道具真实图片快照，不使用本地生成图标。
 - 招式和性格仍是 seed 级候选，尚未完成 Reg M-A 全量 join。
 - Reg M-A 将于 2026-06-17 01:59 UTC 结束；仍需预留 Reg M-B 数据注册表 / 切换设计。
 
 ## 下一轮优先事项
 
-1. 地区形态数据接入
+1. 道具图片真实资源快照
+   - 仅处理当前 Reg M-A 可选池 117 个道具；不为当前规则外的 Clear Amulet / Assault Vest 额外补图。
+   - 主源使用 PokéBase Champions item 页面，统一下载真实图片到项目静态资源目录，避免热链与画风混用。
+   - PokeAPI 只作为备用校验源，不再作为图鉴道具页主图源；不得使用本地生成 SVG / 文字图标作为正常展示路径。
+   - 新增生成脚本与审计测试：117 个可选道具必须都有本地真实图片，图片路径必须可解析，PWA 静态资源缓存需覆盖这些图片。
+
+2. 地区形态数据接入
    - 32 只地区形态（Alolan / Galarian / Hisuian / Paldean）尚未录入 catalog。
    - 地区形态的 stats / types / abilities 与基础形态不同，需要按 form ID 从 PokeAPI 接入。
    - 保持 `manual-review`，不伪造数据。
 
-2. Mega 数据第二阶段
+3. Mega 数据第二阶段
    - 对 59 个官方 Mega allowlist 做 catalog join。
    - 已完成本地 form 数据的 4 个继续保留；其余 55 个按来源状态分批：
      - 旧主系列 / PokeAPI 或 Showdown 可确认：可补 stats / types / abilities / sprite / item mapping。
      - Champions 新 Mega：只在官方或可靠结构源出现后补战斗字段。
    - 新增测试：allowlist entry 与 catalog form 映射、Mega Stone 到 form 的一一关系，以及 Mega 特性拥有者在图鉴中指向具体 Mega form。
 
-3. 招式 / learnset / 性格 catalog 可信分层
+4. 招式 / learnset / 性格 catalog 可信分层
    - 招式第批处理：补目标范围、威力、命中、分类、learnset 关系。
    - 性格需确认 Champions 是否全量沿用主系列名称 / 效果。
    - 拆成当前规则确认池、社区候选池、示例 / 开发池。
-
-4. 道具图片与资源接入
-   - 道具图标可优先尝试 PokeAPI item sprites；缺失时使用项目内图标 fallback。
-   - Mega Stone 图标需确认是否可从 PokeAPI item sprite 或 Showdown item sprite 稳定取得。
-   - 新增 source refs，公开分发前复核图片授权风险。
 
 5. 伤害计算适配层
    - 保持正式伤害输出阻断。
@@ -64,4 +67,5 @@
 - 缺失 Mega 战斗字段时，不得伪造 stats/types/ability/sprite。
 - 特性拥有者必须按具体 dex entry / form 映射，不能把 Mega-only 特性挂到基础形态展示。
 - 搜索特性时只匹配特性中文名 / 英文名，不匹配说明文本。
+- 图鉴道具页的当前规则 117 个可选道具不得出现破损图标、文字 fallback、生成图标或跨来源画风混用。
 - 文档同步更新 `DEVELOPMENT_PROGRESS.md` 与本计划。
