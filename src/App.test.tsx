@@ -187,6 +187,30 @@ describe('App page flows', () => {
     expect(screen.getByText('属性相克')).toBeTruthy();
   });
 
+  it('filters Pokedex moves, items, and abilities with the shared search box', async () => {
+    const user = await renderApp();
+
+    await user.click(screen.getByRole('button', { name: '图鉴' }));
+    expect(await screen.findByText('规则内图鉴')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '道具' }));
+    await user.type(screen.getByPlaceholderText('搜索名称'), '围巾');
+    expect(screen.getByText('讲究围巾')).toBeTruthy();
+    expect(screen.queryByText('文柚果')).toBeNull();
+
+    await user.clear(screen.getByPlaceholderText('搜索名称'));
+    await user.click(screen.getByRole('button', { name: '招式' }));
+    await user.type(screen.getByPlaceholderText('搜索名称'), 'Dragon');
+    expect(screen.getByText(/龙爪 Dragon Claw/)).toBeTruthy();
+    expect(screen.queryByText(/守住 Protect/)).toBeNull();
+
+    await user.clear(screen.getByPlaceholderText('搜索名称'));
+    await user.click(screen.getByRole('button', { name: '特性' }));
+    await user.type(screen.getByPlaceholderText('搜索名称'), '威吓');
+    expect(screen.getByText(/威吓 Intimidate/)).toBeTruthy();
+    expect(screen.queryByText(/猛火 Blaze/)).toBeNull();
+  });
+
   it('uses Mega form stats on the speed line when selected', async () => {
     const user = await renderApp();
 

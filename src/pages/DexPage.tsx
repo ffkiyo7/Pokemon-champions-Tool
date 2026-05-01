@@ -304,6 +304,24 @@ export function DexPage({
   );
   const detailPokemon = detailPokemonId ? dexEntries.find((entry) => entry.id === detailPokemonId) ?? null : null;
   const typeFilterLabel = selectedTypes.length === 0 ? '属性：全部' : `属性：${selectedTypes.map((type) => typeLabelByValue[type]).join(' + ')}`;
+  const matchesSearch = (...values: Array<string | number | undefined>) => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return true;
+    return values.some((value) => String(value ?? '').toLowerCase().includes(normalized));
+  };
+  const filteredMoves = useMemo(
+    () => moves.filter((move) => matchesSearch(move.chineseName, move.englishName, move.type, move.category, move.effectSummary)),
+    [query],
+  );
+  const selectableItems = useMemo(() => currentRuleSelectableItems(), []);
+  const filteredItems = useMemo(
+    () => selectableItems.filter((item) => matchesSearch(item.chineseName, item.englishName, item.effectSummary)),
+    [query, selectableItems],
+  );
+  const filteredAbilities = useMemo(
+    () => abilities.filter((ability) => matchesSearch(ability.chineseName, ability.englishName, ability.effectSummary)),
+    [query],
+  );
 
   const toggleTypeFilter = (type: PokemonType) => {
     setSelectedTypes((current) => {
@@ -397,8 +415,11 @@ export function DexPage({
       )}
 
       {tab === 'moves' && (
+        filteredMoves.length === 0 ? (
+          <EmptyState title="没有找到相关招式" action={<Button onClick={() => setQuery('')}>清除搜索</Button>} />
+        ) : (
         <div className="space-y-2">
-          {moves.map((move) => (
+          {filteredMoves.map((move) => (
             <Card key={move.id} className="flex items-center gap-3">
               <TypeBadge type={move.type} />
               <div className="min-w-0 flex-1">
@@ -408,11 +429,15 @@ export function DexPage({
             </Card>
           ))}
         </div>
+        )
       )}
 
       {tab === 'items' && (
+        filteredItems.length === 0 ? (
+          <EmptyState title="没有找到相关道具" action={<Button onClick={() => setQuery('')}>清除搜索</Button>} />
+        ) : (
         <div className="space-y-2">
-          {currentRuleSelectableItems().map((item) => (
+          {filteredItems.map((item) => (
             <Card key={item.id} className="flex items-center gap-3">
               <div className="grid h-9 w-9 place-items-center rounded-full bg-elevated text-xs text-accent">{item.isMegaStone ? 'M' : 'I'}</div>
               <div className="min-w-0 flex-1">
@@ -422,11 +447,15 @@ export function DexPage({
             </Card>
           ))}
         </div>
+        )
       )}
 
       {tab === 'abilities' && (
+        filteredAbilities.length === 0 ? (
+          <EmptyState title="没有找到相关特性" action={<Button onClick={() => setQuery('')}>清除搜索</Button>} />
+        ) : (
         <div className="space-y-2">
-          {abilities.map((ability) => (
+          {filteredAbilities.map((ability) => (
             <Card key={ability.id}>
               <div className="flex items-center justify-between gap-3">
                 <h3 className="text-sm font-semibold">{ability.chineseName} {ability.englishName}</h3>
@@ -436,6 +465,7 @@ export function DexPage({
             </Card>
           ))}
         </div>
+        )
       )}
     </div>
   );
