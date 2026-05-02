@@ -14,8 +14,10 @@ const POKEBASE_POKEMON = 'https://pokebase.app/pokemon-champions/pokemon';
 const POKEAPI = 'https://pokeapi.co/api/v2';
 const UA = 'PokemonChampionsTool/1.0 (move learnset ingestion)';
 
+const ZH_DATASET_DIR = resolve(ROOT, '.npm-cache/pokemon-dataset-zh');
 await mkdir(POKEBASE_CACHE_DIR, { recursive: true });
 await mkdir(POKEAPI_CACHE_DIR, { recursive: true });
+await mkdir(ZH_DATASET_DIR, { recursive: true });
 
 const TYPE_MAP = {
   Normal: 'Normal',
@@ -198,23 +200,108 @@ function inferMakesContact(move) {
   return CONTACT_HINTS.some((hint) => move.id.includes(hint));
 }
 
+// ── Chinese text cleaning ──
+
+function cleanChineseText(text) {
+  if (!text) return text;
+  let cleaned = text.replace(/\s+/g, ' ');
+  // Remove half-width spaces between CJK characters
+  cleaned = cleaned.replace(/([一-鿿㐀-䶿])\s+([一-鿿㐀-䶿])/g, '$1$2');
+  // Remove half-width spaces after Chinese punctuation
+  cleaned = cleaned.replace(/([，。！？、；：])\s+/g, '$1');
+  // Remove half-width spaces before Chinese punctuation
+  cleaned = cleaned.replace(/\s+([，。！？、；：])/g, '$1');
+  // Remove trailing/leading spaces
+  cleaned = cleaned.trim();
+  // Collapse multiple spaces
+  cleaned = cleaned.replace(/\s{2,}/g, ' ');
+  return cleaned;
+}
+
+// ── Normalize for name matching ──
+
+function normalizeMoveName(name) {
+  return (name ?? '').toLowerCase().replace(/[''\-.\s]/g, '');
+}
+
+// ── Load 42arch Chinese move dataset ──
+
+const ZH_DATASET_URL = 'https://raw.githubusercontent.com/42arch/pokemon-dataset-zh/main/data/move_list.json';
+let zhMoveMap = new Map();
+
+async function loadZhDataset() {
+  const cachePath = resolve(ZH_DATASET_DIR, 'move_list.json');
+  let json;
+  if (existsSync(cachePath)) {
+    json = JSON.parse(await readFile(cachePath, 'utf8'));
+  } else {
+    const res = await fetch(ZH_DATASET_URL, { headers: { 'User-Agent': UA } });
+    if (!res.ok) throw new Error(`Failed to fetch ${ZH_DATASET_URL}: ${res.status}`);
+    json = await res.json();
+    await writeFile(cachePath, JSON.stringify(json), 'utf8');
+  }
+  const entries = Array.isArray(json) ? json : [];
+  for (const entry of entries) {
+    const key = normalizeMoveName(entry.name_en);
+    if (key) zhMoveMap.set(key, entry);
+  }
+  console.log(`Loaded ${zhMoveMap.size} Chinese move entries from 42arch dataset`);
+}
+
+await loadZhDataset();
+
+// ── Enrich move with Chinese text ──
+
+function isEnglishText(text) {
+  if (!text) return true;
+  // If text starts with A-Z or a-z and contains more Latin than CJK, it's English
+  const cjk = (text.match(/[一-鿿㐀-䶿]/g) || []).length;
+  const latin = (text.match(/[a-zA-Z]/g) || []).length;
+  return cjk === 0 && latin > 0;
+}
+
+// ── Manual overrides for moves not in 42arch dataset yet ──
+const MANUAL_ZH = {
+  'syrup-bomb': {
+    name_zh: '糖浆炸弹',
+    description: '使粘稠的麦芽糖浆爆炸，让对手陷入满身糖状态，在3回合内持续降低其速度。',
+    accuracy: 85,
+  },
+};
+
 async function enrichMove(move) {
+  const normKey = normalizeMoveName(move.englishName);
+  const manualOverride = MANUAL_ZH[move.id];
+  const zhEntry = zhMoveMap.get(normKey) || manualOverride;
+
   try {
     const data = await cachedJson(`${POKEAPI}/move/${move.id}/`);
+    // Chinese name: 42arch first, then PokeAPI, never English
+    const chineseName = cleanChineseText(
+      zhEntry?.name_zh || findLocalized(data.names, 'zh-hans') || undefined,
+    );
+    // Effect summary: 42arch description first, then PokeAPI flavor text
+    const effectSummary = cleanChineseText(
+      zhEntry?.description || findFlavorText(data.flavor_text_entries) || move.effectSummary,
+    );
     return {
       ...move,
-      chineseName: findLocalized(data.names, 'zh-hans') ?? move.englishName,
-      effectSummary: findFlavorText(data.flavor_text_entries) ?? move.effectSummary,
+      chineseName: chineseName || undefined,
+      effectSummary: effectSummary || undefined,
       targetScope: TARGET_LABELS[data.target?.name] ?? data.target?.name ?? '单体',
       makesContact: inferMakesContact(move),
       affectedByProtect: PROTECT_TARGETS.has(data.target?.name),
+      accuracy: manualOverride?.accuracy ?? data.accuracy ?? move.accuracy,
       pp: data.pp ?? move.pp,
     };
   } catch (error) {
     console.warn(`WARN could not enrich move ${move.id}: ${error.message}`);
+    const chineseName = zhEntry?.name_zh ? cleanChineseText(zhEntry.name_zh) : undefined;
+    const effectSummary = zhEntry?.description ? cleanChineseText(zhEntry.description) : undefined;
     return {
       ...move,
-      chineseName: move.englishName,
+      chineseName: chineseName || undefined,
+      effectSummary: effectSummary || undefined,
       targetScope: '单体',
       makesContact: inferMakesContact(move),
       affectedByProtect: move.category !== 'Status',
@@ -272,6 +359,32 @@ for (const [index, move] of [...movesById.values()].sort((a, b) => a.id.localeCo
   }
 }
 
+// ── Validate: no English text in Chinese fields ──
+
+const englishNames = [];
+const englishEffects = [];
+for (const move of enrichedMoves) {
+  if (!move.chineseName || isEnglishText(move.chineseName)) {
+    englishNames.push(move.id);
+  }
+  if (!move.effectSummary || isEnglishText(move.effectSummary)) {
+    englishEffects.push(move.id);
+  }
+}
+if (englishNames.length > 0) {
+  console.error(`\nERROR: ${englishNames.length} moves have English or missing chineseName:`);
+  console.error(englishNames.join(', '));
+}
+if (englishEffects.length > 0) {
+  console.error(`\nERROR: ${englishEffects.length} moves have English or missing effectSummary:`);
+  console.error(englishEffects.join(', '));
+}
+if (englishNames.length > 0 || englishEffects.length > 0) {
+  process.exit(1);
+}
+
+console.log('\nAll moves have verified Chinese names and effect summaries.\n');
+
 const lines = [
   "import type { Move } from '../../../types';",
   '',
@@ -279,7 +392,7 @@ const lines = [
   `// Generated: ${new Date().toISOString()}`,
   `// Source: ${POKEBASE_POKEMON}`,
   '',
-  "const moveSourceRefs = ['pokebase-champions-learnsets', 'pokeapi-move-data'];",
+  "const moveSourceRefs = ['pokebase-champions-learnsets', 'pokeapi-move-data', 'pokemon-zh-dataset-move-text'];",
   '',
   'export const championsMoves: Move[] = [',
 ];

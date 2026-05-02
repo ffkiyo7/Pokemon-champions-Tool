@@ -18,6 +18,14 @@ import {
 import { auditSeedData, auditSourceRefs } from './dataAudit';
 import { currentRuleMovesForPokemon, currentRuleSelectableItems } from './currentRuleCatalog';
 
+const pngDimensions = (path: string) => {
+  const buffer = readFileSync(path);
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+  };
+};
+
 describe('seed data audit', () => {
   it('keeps current seed data internally consistent', () => {
     expect(auditSeedData()).toEqual([]);
@@ -36,6 +44,7 @@ describe('seed data audit', () => {
     expect(sourceRefIds.has('pokemon-zhwiki-ability-text')).toBe(true);
     expect(sourceRefIds.has('pokebase-champions-learnsets')).toBe(true);
     expect(sourceRefIds.has('pokeapi-move-data')).toBe(true);
+    expect(sourceRefIds.has('pokemon-zh-dataset-move-text')).toBe(true);
     expect(auditSourceRefs('Test row', ['reg-ma-official-rule'])).toEqual([]);
   });
 
@@ -115,6 +124,26 @@ describe('seed data audit', () => {
     expect(emptyLearnsets).toEqual([]);
     expect(moves.every((move) => move.sourceRefs.includes('pokebase-champions-learnsets'))).toBe(true);
     expect(moves.every((move) => move.chineseName && move.effectSummary)).toBe(true);
+
+    // No move should have English as its Chinese name
+    expect(moves.some((move) => move.chineseName === move.englishName)).toBe(false);
+    // Chinese names must not start with Latin letters
+    expect(moves.some((move) => /^[A-Z]/.test(move.chineseName)), 'chineseName must not start with Latin letters').toBe(false);
+    // Effect summaries must not be English long sentences
+    expect(moves.some((move) => /^[A-Z][a-z]+\s[a-z]+/.test(move.effectSummary)), 'effectSummary must not be English').toBe(false);
+    // No half-width spaces after Chinese punctuation
+    expect(moves.some((move) => /[，。！？、；：]\s/.test(move.effectSummary)), 'effectSummary must not have spaces after Chinese punctuation').toBe(false);
+
+    // Specific name assertions
+    const nameMap = Object.fromEntries(moves.map((m) => [m.id, m.chineseName]));
+    expect(nameMap['aqua-cutter']).toBe('水波刀');
+    expect(nameMap['aqua-step']).toBe('流水旋舞');
+    expect(nameMap['armor-cannon']).toBe('铠农炮');
+    expect(nameMap['bitter-blade']).toBe('悔念剑');
+    expect(nameMap['ceaseless-edge']).toBe('秘剑・千重涛');
+    expect(nameMap['chilling-water']).toBe('泼冷水');
+    expect(nameMap['syrup-bomb']).toBe('糖浆炸弹');
+    expect(moves.find((move) => move.id === 'syrup-bomb')?.accuracy).toBe(85);
   });
 
   it('keeps real catalog rows on local sprite icons', () => {
@@ -127,12 +156,24 @@ describe('seed data audit', () => {
     // All must have artworkRef pointing to artwork dir
     expect(pokemon.every((entry) => entry.artworkRef?.startsWith('/assets/pokemon/artwork/'))).toBe(true);
     expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.artworkRef?.startsWith('/assets/pokemon/artwork/'))).toBe(true);
-    // Every local icon file must exist on disk and be non-empty
+    // Every local icon and artwork file must exist on disk and be non-empty
     const allRefs = [
       ...pokemon.map((entry) => entry.iconRef),
       ...pokemon.flatMap((entry) => entry.megaForms).map((form) => form.iconRef),
     ];
     for (const ref of allRefs) {
+      const filePath = `public${ref}`;
+      expect(existsSync(filePath), `${ref} file missing`).toBe(true);
+      expect(readFileSync(filePath).length, `${ref} file empty`).toBeGreaterThan(0);
+      const dimensions = pngDimensions(filePath);
+      expect(Math.max(dimensions.width, dimensions.height), `${ref} thumbnail too small`).toBeGreaterThanOrEqual(192);
+    }
+
+    const artworkRefs = [
+      ...pokemon.map((entry) => entry.artworkRef),
+      ...pokemon.flatMap((entry) => entry.megaForms).map((form) => form.artworkRef),
+    ].filter(Boolean) as string[];
+    for (const ref of artworkRefs) {
       const filePath = `public${ref}`;
       expect(existsSync(filePath), `${ref} file missing`).toBe(true);
       expect(readFileSync(filePath).length, `${ref} file empty`).toBeGreaterThan(0);

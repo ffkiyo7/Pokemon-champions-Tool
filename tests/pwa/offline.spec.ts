@@ -16,6 +16,8 @@ test('keeps app shell, teams, and favorite benchmarks available offline', async 
   await expect(page.getByText('我的队伍')).toBeVisible();
 
   await page.getByRole('button', { name: /新建/ }).click();
+  await page.getByPlaceholder(/输入队伍名称/).fill('离线测试队');
+  await page.getByRole('button', { name: '确认' }).click();
   await expect(page.getByText(/0\/6 成员/)).toBeVisible();
 
   await page.getByRole('button', { name: '设置' }).click();

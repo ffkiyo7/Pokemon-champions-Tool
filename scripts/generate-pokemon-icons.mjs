@@ -11,7 +11,7 @@ const THUMBS_DIR = resolve(ROOT, 'public/assets/pokemon/thumbs');
 const CATALOG_DIR = resolve(ROOT, 'src/data/seed/regMA');
 
 const ARTWORK_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
-const THUMB_SIZE = 96;
+const THUMB_SIZE = 192;
 const UA = 'PokemonChampionsTool/1.0';
 
 await mkdir(ARTWORK_DIR, { recursive: true });
@@ -39,7 +39,13 @@ for (const id of ids) {
   const artPath = resolve(ARTWORK_DIR, `${id}.png`);
   const thumbPath = resolve(THUMBS_DIR, `${id}.png`);
   const artExists = existsSync(artPath) && (await readFile(artPath).then(b => b.length).catch(() => 0)) > 0;
-  const thumbExists = existsSync(thumbPath) && (await readFile(thumbPath).then(b => b.length).catch(() => 0)) > 0;
+  const thumbExists =
+    existsSync(thumbPath) &&
+    (await readFile(thumbPath).then(b => b.length).catch(() => 0)) > 0 &&
+    (await sharp(thumbPath)
+      .metadata()
+      .then((metadata) => Math.max(metadata.width ?? 0, metadata.height ?? 0) >= THUMB_SIZE)
+      .catch(() => false));
 
   if (artExists && thumbExists) {
     if (idx % 50 === 0) console.log(`  [${idx}/${ids.length}] ${id} cached`);
@@ -48,9 +54,14 @@ for (const id of ids) {
 
   const url = `${ARTWORK_BASE}/${id}.png`;
   try {
-    const r = await fetch(url, { headers: { 'User-Agent': UA } });
-    if (!r.ok) { failures.push({ id, reason: `HTTP ${r.status}` }); continue; }
-    const buf = Buffer.from(await r.arrayBuffer());
+    let buf;
+    if (artExists) {
+      buf = await readFile(artPath);
+    } else {
+      const r = await fetch(url, { headers: { 'User-Agent': UA } });
+      if (!r.ok) { failures.push({ id, reason: `HTTP ${r.status}` }); continue; }
+      buf = Buffer.from(await r.arrayBuffer());
+    }
     if (buf.length === 0) { failures.push({ id, reason: 'empty' }); continue; }
 
     if (!artExists) await writeFile(artPath, buf);

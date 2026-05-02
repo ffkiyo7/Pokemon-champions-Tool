@@ -122,6 +122,20 @@ describe('App page flows', () => {
     expect(await screen.findByText(/1\/6 成员/)).toBeTruthy();
   });
 
+  it('creates a team after all teams have been deleted', async () => {
+    const user = await renderApp();
+
+    await user.click(screen.getByTitle('删除队伍'));
+    expect(await screen.findByText('还没有队伍')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '新建第一支队伍' }));
+    await user.type(screen.getByPlaceholderText(/输入队伍名称/), '重建队伍');
+    await user.click(screen.getByRole('button', { name: '确认' }));
+
+    expect(await screen.findByText('重建队伍')).toBeTruthy();
+    expect(screen.getByText(/0\/6 成员/)).toBeTruthy();
+  });
+
   it('selects both calculator sides from searchable current-rule Pokemon and team recommendations', async () => {
     const user = await renderApp();
 
@@ -192,13 +206,19 @@ describe('App page flows', () => {
 
     await user.click(screen.getByText('烈咬陆鲨'));
     expect(await screen.findByText('Garchomp')).toBeTruthy();
+    const detailAvatarSrc = screen.getAllByAltText('烈咬陆鲨')[0].getAttribute('src');
+    expect(detailAvatarSrc).toContain('/assets/pokemon/thumbs/');
     await user.click(screen.getByRole('button', { name: '切日文' }));
     expect(await screen.findByText('ガブリアス')).toBeTruthy();
     expect(screen.getAllByText('特性').length).toBeGreaterThan(0);
     expect(screen.getByText('种族值')).toBeTruthy();
     expect(screen.getByText('当前规则可学会招式')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /查看烈咬陆鲨大图/ }));
-    expect(screen.getByRole('dialog', { name: /烈咬陆鲨大图/ })).toBeTruthy();
+    const imageDialog = screen.getByRole('dialog', { name: /烈咬陆鲨大图/ });
+    expect(imageDialog).toBeTruthy();
+    const artworkSrc = within(imageDialog).getByRole('img', { name: '烈咬陆鲨' }).getAttribute('src');
+    expect(artworkSrc).toContain('/assets/pokemon/artwork/');
+    expect(detailAvatarSrc?.match(/\/(\d+)\.png$/)?.[1]).toBe(artworkSrc?.match(/\/(\d+)\.png$/)?.[1]);
     await user.click(screen.getByTitle('关闭'));
     await user.click(screen.getByRole('button', { name: /当前规则可学会招式/ }));
     expect(screen.queryByText('示例待补齐')).toBeNull();
@@ -237,7 +257,11 @@ describe('App page flows', () => {
     expect(screen.queryByText('出场时威吓对手，让其退缩，降低对手的攻击。')).toBeNull();
     expect(within(intimidateCard).getByText(/^\+\d+$/)).toBeTruthy();
     expect(within(intimidateCard).queryByText('炽焰咆哮虎')).toBeNull();
-    await user.click(within(intimidateCard).getByRole('button', { name: '展开威吓说明' }));
+    const intimidateExpandButton = within(intimidateCard).getByRole('button', { name: '展开威吓说明' });
+    expect(intimidateExpandButton.className).toContain('h-6');
+    expect(intimidateExpandButton.className).toContain('w-6');
+    expect(intimidateExpandButton.className).not.toContain('border');
+    await user.click(intimidateExpandButton);
     expect(within(intimidateCard).getByText('出场时威吓对手，让其退缩，降低对手的攻击。')).toBeTruthy();
     expect(within(intimidateCard).getByText('炽焰咆哮虎')).toBeTruthy();
 
