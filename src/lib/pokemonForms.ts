@@ -8,6 +8,7 @@ export type BattleFormView = {
   englishName: string;
   japaneseName: string;
   iconRef: string;
+  artworkRef?: string;
   isMega: boolean;
   requiredItemId?: string;
   types: PokemonType[];
@@ -28,6 +29,7 @@ export const toBaseFormView = (entry: Pokemon): BattleFormView => ({
   englishName: entry.englishName,
   japaneseName: entry.japaneseName,
   iconRef: entry.iconRef,
+  artworkRef: entry.artworkRef,
   isMega: false,
   types: entry.types,
   baseStats: entry.baseStats,
@@ -43,6 +45,7 @@ export const toMegaFormView = (form: PokemonForm): BattleFormView => ({
   englishName: form.englishName,
   japaneseName: form.japaneseName,
   iconRef: form.iconRef,
+  artworkRef: form.artworkRef,
   isMega: form.isMega,
   requiredItemId: form.requiredItemId,
   types: form.types,

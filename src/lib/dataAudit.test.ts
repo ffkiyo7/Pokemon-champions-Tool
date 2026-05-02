@@ -121,9 +121,12 @@ describe('seed data audit', () => {
     const ids = pokemon.map((entry) => entry.id);
     expect(ids).toEqual(expect.arrayContaining(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']));
     expect(pokemon.length).toBeGreaterThanOrEqual(6);
-    // All Pokémon and Mega form icons must be local /assets/pokemon/icons/ paths
-    expect(pokemon.every((entry) => entry.iconRef.startsWith('/assets/pokemon/icons/'))).toBe(true);
-    expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('/assets/pokemon/icons/'))).toBe(true);
+    // All Pokémon and Mega form icons must be local /assets/pokemon/thumbs/ paths
+    expect(pokemon.every((entry) => entry.iconRef.startsWith('/assets/pokemon/thumbs/'))).toBe(true);
+    expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('/assets/pokemon/thumbs/'))).toBe(true);
+    // All must have artworkRef pointing to artwork dir
+    expect(pokemon.every((entry) => entry.artworkRef?.startsWith('/assets/pokemon/artwork/'))).toBe(true);
+    expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.artworkRef?.startsWith('/assets/pokemon/artwork/'))).toBe(true);
     // Every local icon file must exist on disk and be non-empty
     const allRefs = [
       ...pokemon.map((entry) => entry.iconRef),

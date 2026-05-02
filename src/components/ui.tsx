@@ -173,6 +173,8 @@ export function PokemonAvatar({
         src={iconRef}
         alt={label}
         className="h-full w-full object-contain p-0.5"
+        loading="lazy"
+        decoding="async"
         onError={() => setFailedSrc(iconRef)}
       />
     </div>

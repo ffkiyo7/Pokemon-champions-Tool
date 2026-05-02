@@ -105,6 +105,7 @@ export type PokemonForm = {
   englishName: string;
   japaneseName: string;
   iconRef: string;
+  artworkRef?: string;
   isMega: boolean;
   requiredItemId?: string;
   types: PokemonType[];
@@ -132,6 +133,7 @@ export type Pokemon = {
   englishName: string;
   japaneseName: string;
   iconRef: string;
+  artworkRef?: string;
   types: PokemonType[];
   baseStats: BaseStats;
   legalInCurrentRule: boolean;

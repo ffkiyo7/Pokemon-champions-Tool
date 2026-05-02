@@ -7,8 +7,8 @@ const REGMA_DIR = resolve(__dirname, '..', 'src', 'data', 'seed', 'regMA');
 
 const files = (await readdir(REGMA_DIR)).filter(f => f.endsWith('.ts'));
 
-const OLD = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
-const NEW = '/assets/pokemon/icons';
+const OLD = '/assets/pokemon/icons';
+const NEW = '/assets/pokemon/thumbs';
 
 let count = 0;
 for (const f of files) {

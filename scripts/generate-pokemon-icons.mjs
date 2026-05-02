@@ -2,89 +2,80 @@ import { writeFile, readFile, readdir, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const ASSETS_DIR = resolve(ROOT, 'public/assets/pokemon/icons');
+const ARTWORK_DIR = resolve(ROOT, 'public/assets/pokemon/artwork');
+const THUMBS_DIR = resolve(ROOT, 'public/assets/pokemon/thumbs');
 const CATALOG_DIR = resolve(ROOT, 'src/data/seed/regMA');
 
-const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+const ARTWORK_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
+const THUMB_SIZE = 96;
 const UA = 'PokemonChampionsTool/1.0';
 
-await mkdir(ASSETS_DIR, { recursive: true });
+await mkdir(ARTWORK_DIR, { recursive: true });
+await mkdir(THUMBS_DIR, { recursive: true });
 
-// ── Collect all sprite IDs from catalog files ──
-
+// ── Collect all sprite IDs ──
 const files = (await readdir(CATALOG_DIR)).filter(f => f.endsWith('.ts'));
-const allText = [];
-for (const f of files) {
-  allText.push(await readFile(resolve(CATALOG_DIR, f), 'utf8'));
-}
-const combined = allText.join('\n');
+const combined = (await Promise.all(files.map(f => readFile(resolve(CATALOG_DIR, f), 'utf8')))).join('\n');
 
-// Find all artwork() and formArtwork() calls
 const spriteIds = new Set();
-const re = /(?:form)?[Aa]rtwork\((\d+)\)/g;
 let m;
-while ((m = re.exec(combined))) {
-  spriteIds.add(Number(m[1]));
-}
-
-console.log(`Found ${spriteIds.size} unique sprite IDs`);
-
-// Also include national dex numbers for base forms
+const re = /(?:form)?[Aa]rtwork\((\d+)\)/g;
+while ((m = re.exec(combined))) spriteIds.add(Number(m[1]));
 const dexRe = /nationalDexNo:\s*(\d+)/g;
-while ((m = dexRe.exec(combined))) {
-  spriteIds.add(Number(m[1]));
-}
+while ((m = dexRe.exec(combined))) spriteIds.add(Number(m[1]));
 
-console.log(`After adding national dex numbers: ${spriteIds.size} total sprite IDs`);
-
-// ── Download sprites ──
+console.log(`Found ${spriteIds.size} sprite IDs`);
 
 const failures = [];
-let idx = 0;
 const ids = [...spriteIds].sort((a, b) => a - b);
+let idx = 0;
 
 for (const id of ids) {
   idx++;
-  const outPath = resolve(ASSETS_DIR, `${id}.png`);
+  const artPath = resolve(ARTWORK_DIR, `${id}.png`);
+  const thumbPath = resolve(THUMBS_DIR, `${id}.png`);
+  const artExists = existsSync(artPath) && (await readFile(artPath).then(b => b.length).catch(() => 0)) > 0;
+  const thumbExists = existsSync(thumbPath) && (await readFile(thumbPath).then(b => b.length).catch(() => 0)) > 0;
 
-  // Skip if already exists and non-empty
-  if (existsSync(outPath)) {
-    const stat = await readFile(outPath).then(b => b.length).catch(() => 0);
-    if (stat > 0) {
-      if (idx % 50 === 0) console.log(`  [${idx}/${ids.length}] skipped ${id}.png (cached)`);
-      continue;
-    }
+  if (artExists && thumbExists) {
+    if (idx % 50 === 0) console.log(`  [${idx}/${ids.length}] ${id} cached`);
+    continue;
   }
 
-  const url = `${SPRITE_BASE}/${id}.png`;
+  const url = `${ARTWORK_BASE}/${id}.png`;
   try {
     const r = await fetch(url, { headers: { 'User-Agent': UA } });
-    if (!r.ok) {
-      failures.push({ id, reason: `HTTP ${r.status}` });
-      continue;
-    }
+    if (!r.ok) { failures.push({ id, reason: `HTTP ${r.status}` }); continue; }
     const buf = Buffer.from(await r.arrayBuffer());
-    if (buf.length === 0) {
-      failures.push({ id, reason: 'empty response' });
-      continue;
+    if (buf.length === 0) { failures.push({ id, reason: 'empty' }); continue; }
+
+    if (!artExists) await writeFile(artPath, buf);
+
+    if (!thumbExists) {
+      try {
+        const thumb = await sharp(buf).resize(THUMB_SIZE, THUMB_SIZE, { fit: 'inside', withoutEnlargement: true }).png().toBuffer();
+        await writeFile(thumbPath, thumb);
+      } catch (e) {
+        failures.push({ id, reason: `sharp resize: ${e.message}` });
+        continue;
+      }
     }
-    await writeFile(outPath, buf);
-    if (idx % 20 === 0) console.log(`  [${idx}/${ids.length}] ${id}.png (${buf.length} bytes)`);
+
+    if (idx % 20 === 0) console.log(`  [${idx}/${ids.length}] ${id}.png done`);
   } catch (e) {
     failures.push({ id, reason: e.message });
   }
-
-  // Be polite
   if (idx % 5 === 0) await new Promise(r => setTimeout(r, 100));
 }
 
-console.log(`\nDownloaded: ${ids.length - failures.length}/${ids.length}`);
+console.log(`\nProcessed: ${ids.length - failures.length}/${ids.length}`);
 if (failures.length > 0) {
   console.error(`FAILURES (${failures.length}):`);
   failures.forEach(f => console.error(`  ${f.id}: ${f.reason}`));
   process.exit(1);
 }
-console.log('All sprites downloaded successfully.');
+console.log('Done.');

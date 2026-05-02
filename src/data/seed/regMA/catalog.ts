@@ -14,7 +14,7 @@ const megaRefs = ['reg-ma-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-
 const itemCandidateRefs = ['reg-ma-community-item-snapshot', 'manual-seed-review'];
 const megaItemRefs = ['reg-ma-official-mega-list', 'reg-ma-community-item-snapshot', 'manual-seed-review'];
 
-const artwork = (nationalDexNo: number) => `/assets/pokemon/icons/${nationalDexNo}.png`;
+const artwork = (nationalDexNo: number) => `/assets/pokemon/thumbs/${nationalDexNo}.png`;
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
 
 const abilityRows: Ability[] = [
@@ -561,6 +561,16 @@ for (let i = 0; i < pokemon.length; i++) {
       megaForms: megaFormsByParentId[entry.id] ?? [],
     };
   }
+}
+
+// ── Derive artworkRef from iconRef (thumbs → artwork) ──
+for (let i = 0; i < pokemon.length; i++) {
+  const entry = pokemon[i];
+  pokemon[i] = {
+    ...entry,
+    artworkRef: entry.iconRef.replace('/thumbs/', '/artwork/'),
+    megaForms: entry.megaForms.map((f) => ({ ...f, artworkRef: f.iconRef.replace('/thumbs/', '/artwork/') })),
+  };
 }
 
 const abilityPokemonIdsById = pokemon.reduce<Record<string, string[]>>((index, entry) => {

@@ -345,7 +345,7 @@ function PokemonDetail({
             <button className="absolute right-0 top-0 z-20 grid h-9 w-9 place-items-center rounded-lg bg-card text-textSecondary" type="button" title="关闭" onClick={() => setShowLargeImage(false)}>
               <X size={18} />
             </button>
-            <img className="mx-auto max-h-[70vh] w-full object-contain drop-shadow-2xl" src={entry.iconRef.startsWith('/assets/pokemon/icons/') ? entry.iconRef.replace('/assets/pokemon/icons/', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/') : entry.iconRef} alt={entry.chineseName} />
+            <img className="mx-auto max-h-[70vh] w-full object-contain drop-shadow-2xl" src={entry.artworkRef ?? entry.iconRef} alt={entry.chineseName} />
             <p className="mt-3 text-center text-sm font-semibold text-white">{entry.chineseName}</p>
           </div>
         </div>

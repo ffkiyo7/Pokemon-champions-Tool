@@ -726,6 +726,44 @@ function AnalysisDetailSheet({
   );
 }
 
+function TeamNameModal({
+  open,
+  isRename,
+  draft,
+  onDraftChange,
+  onConfirm,
+  onClose,
+}: {
+  open: boolean;
+  isRename: boolean;
+  draft: string;
+  onDraftChange: (value: string) => void;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-30 mx-auto max-w-[430px]">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 rounded-t-xl bg-card p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+        <h3 className="text-sm font-semibold">{isRename ? '编辑队伍名称' : '新建队伍'}</h3>
+        <input
+          autoFocus
+          className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-textPrimary outline-none placeholder:text-textMuted"
+          placeholder="输入队伍名称，例如：雨天 Mega 队"
+          value={draft}
+          onChange={(e) => onDraftChange(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') onConfirm(); }}
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="ghost" onClick={onClose}>取消</Button>
+          <Button onClick={onConfirm} disabled={!draft.trim()}>确认</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function TeamPage({
   activeTeamId,
   onActiveTeamChange,
@@ -774,12 +812,6 @@ export function TeamPage({
       onActiveTeamChange(team.id);
     }
     setShowNameModal(false);
-    setExpandedMemberId(null);
-  };
-
-  const createTeam = async () => {
-    const team = await addTeam();
-    onActiveTeamChange(team.id);
     setExpandedMemberId(null);
   };
 
@@ -895,28 +927,16 @@ export function TeamPage({
           )}
           {showAnalysis && <AnalysisDetailSheet team={activeTeam} onClose={() => setShowAnalysis(false)} />}
           <PokemonPicker open={showPicker} onClose={() => setShowPicker(false)} onPick={handlePickPokemon} />
-          {showNameModal && (
-            <div className="fixed inset-0 z-30 mx-auto max-w-[430px]">
-              <div className="absolute inset-0 bg-black/60" onClick={() => setShowNameModal(false)} />
-              <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 rounded-t-xl bg-card p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
-                <h3 className="text-sm font-semibold">{nameModalTeamId ? '编辑队伍名称' : '新建队伍'}</h3>
-                <input
-                  autoFocus
-                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-textPrimary outline-none placeholder:text-textMuted"
-                  placeholder="输入队伍名称，例如：雨天 Mega 队"
-                  value={nameDraft}
-                  onChange={(e) => setNameDraft(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') confirmName(); }}
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="ghost" onClick={() => setShowNameModal(false)}>取消</Button>
-                  <Button onClick={confirmName} disabled={!nameDraft.trim()}>确认</Button>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
+      <TeamNameModal
+        open={showNameModal}
+        isRename={!!nameModalTeamId}
+        draft={nameDraft}
+        onDraftChange={setNameDraft}
+        onConfirm={confirmName}
+        onClose={() => setShowNameModal(false)}
+      />
     </div>
   );
 }
