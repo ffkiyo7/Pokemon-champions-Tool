@@ -4,9 +4,9 @@
 
 ## 当前状态
 
-- 本地最新基线：`463337a Add onError fallback to PokemonAvatar for broken item sprites`
-- 本地当前领先 `origin/master` 11 个提交；本轮仅补文档后统一推送。
-- `npm test` 通过：9 个测试文件，55 个用例。
+- 本地最新基线：`c29992b Fix local item icon rendering`
+- 本地当前领先 `origin/master` 多个提交；本轮已完成道具图快照、渲染修复与测试补强，待文档提交后统一推送。
+- `npm test` 通过：10 个测试文件，59 个用例。
 - `npm run build` 通过。
 - `npm run test:pwa` 通过：PWA 离线 + 390px 移动端视觉回归，视觉基线 11 张。
 - Playwright PWA / 视觉测试使用 `playwright.config.ts` 中的 `channel: 'chrome'`，即本机 Google Chrome；不依赖 Playwright bundled Chromium。
@@ -15,40 +15,42 @@
 - **图鉴特性列表已做形态级拥有者映射**：拥有者头像最多显示 5 个 + `+N`，展开后显示完整拥有者；Mega 特性显示 Mega 形态头像 / 名称，点击可直接切到 Pokémon Tab 并打开对应详情页。
 - **队伍 Pokémon Picker**：底部搜索选择器替代原来的循环添加逻辑，支持按中文名/英文名搜索。
 - **图鉴详情页种族值总和**：种族值列表底部显示合计数值。
+- **性格 catalog 已完成**：25 个主系列性格从 PokeAPI 接入，含中文名、增减能力与 neutral 标记。
+- **Mega 形态第二阶段已推进**：35 个旧主系列 Mega form 已接入 stats/types/abilities/sprite/Mega Stone 映射；24 个 Champions 新 Mega 仍保留 shell，不伪造战斗字段。
 - 属性 badge 已收敛为项目化胶囊；不再使用本地 PNG 属性图标。
 - 队伍页小卡片信息层级已调整。
 - 伤害计算页条件控件可交互，Mega 状态选择会切换 Mega 形态属性 / 种族值；正式伤害公式仍阻断。
 - 速度线支持 SP 手动调整，支持已有本地数据的 Mega 形态速度计算。
 - Reg M-A 官方 Pokémon allowlist 213 行；Reg M-A 官方 Mega allowlist 59 行 shell。
 - `currentRuleCatalog` 已接入 Reg M-A 道具候选 catalog：当前规则可选池 117 个道具。
-- 道具图片当前仍以 PokeAPI item sprites 为临时来源，已确认覆盖不完整；明日改为 PokéBase Champions 当前可选道具真实图片快照，不使用本地生成图标。
-- 招式和性格仍是 seed 级候选，尚未完成 Reg M-A 全量 join。
+- 道具图片已统一为 PokéBase Champions 当前可选道具真实图片快照：117 个 PNG 存入 `public/assets/items/`，`iconRef` 使用本地 `/assets/items/*.png`，SW 已配置惰性预缓存。
+- `PokemonAvatar` 已修复本地图片路径识别：支持 `/assets/...`、相对路径与 `data:image/*`，失败时才用文字 fallback。
+- 招式和 learnset 已完成已接入 Pokémon 的第一阶段 join：`scripts/generate-champions-moves.mjs` 从 PokéBase Champions Pokémon Available Moves 页面生成 528 个招式与 11323 条 Pokémon-招式关系；PokeAPI 只用于中文名、中文说明和目标范围。
+- 图鉴 Pokémon 列表按全国图鉴序号排序；详情页头像可点开大图，当前规则可学招式默认折叠，可按属性 / 性质 / 威力排序。
+- 队伍小卡片展示当前携带物图片；队伍编辑页招式和携带物已改为可搜索选择器。
 - Reg M-A 将于 2026-06-17 01:59 UTC 结束；仍需预留 Reg M-B 数据注册表 / 切换设计。
 
 ## 下一轮优先事项
 
-1. 道具图片真实资源快照
-   - 仅处理当前 Reg M-A 可选池 117 个道具；不为当前规则外的 Clear Amulet / Assault Vest 额外补图。
-   - 主源使用 PokéBase Champions item 页面，统一下载真实图片到项目静态资源目录，避免热链与画风混用。
-   - PokeAPI 只作为备用校验源，不再作为图鉴道具页主图源；不得使用本地生成 SVG / 文字图标作为正常展示路径。
-   - 新增生成脚本与审计测试：117 个可选道具必须都有本地真实图片，图片路径必须可解析，PWA 静态资源缓存需覆盖这些图片。
-
-2. 地区形态数据接入
+1. 地区形态数据接入
    - 32 只地区形态（Alolan / Galarian / Hisuian / Paldean）尚未录入 catalog。
    - 地区形态的 stats / types / abilities 与基础形态不同，需要按 form ID 从 PokeAPI 接入。
    - 保持 `manual-review`，不伪造数据。
 
-3. Mega 数据第二阶段
+2. Mega 数据第三阶段
    - 对 59 个官方 Mega allowlist 做 catalog join。
-   - 已完成本地 form 数据的 4 个继续保留；其余 55 个按来源状态分批：
-     - 旧主系列 / PokeAPI 或 Showdown 可确认：可补 stats / types / abilities / sprite / item mapping。
-     - Champions 新 Mega：只在官方或可靠结构源出现后补战斗字段。
+   - 已完成旧主系列 35 个 Mega form；剩余 24 个 Champions 新 Mega 只在官方或可靠结构源出现后补战斗字段。
    - 新增测试：allowlist entry 与 catalog form 映射、Mega Stone 到 form 的一一关系，以及 Mega 特性拥有者在图鉴中指向具体 Mega form。
 
-4. 招式 / learnset / 性格 catalog 可信分层
-   - 招式第批处理：补目标范围、威力、命中、分类、learnset 关系。
-   - 性格需确认 Champions 是否全量沿用主系列名称 / 效果。
-   - 拆成当前规则确认池、社区候选池、示例 / 开发池。
+3. 招式 / learnset 后续补齐
+   - 已接入 181 只基础形态 Pokémon 的 PokéBase Champions Available Moves。
+   - 下一步只补缺口：32 只地区形态、后续 Champions 新 Mega form 与 learnset 的 form 级差异。
+   - 性格已按主系列 25 个接入；后续只需确认 Champions 是否全量沿用名称 / 效果。
+
+4. 伦琴猫与主页轻量内容
+   - 图鉴与队伍页新需求已完成第一批：头像大图、招式折叠排序、道具图、招式 / 道具搜索。
+   - 剩余：伦琴猫标题背景 / 姿势可动、知识问答或 tips 轮播。
+   - 计划文档：`docs/product/PLAN0502.md`。
 
 5. 伤害计算适配层
    - 保持正式伤害输出阻断。
@@ -69,4 +71,6 @@
 - 特性拥有者必须按具体 dex entry / form 映射，不能把 Mega-only 特性挂到基础形态展示。
 - 搜索特性时只匹配特性中文名 / 英文名，不匹配说明文本。
 - 图鉴道具页的当前规则 117 个可选道具不得出现破损图标、文字 fallback、生成图标或跨来源画风混用。
+- `PokemonAvatar` 这类通用头像组件必须支持本地 `/assets/...` 静态资源；新增本地图片来源时必须补 UI 渲染测试，不只测文件存在。
+- 已接入 Pokémon 的当前规则 learnset 不得为空；图鉴详情不得再出现 seed 示例口径。
 - 文档同步更新 `DEVELOPMENT_PROGRESS.md` 与本计划。

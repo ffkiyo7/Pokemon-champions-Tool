@@ -1,4 +1,4 @@
-import { BarChart3, ChevronUp, Edit3, Minus, Plus, Save, Trash2, X } from 'lucide-react';
+import { BarChart3, ChevronUp, Edit3, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { abilities, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
@@ -8,7 +8,7 @@ import { evaluateMemberLegality } from '../lib/legality';
 import { findBattleForm, getMemberBattleForm } from '../lib/pokemonForms';
 import { MAX_STAT_POINTS_PER_STAT, MAX_TOTAL_STAT_POINTS, statPointTotal } from '../lib/statPoints';
 import { useAppStore } from '../state/AppContext';
-import type { Team, TeamMember } from '../types';
+import type { Item, Move, Team, TeamMember } from '../types';
 import { PokemonPicker } from '../components/PokemonPicker';
 import { RuleSummary, SyncStrip } from '../components/RuleSummary';
 import { Badge, Button, Card, Chip, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
@@ -74,8 +74,13 @@ function MemberCard({
       )}
       <button className="block w-full text-left" onClick={() => onToggle(member.id)}>
         <div className={expanded ? 'flex gap-3' : 'flex flex-col items-center text-center'}>
-          <div className={expanded ? '' : 'mb-2'}>
+          <div className={`${expanded ? '' : 'mb-2'} relative shrink-0`}>
             <PokemonAvatar iconRef={battleForm?.iconRef ?? entry?.iconRef} label={battleForm?.chineseName ?? entry?.chineseName ?? '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
+            {item?.iconRef && (
+              <span className="absolute -bottom-1 -right-1 rounded-full border border-border bg-card p-0.5">
+                <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="xs" />
+              </span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex flex-wrap items-center gap-1.5`}>
@@ -93,9 +98,10 @@ function MemberCard({
               </div>
             )}
             {expanded && (
-              <p className="truncate text-xs text-textSecondary">
-                {item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'}
-              </p>
+              <div className="flex min-w-0 items-center gap-1.5 text-xs text-textSecondary">
+                {item?.iconRef && <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="xs" />}
+                <span className="truncate">{item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'}</span>
+              </div>
             )}
           </div>
         </div>
@@ -190,6 +196,175 @@ function SelectField({
       <select aria-label={label} className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none" value={value} onChange={(event) => onChange(event.target.value)}>
         {children}
       </select>
+    </div>
+  );
+}
+
+const moveCategoryLabels = { Physical: '物理', Special: '特殊', Status: '变化' };
+
+const optionMatches = (query: string, ...values: Array<string | number | undefined>) => {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return true;
+  return values.some((value) => String(value ?? '').toLowerCase().includes(normalized));
+};
+
+function ItemSearchField({
+  value,
+  options,
+  selectableIds,
+  onChange,
+}: {
+  value?: string;
+  options: Item[];
+  selectableIds: Set<string>;
+  onChange: (itemId: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const selectedItem = value ? options.find((item) => item.id === value) ?? items.find((item) => item.id === value) : undefined;
+  const filteredItems = options.filter((item) => optionMatches(query, item.chineseName, item.englishName, item.effectSummary)).slice(0, 28);
+
+  return (
+    <div>
+      <FieldLabel>道具</FieldLabel>
+      <div className="space-y-2 rounded-lg border border-border bg-secondary p-2">
+        <div className="flex items-center gap-2">
+          {selectedItem ? <PokemonAvatar iconRef={selectedItem.iconRef} label={selectedItem.chineseName} size="xs" /> : <span className="h-8 w-8 rounded-full border border-border bg-card" />}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold">{selectedItem?.chineseName ?? '未选择'}</p>
+            <p className="truncate text-[11px] text-textMuted">{selectedItem?.effectSummary ?? ' '}</p>
+          </div>
+          {selectedItem && (
+            <button className="grid h-8 w-8 place-items-center rounded-md text-textMuted" type="button" title="清除道具" onClick={() => onChange('')}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5">
+          <Search size={14} className="text-textMuted" />
+          <input
+            className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-textMuted"
+            placeholder="搜索携带物"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+        <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
+          <button className="flex w-full items-center rounded-lg px-2 py-1.5 text-left text-xs text-textSecondary" type="button" onClick={() => onChange('')}>
+            不携带道具
+          </button>
+          {filteredItems.map((item) => {
+            const selectable = selectableIds.has(item.id);
+            const selected = item.id === value;
+            return (
+              <button
+                key={item.id}
+                className={`flex w-full min-w-0 items-center gap-2 rounded-lg border p-1.5 text-left ${
+                  selected ? 'border-accent bg-accent/10' : 'border-transparent bg-card'
+                } disabled:opacity-45`}
+                disabled={!selectable}
+                type="button"
+                onClick={() => onChange(item.id)}
+              >
+                <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="xs" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-xs font-semibold text-textPrimary">{item.chineseName}</span>
+                  <span className="block truncate text-[11px] text-textMuted">{item.effectSummary}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MoveSlotPicker({
+  slot,
+  value,
+  availableMoves,
+  onChange,
+}: {
+  slot: number;
+  value?: string;
+  availableMoves: Move[];
+  onChange: (moveId: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(!value);
+  const selectedMove = value ? moves.find((move) => move.id === value) : undefined;
+  const options = [
+    ...(selectedMove && !availableMoves.some((move) => move.id === selectedMove.id) ? [selectedMove] : []),
+    ...availableMoves,
+  ];
+  const filteredMoves = options
+    .filter((move) => optionMatches(query, move.chineseName, move.englishName, move.type, move.category, move.effectSummary))
+    .slice(0, query.trim() ? 32 : 14);
+
+  return (
+    <div className="rounded-lg border border-border bg-secondary p-2">
+      <button className="flex w-full items-center justify-between gap-2 text-left" type="button" onClick={() => setOpen((current) => !current)}>
+        <span className="min-w-0">
+          <span className="block text-[11px] text-textMuted">招式 {slot + 1}</span>
+          <span className="block truncate text-xs font-semibold">{selectedMove?.chineseName ?? '空招式位'}</span>
+        </span>
+        <ChevronUp className={open ? '' : 'rotate-180'} size={14} />
+      </button>
+      {selectedMove && (
+        <div className="mt-2 grid grid-cols-[auto_1fr] gap-2 rounded-lg bg-card p-1.5">
+          <TypeBadge type={selectedMove.type} size="sm" />
+          <p className="min-w-0 text-[11px] text-textSecondary">
+            {moveCategoryLabels[selectedMove.category]} · 威力 {selectedMove.power ?? '-'} · 命中 {selectedMove.accuracy ?? '-'} · PP {selectedMove.pp}
+          </p>
+        </div>
+      )}
+      {open && (
+        <div className="mt-2 space-y-2">
+          <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5">
+            <Search size={14} className="text-textMuted" />
+            <input
+              className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-textMuted"
+              placeholder="搜索招式"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
+            <button className="flex w-full items-center rounded-lg px-2 py-1.5 text-left text-xs text-textSecondary" type="button" onClick={() => onChange('')}>
+              清空招式位
+            </button>
+            {filteredMoves.map((move) => {
+              const selectable = availableMoves.some((candidate) => candidate.id === move.id);
+              const selected = move.id === value;
+              return (
+                <button
+                  key={move.id}
+                  className={`grid w-full grid-cols-[auto_1fr_auto] items-start gap-2 rounded-lg border p-1.5 text-left ${
+                    selected ? 'border-accent bg-accent/10' : 'border-transparent bg-card'
+                  } disabled:opacity-45`}
+                  disabled={!selectable}
+                  type="button"
+                  onClick={() => {
+                    onChange(move.id);
+                    setQuery('');
+                    setOpen(false);
+                  }}
+                >
+                  <TypeBadge type={move.type} size="sm" />
+                  <span className="min-w-0">
+                    <span className="block truncate text-xs font-semibold text-textPrimary">{move.chineseName}</span>
+                    <span className="block truncate text-[11px] text-textMuted">{move.effectSummary}</span>
+                  </span>
+                  <span className="text-right text-[10px] text-textMuted">
+                    {moveCategoryLabels[move.category]}<br />
+                    {move.power ?? '-'} / {move.accuracy ?? '-'}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -296,6 +471,7 @@ function MemberEditor({
   const availableItems = currentRuleSelectableItemsForPokemon(selectedPokemon.id);
   const selectedItem = draft.itemId ? items.find((item) => item.id === draft.itemId) : undefined;
   const itemOptions = selectedItem && !availableItems.some((item) => item.id === selectedItem.id) ? [selectedItem, ...availableItems] : availableItems;
+  const selectableItemIds = new Set(availableItems.map((item) => item.id));
   const availableAbilityIds = Array.from(new Set([...selectedPokemon.abilities, ...(selectedForm?.abilities ?? [])]));
   const availableAbilities = abilities.filter((ability) => availableAbilityIds.includes(ability.id));
   const legality = useMemo(() => evaluateMemberLegality(draft, team), [draft, team]);
@@ -380,36 +556,23 @@ function MemberEditor({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2">
+        <div>
           <SelectField label="特性" value={draft.abilityId ?? ''} onChange={(abilityId) => updateDraft({ abilityId })}>
             <option value="">未选择</option>
             {availableAbilities.map((ability) => (
               <option key={ability.id} value={ability.id}>
-                {ability.chineseName}
+              {ability.chineseName}
               </option>
             ))}
           </SelectField>
-          <SelectField
-            label="道具"
-            value={draft.itemId ?? ''}
-            onChange={(itemId) => {
-              updateDraft({
-                itemId: itemId || undefined,
-              });
-            }}
-          >
-            <option value="">未选择</option>
-            {itemOptions.map((item) => {
-              const selectable = availableItems.some((candidate) => candidate.id === item.id);
-              const disabled = !selectable;
-              return (
-              <option key={item.id} value={item.id} disabled={disabled}>
-                {item.chineseName}{disabled ? '（当前规则未确认）' : ''}
-              </option>
-              );
-            })}
-          </SelectField>
         </div>
+
+        <ItemSearchField
+          value={draft.itemId}
+          options={itemOptions}
+          selectableIds={selectableItemIds}
+          onChange={(itemId) => updateDraft({ itemId: itemId || undefined })}
+        />
 
         <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
           {currentRuleNatures().map((nature) => (
@@ -423,25 +586,13 @@ function MemberEditor({
           <FieldLabel>招式</FieldLabel>
           <div className="grid grid-cols-2 gap-2">
             {[0, 1, 2, 3].map((slot) => (
-              <select
+              <MoveSlotPicker
                 key={slot}
-                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none"
+                slot={slot}
                 value={draft.moveIds[slot] ?? ''}
-                onChange={(event) => updateMoveSlot(slot, event.target.value)}
-              >
-                <option value="">空招式位</option>
-                {[
-                  ...(draft.moveIds[slot] && !availableMoves.some((move) => move.id === draft.moveIds[slot]) ? moves.filter((move) => move.id === draft.moveIds[slot]) : []),
-                  ...availableMoves,
-                ].map((move) => {
-                  const selectable = availableMoves.some((candidate) => candidate.id === move.id);
-                  return (
-                  <option key={move.id} value={move.id} disabled={!selectable}>
-                    {move.chineseName}{selectable ? '' : '（当前规则未确认）'}
-                  </option>
-                  );
-                })}
-              </select>
+                availableMoves={availableMoves}
+                onChange={(moveId) => updateMoveSlot(slot, moveId)}
+              />
             ))}
           </div>
         </div>

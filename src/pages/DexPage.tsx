@@ -7,12 +7,13 @@ import { createId } from '../lib/id';
 import { evaluateMemberLegality } from '../lib/legality';
 import { getDexFormEntries, type DexFormEntry } from '../lib/pokemonForms';
 import { useAppStore } from '../state/AppContext';
-import type { PokemonType } from '../types';
+import type { Move, PokemonType } from '../types';
 import { Button, Card, EmptyState, PokemonAvatar, TypeBadge } from '../components/ui';
 
 type DexTab = 'pokemon' | 'moves' | 'items' | 'abilities';
 type TypeFilter = { label: string; value: PokemonType };
 type SecondaryNameMode = 'english' | 'japanese';
+type MoveSortKey = 'type' | 'category' | 'power';
 
 const typeFilters: TypeFilter[] = [
   { label: '一般', value: 'Normal' },
@@ -37,6 +38,8 @@ const typeFilters: TypeFilter[] = [
 
 const typeLabelByValue = Object.fromEntries(typeFilters.map((filter) => [filter.value, filter.label])) as Record<PokemonType, string>;
 const categoryLabels = { Physical: '物理', Special: '特殊', Status: '变化' };
+const categoryOrder = { Physical: 0, Special: 1, Status: 2 };
+const typeOrder = Object.fromEntries(typeFilters.map((filter, index) => [filter.value, index])) as Record<PokemonType, number>;
 
 const statLabels = {
   HP: 'HP',
@@ -48,6 +51,18 @@ const statLabels = {
 } as const;
 
 const ABILITY_OWNER_PREVIEW_LIMIT = 5;
+
+function sortMovesForDisplay(moveList: Move[], sortKey: MoveSortKey) {
+  return [...moveList].sort((a, b) => {
+    if (sortKey === 'type') {
+      return typeOrder[a.type] - typeOrder[b.type] || categoryOrder[a.category] - categoryOrder[b.category] || a.chineseName.localeCompare(b.chineseName, 'zh-Hans-CN');
+    }
+    if (sortKey === 'category') {
+      return categoryOrder[a.category] - categoryOrder[b.category] || typeOrder[a.type] - typeOrder[b.type] || a.chineseName.localeCompare(b.chineseName, 'zh-Hans-CN');
+    }
+    return (b.power ?? -1) - (a.power ?? -1) || typeOrder[a.type] - typeOrder[b.type] || a.chineseName.localeCompare(b.chineseName, 'zh-Hans-CN');
+  });
+}
 
 function TypeFilterSheet({
   selectedTypes,
@@ -117,11 +132,15 @@ function PokemonDetail({
   const { teams, updateMember } = useAppStore();
   const [secondaryNameMode, setSecondaryNameMode] = useState<SecondaryNameMode>('english');
   const [expandedAbilityIds, setExpandedAbilityIds] = useState<string[]>([]);
+  const [showLargeImage, setShowLargeImage] = useState(false);
+  const [movesExpanded, setMovesExpanded] = useState(false);
+  const [moveSortKey, setMoveSortKey] = useState<MoveSortKey>('type');
   const activeTeam = teams[0];
   const entryAbilities = entry.abilities
     .map((id) => abilities.find((ability) => ability.id === id))
     .filter(Boolean) as typeof abilities;
-  const entryMoves = currentRuleMovesForPokemon(entry.basePokemon.id);
+  const entryMoves = useMemo(() => currentRuleMovesForPokemon(entry.basePokemon.id), [entry.basePokemon.id]);
+  const sortedEntryMoves = useMemo(() => sortMovesForDisplay(entryMoves, moveSortKey), [entryMoves, moveSortKey]);
   const weaknesses = attackingTypes
     .map((type) => ({ type, multiplier: defensiveMatchupMultiplier(type, entry.types) }))
     .filter((matchup) => matchup.multiplier > 1);
@@ -161,7 +180,14 @@ function PokemonDetail({
       </Button>
       <Card>
         <div className="mb-3 flex gap-3">
-          <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} size="lg" />
+          <button
+            className="shrink-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent"
+            type="button"
+            aria-label={`查看${entry.chineseName}大图`}
+            onClick={() => setShowLargeImage(true)}
+          >
+            <PokemonAvatar iconRef={entry.iconRef} label={entry.chineseName} size="lg" />
+          </button>
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-semibold">{entry.chineseName}</h3>
             <div className="mt-1 flex items-center gap-2">
@@ -219,26 +245,57 @@ function PokemonDetail({
         </div>
 
         <div className="mt-4">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <p className="text-[11px] text-textSecondary">当前规则可学会招式</p>
-            <span className="text-[11px] text-warning">示例待补齐</span>
-          </div>
-          <div className="space-y-2">
-            {entryMoves.map((move) => (
-              <div key={move.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-2 rounded-lg border border-border bg-secondary p-2">
-                <TypeBadge type={move.type} size="sm" />
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold">{move.chineseName}</p>
-                  <p className="text-[11px] text-textMuted">{categoryLabels[move.category]} · {move.targetScope}</p>
-                </div>
-                <p className="text-right text-[11px] text-textSecondary">
-                  威力 {move.power ?? '-'}<br />
-                  命中 {move.accuracy ?? '-'}
-                </p>
+          <button
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-left"
+            type="button"
+            aria-expanded={movesExpanded}
+            onClick={() => setMovesExpanded((expanded) => !expanded)}
+          >
+            <span className="text-xs font-semibold">当前规则可学会招式</span>
+            <span className="inline-flex items-center gap-1 text-[11px] text-textSecondary">
+              {entryMoves.length} 个
+              {movesExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            </span>
+          </button>
+          {movesExpanded && (
+            <div className="mt-2 space-y-2">
+              <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-card p-1">
+                {([
+                  ['type', '属性'],
+                  ['category', '性质'],
+                  ['power', '威力'],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    className={`min-h-8 rounded-md text-xs ${moveSortKey === key ? 'bg-accent text-white' : 'text-textSecondary'}`}
+                    type="button"
+                    aria-pressed={moveSortKey === key}
+                    onClick={() => setMoveSortKey(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
-            ))}
-            {entryMoves.length === 0 && <p className="rounded-lg bg-secondary p-2 text-xs text-textSecondary">暂无 seed 招式数据。</p>}
-          </div>
+              <div className="max-h-[46vh] space-y-2 overflow-y-auto pr-1">
+                {sortedEntryMoves.map((move) => (
+                  <div key={move.id} className="grid grid-cols-[auto_1fr_auto] items-start gap-2 rounded-lg border border-border bg-secondary p-2">
+                    <TypeBadge type={move.type} size="sm" />
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold">{move.chineseName}</p>
+                      <p className="text-[11px] text-textMuted">{categoryLabels[move.category]} · {move.targetScope}</p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-textSecondary">{move.effectSummary}</p>
+                    </div>
+                    <p className="shrink-0 text-right text-[11px] text-textSecondary">
+                      威力 {move.power ?? '-'}<br />
+                      命中 {move.accuracy ?? '-'}<br />
+                      PP {move.pp}
+                    </p>
+                  </div>
+                ))}
+                {entryMoves.length === 0 && <p className="rounded-lg bg-secondary p-2 text-xs text-textSecondary">暂无当前规则招式数据。</p>}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-4">
@@ -280,8 +337,19 @@ function PokemonDetail({
             → 计算
           </Button>
         </div>
-        <p className="mt-3 text-[11px] text-textMuted">当前仅展示规则内 seed data，真实完整列表仍需数据源复核。</p>
       </Card>
+      {showLargeImage && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-6" role="dialog" aria-modal="true" aria-label={`${entry.chineseName}大图`}>
+          <button className="absolute inset-0 cursor-default" type="button" aria-label="关闭大图" onClick={() => setShowLargeImage(false)} />
+          <div className="relative w-full max-w-[360px]">
+            <button className="absolute right-0 top-0 grid h-9 w-9 place-items-center rounded-lg bg-card text-textSecondary" type="button" title="关闭" onClick={() => setShowLargeImage(false)}>
+              <X size={18} />
+            </button>
+            <img className="mx-auto max-h-[70vh] w-full object-contain drop-shadow-2xl" src={entry.iconRef} alt={entry.chineseName} />
+            <p className="mt-3 text-center text-sm font-semibold text-white">{entry.chineseName}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -299,7 +367,13 @@ export function DexPage({
   const [showTypeFilter, setShowTypeFilter] = useState(false);
   const [detailPokemonId, setDetailPokemonId] = useState<string | null>(null);
   const [expandedAbilityListIds, setExpandedAbilityListIds] = useState<string[]>([]);
-  const dexEntries = useMemo(() => getDexFormEntries(), []);
+  const dexEntries = useMemo(
+    () =>
+      getDexFormEntries().sort(
+        (a, b) => a.basePokemon.nationalDexNo - b.basePokemon.nationalDexNo || Number(a.isMega) - Number(b.isMega) || a.id.localeCompare(b.id),
+      ),
+    [],
+  );
 
   const filteredPokemon = useMemo(
     () =>

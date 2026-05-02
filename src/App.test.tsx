@@ -78,16 +78,27 @@ describe('App page flows', () => {
     expect(screen.queryByLabelText('Pokemon')).toBeNull();
     expect(screen.queryByText('等级')).toBeNull();
     expect(screen.queryByText('备注')).toBeNull();
-    expect(screen.getByRole('option', { name: '文柚果' })).toBeTruthy();
-    expect(screen.getByRole('option', { name: '烈咬陆鲨进化石' })).toBeTruthy();
-    expect(screen.queryByRole('option', { name: /突击背心/ })).toBeNull();
-    expect(screen.queryByRole('option', { name: /清净坠饰/ })).toBeNull();
-    await user.selectOptions(screen.getByLabelText('道具'), 'garchompite');
+    const itemSearch = screen.getByPlaceholderText('搜索携带物');
+    await user.type(itemSearch, '文柚');
+    expect(screen.getAllByRole('button', { name: /文柚果/ }).length).toBeGreaterThan(0);
+    await user.clear(itemSearch);
+    await user.type(itemSearch, '突击背心');
+    expect(screen.queryByRole('button', { name: /突击背心/ })).toBeNull();
+    await user.clear(itemSearch);
+    await user.type(itemSearch, '清净坠饰');
+    expect(screen.queryByRole('button', { name: /清净坠饰/ })).toBeNull();
+    await user.clear(itemSearch);
+    await user.type(itemSearch, '烈咬陆鲨');
+    await user.click(screen.getByRole('button', { name: /烈咬陆鲨进化石/ }));
     expect((screen.getByLabelText('形态预览') as HTMLSelectElement).value).toBe('garchomp');
     await user.selectOptions(screen.getByLabelText('形态预览'), 'mega-garchomp');
-    expect((screen.getByLabelText('道具') as HTMLSelectElement).value).toBe('garchompite');
+    expect(screen.getAllByText('烈咬陆鲨进化石').length).toBeGreaterThan(0);
     await user.selectOptions(screen.getByLabelText('形态预览'), 'garchomp');
-    expect((screen.getByLabelText('道具') as HTMLSelectElement).value).toBe('garchompite');
+    expect(screen.getAllByText('烈咬陆鲨进化石').length).toBeGreaterThan(0);
+    const moveSearch = screen.getAllByPlaceholderText('搜索招式')[0];
+    await user.type(moveSearch, '龙爪');
+    await user.click(screen.getAllByRole('button', { name: /龙爪/ })[0]);
+    expect(screen.getByRole('button', { name: /招式 3.*龙爪/ })).toBeTruthy();
 
     ['HP SP', '攻击 SP', '防御 SP', '特攻 SP', '特防 SP', '速度 SP'].forEach((label) => {
       expect(screen.getAllByText(label.replace(' SP', '')).length).toBeGreaterThan(0);
@@ -184,6 +195,15 @@ describe('App page flows', () => {
     expect(screen.getAllByText('特性').length).toBeGreaterThan(0);
     expect(screen.getByText('种族值')).toBeTruthy();
     expect(screen.getByText('当前规则可学会招式')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /查看烈咬陆鲨大图/ }));
+    expect(screen.getByRole('dialog', { name: /烈咬陆鲨大图/ })).toBeTruthy();
+    await user.click(screen.getByTitle('关闭'));
+    await user.click(screen.getByRole('button', { name: /当前规则可学会招式/ }));
+    expect(screen.queryByText('示例待补齐')).toBeNull();
+    expect(screen.getByRole('button', { name: '属性' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '性质' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '威力' }));
+    expect(screen.getByText('龙爪')).toBeTruthy();
     expect(screen.getByText('属性相克')).toBeTruthy();
   });
 

@@ -7,6 +7,7 @@ import {
   dataSourceManifest,
   defaultTeams,
   items,
+  moves,
   pokemon,
   regMaMegaAllowlist,
   regMaMegaAllowlistExpectedCount,
@@ -15,7 +16,7 @@ import {
   speedBenchmarks,
 } from '../data';
 import { auditSeedData, auditSourceRefs } from './dataAudit';
-import { currentRuleSelectableItems } from './currentRuleCatalog';
+import { currentRuleMovesForPokemon, currentRuleSelectableItems } from './currentRuleCatalog';
 
 describe('seed data audit', () => {
   it('keeps current seed data internally consistent', () => {
@@ -33,6 +34,8 @@ describe('seed data audit', () => {
     expect(sourceRefIds.has('champions-official-training')).toBe(true);
     expect(sourceRefIds.has('champions-stat-point-review')).toBe(true);
     expect(sourceRefIds.has('pokemon-zhwiki-ability-text')).toBe(true);
+    expect(sourceRefIds.has('pokebase-champions-learnsets')).toBe(true);
+    expect(sourceRefIds.has('pokeapi-move-data')).toBe(true);
     expect(auditSourceRefs('Test row', ['reg-ma-official-rule'])).toEqual([]);
   });
 
@@ -99,6 +102,19 @@ describe('seed data audit', () => {
     for (const item of outOfRule) {
       expect(currentRuleSelectableItemIds, `${item.id} must not be in selectable pool`).not.toContain(item.id);
     }
+  });
+
+  it('keeps current-rule move catalog generated from Champions available moves', () => {
+    expect(moves).toHaveLength(528);
+
+    const garchompMoves = currentRuleMovesForPokemon('garchomp').map((move) => move.id);
+    expect(garchompMoves).toEqual(expect.arrayContaining(['protect', 'dragon-claw', 'earthquake']));
+    expect(garchompMoves).not.toContain('hydro-pump');
+
+    const emptyLearnsets = pokemon.filter((entry) => entry.legalInCurrentRule && currentRuleMovesForPokemon(entry.id).length === 0);
+    expect(emptyLearnsets).toEqual([]);
+    expect(moves.every((move) => move.sourceRefs.includes('pokebase-champions-learnsets'))).toBe(true);
+    expect(moves.every((move) => move.chineseName && move.effectSummary)).toBe(true);
   });
 
   it('keeps real catalog rows on real artwork URLs', () => {

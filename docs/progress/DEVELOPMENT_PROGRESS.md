@@ -19,7 +19,7 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：9 个测试文件，56 个用例
+- [x] `npm test` 通过：10 个测试文件，59 个用例
 - [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，11 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
@@ -58,7 +58,7 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 伤害计算页招式、单双打、天气、场地、能力阶级、Mega 状态控件已可点击；正式伤害输出继续阻断
 - [x] 伤害计算页 Mega 状态会切换到对应 Mega 形态的属性 / 种族值展示
 - [x] 图鉴 Pokémon 列表只显示中文名，详情页支持英文 / 日文切换
-- [x] 图鉴详情页展示特性、种族值、示例 learnset、属性相克
+- [x] 图鉴详情页展示特性、种族值、当前规则 learnset、属性相克
 - [x] 属性展示收敛为项目化胶囊 badge，不再使用本地 PNG 属性图标
 - [x] Reg M-A 官方 Mega allowlist shell 已接入：59 条，含 source refs 与 audit 测试
 - [x] 首批 4 个本地 Mega 形态可用于图鉴、队伍能力值、速度线和计算页形态展示
@@ -70,9 +70,12 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 特性说明改为自动化中文来源：`scripts/generate-ability-effects.mjs` 从 52poke MediaWiki revisions API 抽取 zh-hans 信息框说明，并用 PokeAPI zh-hans 名称补齐
 - [x] 图鉴特性列表改为形态级拥有者映射：Mega 特性显示对应 Mega 形态头像和名称，点击可跳转到对应 Pokémon / Mega 详情页
 - [x] 性格完整接入：25 个主系列性格从 PokeAPI 接入，含中文名、增减能力、neutral 标记
-- [x] Mega 形态数据大批量接入：41 个旧主系列 Mega 拥有完整 stats/types/abilities/sprite/Mega Stone 映射，18 个 Champions 新 Mega 保留 shell
+- [x] Mega 形态数据大批量接入：35 个旧主系列 Mega 拥有完整 stats/types/abilities/sprite/Mega Stone 映射，24 个 Champions 新 Mega 保留 shell
 - [x] 道具图片本地快照：117 个当前规则可选道具图片从 PokéBase Champions 下载为 `public/assets/items/` 本地静态资源，不依赖外站热链；Clear Amulet / Assault Vest 不补图（当前规则不可选）
-- [ ] 完整真实 Reg M-A 招式 / learnset 数据接入
+- [x] 本地道具图片渲染契约修复：`PokemonAvatar` 支持 `/assets/items/*.png`、相对路径与 `data:image/*`，图片失败时使用 React 状态 fallback，避免手机端出现文字占位或浏览器破损图标
+- [x] 已接入 Pokémon 的当前规则招式 / learnset 第一阶段：PokéBase Champions Available Moves → 528 个招式、11323 条 Pokémon-招式关系；PokeAPI 只补中文名 / 中文说明 / 目标范围
+- [x] 图鉴 Pokémon 详情页头像大图预览、招式折叠列表、按属性 / 性质 / 威力排序
+- [x] 队伍页小卡片展示携带物图片；编辑页招式与携带物改为可搜索选择器
 - [ ] 32 只地区形态 Pokémon 数据接入
 - [ ] Champions 伤害机制确认
 - [ ] 正式伤害计算
@@ -204,19 +207,19 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 完整真实 Reg M-A Pokemon allowlist seed
 - [x] Reg M-A 官方 Mega allowlist shell：59 条官方允许 Mega Evolution，未 join 的条目保持待补战斗数据
 - [x] 首批 6 只真实 Pokemon catalog 数据
-- [x] 181 只基础形态 Pokemon 完整 catalog：含中文名、日文名、属性、种族值、特性（中文描述）、可学招式（来自已有招式目录）、PokeAPI 头像
+- [x] 181 只基础形态 Pokemon 完整 catalog：含中文名、日文名、属性、种族值、特性（中文描述）、PokeAPI 头像
 - [x] 174 个当前 catalog 特性完整中文说明，含 PokeAPI 中文名优先、52poke zh-hans 信息框说明、source refs 与自动化生成脚本
 - [x] 首批 4 个 Mega form catalog 数据：超级妙蛙花、超级喷火龙X、超级喷火龙Y、超级烈咬陆鲨
 - [x] 首批 seed 道具数据与当前可选池拆分
 - [x] 首批 seed 招式数据
 - [x] 首批 seed 特性数据
 - [x] Reg M-A 道具 catalog 第一批：30 个普通携带道具、59 个 Mega Stone、28 个树果，source refs 仍按社区候选 + manual-review 管理
-- [ ] 完整真实 Reg M-A 招式 catalog 数据
-- [ ] 完整真实 learnset 数据（招式与 Pokémon 学习关系）
-- [ ] Champions 性格 catalog 与效果确认
+- [x] 已接入 Pokémon 的 Reg M-A 招式 catalog 数据：528 个当前规则招式，字段含中文名、英文名、属性、分类、威力、命中、PP、目标范围、效果摘要
+- [x] 已接入 Pokémon 的 Reg M-A learnset 数据：181 只基础形态 Pokémon 均有 PokéBase Champions Available Moves 映射
+- [x] Champions 性格 catalog 初版：25 个主系列性格已接入，含中文名、增减能力与 neutral 标记
 - [x] 完整真实 Reg M-A 基础形态 Pokemon catalog 数据（181/213 基础形态）
 - [ ] 32 只地区形态 Pokémon 数据接入
-- [ ] 其余 55 个官方允许 Mega 形态的 stats / types / abilities / sprite / Mega Stone 映射
+- [ ] 其余 24 个 Champions 新 Mega 形态的 stats / types / abilities / sprite / Mega Stone 映射
 - [ ] 每条真实数据的来源链接和复核状态
 
 ### 机制确认
@@ -273,8 +276,13 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] Mega form + Mega Stone 合法性测试
 - [x] 速度线 Mega 形态速度测试
 - [x] 当前规则道具可选池测试：117 个候选道具进入 selector pool，突击背心 / 清净坠饰不进入 selector，seed 中保留但不标可用
+- [x] 道具图片审计测试：117 个当前规则道具 iconRef 指向本地 PNG，文件存在且 PNG signature 有效
+- [x] `PokemonAvatar` 本地图片渲染测试：`/assets/items/choice-scarf.png` 必须渲染为 `<img>`，加载失败才 fallback 为文字
+- [x] 图鉴道具页测试：搜索“围巾”时讲究围巾必须展示本地道具图片
 - [x] 特性数据完整性测试：174 个特性无占位说明，`pokemonIds` 与当前 Pokémon / Mega form catalog 反向映射一致
 - [x] 图鉴特性列表测试：搜索只匹配特性中英文名，拥有者头像折叠显示，Mega 特性跳转到对应 Mega 详情页
+- [x] 招式 / learnset 审计测试：528 个招式全部有 sourceRefs，181 只已接入 Pokémon 当前规则招式列表非空，烈咬陆鲨招式映射排除错误水炮
+- [x] 图鉴与队伍编辑测试：头像大图、招式折叠排序、携带物搜索、招式搜索与保存选择
 
 ## 5. 当前风险与处理状态
 
@@ -282,7 +290,7 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] Champions Stat Points 已按 v1 产品机制启用；后续仍需追踪官方最终措辞
 - [x] `@smogon/calc` 兼容性已调研：主线能力可用，Champions 特有机制仍阻断
 - [ ] 中文名、头像、简介资源授权风险仍需产品确认
-- [x] 道具图片完整性已解决：117 个当前规则可选道具图片已从 PokéBase Champions 做本地快照，不依赖外站热链；SW 已配置惰性预缓存
+- [x] 道具图片完整性已解决：117 个当前规则可选道具图片已从 PokéBase Champions 做本地快照，不依赖外站热链；SW 已配置惰性预缓存，`PokemonAvatar` 已支持本地 `/assets/...` 路径
 - [x] 属性 PNG 图标实验已撤回，当前采用项目化中文胶囊 badge
 - [x] 真实头像风险已按用户接受策略接入 PokeAPI official-artwork 外链
 - [x] 手机局域网测试中新建失败风险：通过 `createId` fallback 兜底
@@ -293,9 +301,9 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] Pokemon 基础数据已完整接入：181 只基础形态已从 PokeAPI 正式拉取，含中文名/日文名/属性/种族值/特性/中文特性描述/头像
 - [x] 特性说明占位风险已收敛：当前 174 个特性均有中文说明，列表搜索不再匹配说明文本，避免“威吓”误搜到说明里包含威吓的其他特性
 - [ ] 52poke 中文特性说明 source license 风险：当前仅作为自用 seed 数据源接入，公开分发前需确认 CC BY-NC-SA 署名 / 非商业 / 相同方式共享要求
-- [ ] Mega 数据不完整风险：59 条官方 allowlist 已建 shell，但只有 4 个本地 Mega form 具备可展示 stats/types/ability/sprite
+- [ ] Mega 数据不完整风险：59 条官方 allowlist 已建 shell，35 个旧主系列 Mega form 具备可展示 stats/types/ability/sprite，24 个 Champions 新 Mega 仍保留 shell
 - [ ] 地区形态数据缺失：32 只地区形态（Alolan/Galarian/Hisuian/Paldean）尚未录入 catalog
-- [ ] 招式 / learnset / 性格 catalog 不完整风险：招式与性格仍为 seed 示例级数据，learnset 来自 PokeAPI 但需与 Champions 实机规则对齐后正式启用
+- [ ] 招式 / learnset 剩余风险：181 只基础形态已按 PokéBase Champions 当前规则页接入；32 只地区形态和后续 Champions 新 Mega form 仍需补齐后再 join learnset
 
 ## 6. 下一步开发清单
 
@@ -331,10 +339,10 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 特性说明改为自动化中文来源，并支持形态级拥有者 / Mega 详情跳转
 - [x] 队伍添加 Pokémon 改为底部搜索 Picker，不再按顺序循环
 - [x] 图鉴详情页种族值加上总和数值
-- [ ] 明日优先：统一替换道具图标来源为 PokéBase Champions 当前可选道具真实图片快照，新增生成 / 审计脚本并更新 PWA 静态资源缓存
+- [x] 统一替换道具图标来源为 PokéBase Champions 当前可选道具真实图片快照，新增生成 / 审计脚本，更新 PWA 静态资源缓存，并修复本地路径渲染契约
 - [ ] 分批补齐 32 只地区形态 Pokémon 数据
-- [ ] 分批补齐其余 55 个官方允许 Mega 形态数据
-- [ ] 分批补齐 Reg M-A 招式 / learnset / 性格 catalog
+- [ ] 分批补齐其余 24 个 Champions 新 Mega 形态数据
+- [x] 分批补齐已接入 Pokémon 的 Reg M-A 招式 / learnset catalog
 - [ ] 建立 Reg M-B / 后续规则 registry 草案
 
 ## 7. 提交记录
@@ -358,3 +366,6 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] `3a0b632`：新增图鉴详情页与中 / 英 / 日名称展示
 - [x] `0e6bd9d`：新增 Mega form 数据骨架与 UI 接入
 - [x] `db671dc`：优化队伍页能力值与属性 badge 细节
+- [x] `e217523`：记录 Playwright 使用本机 Chrome 的测试配置
+- [x] `16e470c`：从 PokéBase Champions 快照当前规则 117 个道具图片
+- [x] `c29992b`：修复本地道具图片在 `PokemonAvatar` 中的渲染契约并补测试

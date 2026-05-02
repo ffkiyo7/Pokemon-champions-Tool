@@ -11,7 +11,8 @@
     "test:pwa": "playwright test",
     "test:visual": "playwright test tests/pwa/visual.spec.ts",
     "data:regma:allowlist": "node scripts/generate-regma-allowlist.mjs",
-    "data:regma:abilities": "node scripts/generate-ability-effects.mjs"
+    "data:regma:abilities": "node scripts/generate-ability-effects.mjs",
+    "data:regma:moves": "node scripts/generate-champions-moves.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
