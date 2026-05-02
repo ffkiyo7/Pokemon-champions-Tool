@@ -77,7 +77,7 @@ function MemberCard({
           <div className={`${expanded ? '' : 'mb-2'} relative shrink-0`}>
             <PokemonAvatar iconRef={battleForm?.iconRef ?? entry?.iconRef} label={battleForm?.chineseName ?? entry?.chineseName ?? '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
             {item?.iconRef && (
-              <span className="absolute translate-x-1 translate-y-1 rounded-full border border-border bg-card p-0.5">
+              <span className="absolute -bottom-0.5 -right-0.5 translate-x-1 translate-y-1 rounded-full border border-border bg-card p-0.5">
                 <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="xs" />
               </span>
             )}
@@ -245,6 +245,7 @@ function ItemSearchField({
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
+        <p className="text-[10px] text-textMuted">当前规则可携带道具，列表完整</p>
         <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
           <button className="flex w-full items-center rounded-lg px-2 py-1.5 text-left text-xs text-textSecondary" type="button" onClick={() => onChange('')}>
             不携带道具
@@ -325,6 +326,7 @@ function MoveSlotPicker({
               onChange={(event) => setQuery(event.target.value)}
             />
           </label>
+          <p className="text-[10px] text-textMuted">当前规则可学招式，列表完整</p>
           <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
             <button className="flex w-full items-center rounded-lg px-2 py-1.5 text-left text-xs text-textSecondary" type="button" onClick={() => onChange('')}>
               清空招式位
@@ -349,7 +351,6 @@ function MoveSlotPicker({
                   <TypeBadge type={move.type} size="sm" />
                   <span className="min-w-0">
                     <span className="block truncate text-xs font-semibold text-textPrimary">{move.chineseName}</span>
-                    <span className="block truncate text-[11px] text-textMuted">{move.effectSummary}</span>
                   </span>
                   <span className="text-right text-[10px] text-textMuted">
                     {moveCategoryLabels[move.category]}<br />
