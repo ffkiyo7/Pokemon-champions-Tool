@@ -6,7 +6,7 @@ import type { Ability, Pokemon } from '../../../types';
 
 const batchRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
 const abilityRefs = ['pokemon-zhwiki-ability-text', 'pokeapi-pokemon-data'];
-const artwork = (n: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${n}.png`;
+const artwork = (n: number) => `/assets/pokemon/icons/${n}.png`;
 
 export const abilitiesBatch003: Ability[] = [
   {

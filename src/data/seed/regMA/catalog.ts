@@ -14,7 +14,7 @@ const megaRefs = ['reg-ma-official-mega-list', 'pokeapi-pokemon-data', 'pokeapi-
 const itemCandidateRefs = ['reg-ma-community-item-snapshot', 'manual-seed-review'];
 const megaItemRefs = ['reg-ma-official-mega-list', 'reg-ma-community-item-snapshot', 'manual-seed-review'];
 
-const artwork = (nationalDexNo: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${nationalDexNo}.png`;
+const artwork = (nationalDexNo: number) => `/assets/pokemon/icons/${nationalDexNo}.png`;
 const formArtwork = (formSpriteId: number) => artwork(formSpriteId);
 
 const abilityRows: Ability[] = [

@@ -117,12 +117,23 @@ describe('seed data audit', () => {
     expect(moves.every((move) => move.chineseName && move.effectSummary)).toBe(true);
   });
 
-  it('keeps real catalog rows on real artwork URLs', () => {
+  it('keeps real catalog rows on local sprite icons', () => {
     const ids = pokemon.map((entry) => entry.id);
     expect(ids).toEqual(expect.arrayContaining(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']));
     expect(pokemon.length).toBeGreaterThanOrEqual(6);
-    expect(pokemon.every((entry) => entry.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
-    expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('https://raw.githubusercontent.com/PokeAPI/sprites/'))).toBe(true);
+    // All Pokémon and Mega form icons must be local /assets/pokemon/icons/ paths
+    expect(pokemon.every((entry) => entry.iconRef.startsWith('/assets/pokemon/icons/'))).toBe(true);
+    expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('/assets/pokemon/icons/'))).toBe(true);
+    // Every local icon file must exist on disk and be non-empty
+    const allRefs = [
+      ...pokemon.map((entry) => entry.iconRef),
+      ...pokemon.flatMap((entry) => entry.megaForms).map((form) => form.iconRef),
+    ];
+    for (const ref of allRefs) {
+      const filePath = `public${ref}`;
+      expect(existsSync(filePath), `${ref} file missing`).toBe(true);
+      expect(readFileSync(filePath).length, `${ref} file empty`).toBeGreaterThan(0);
+    }
   });
 
   it('keeps ability text complete and maps abilities back to current Pokemon', () => {

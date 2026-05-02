@@ -10,7 +10,7 @@ const megaRefs = [
   'manual-seed-review',
 ];
 
-const artwork = (n: number) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${n}.png`;
+const artwork = (n: number) => `/assets/pokemon/icons/${n}.png`;
 
 // Mega form entries keyed by parent Pokemon ID
 // Each entry maps base pokemon id → mega forms array
