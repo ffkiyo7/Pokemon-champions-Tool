@@ -23,6 +23,37 @@ const blankMember = (): TeamMember => ({
   legalityStatus: 'missing-config',
 });
 
+function HeldItemIcon({
+  iconRef,
+  label,
+  className = 'h-6 w-6',
+}: {
+  iconRef?: string;
+  label: string;
+  className?: string;
+}) {
+  if (!iconRef) return <span className={`shrink-0 ${className}`} aria-hidden="true" />;
+
+  return (
+    <img
+      className={`shrink-0 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)] ${className}`}
+      src={iconRef}
+      alt={label}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+}
+
+function HeldItemLine({ item, className = '' }: { item?: Item; className?: string }) {
+  return (
+    <span className={`inline-flex min-w-0 items-center gap-1.5 text-textSecondary ${className}`}>
+      {item?.iconRef && <HeldItemIcon iconRef={item.iconRef} label={item.chineseName} className="h-4 w-4" />}
+      <span className="truncate">{item?.chineseName ?? '未选道具'}</span>
+    </span>
+  );
+}
+
 function MemberCard({
   team,
   member,
@@ -74,13 +105,8 @@ function MemberCard({
       )}
       <button className="block w-full text-left" onClick={() => onToggle(member.id)}>
         <div className={expanded ? 'flex gap-3' : 'flex flex-col items-center text-center'}>
-          <div className={`${expanded ? '' : 'mb-2'} relative shrink-0`}>
+          <div className={`${expanded ? '' : 'mb-2'} shrink-0`}>
             <PokemonAvatar iconRef={battleForm?.iconRef ?? entry?.iconRef} label={battleForm?.chineseName ?? entry?.chineseName ?? '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
-            {item?.iconRef && (
-              <span className="absolute -bottom-0.5 -right-0.5 translate-x-1 translate-y-1 rounded-full border border-border bg-card p-0.5">
-                <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="xs" />
-              </span>
-            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className={`${expanded ? 'mb-1 justify-start' : 'mb-1 justify-center'} flex flex-wrap items-center gap-1.5`}>
@@ -97,8 +123,13 @@ function MemberCard({
                 ))}
               </div>
             )}
+            {!expanded && <HeldItemLine item={item} className="mx-auto mt-2 max-w-[120px] justify-center text-[11px]" />}
             {expanded && (
-              <p className="truncate text-xs text-textSecondary">{item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'}</p>
+              <p className="flex min-w-0 items-center gap-1.5 text-xs text-textSecondary">
+                <HeldItemLine item={item} className="min-w-0 max-w-[140px]" />
+                <span className="shrink-0">·</span>
+                <span className="truncate">{ability?.chineseName ?? '未选特性'}</span>
+              </p>
             )}
           </div>
         </div>
@@ -224,18 +255,6 @@ function ItemSearchField({
     <div>
       <FieldLabel>道具</FieldLabel>
       <div className="space-y-2 rounded-lg border border-border bg-secondary p-2">
-        <div className="flex items-center gap-2">
-          {selectedItem ? <PokemonAvatar iconRef={selectedItem.iconRef} label={selectedItem.chineseName} size="xs" /> : <span className="h-8 w-8 rounded-full border border-border bg-card" />}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-semibold">{selectedItem?.chineseName ?? '未选择'}</p>
-            <p className="truncate text-[11px] text-textMuted">{selectedItem?.effectSummary ?? ' '}</p>
-          </div>
-          {selectedItem && (
-            <button className="grid h-8 w-8 place-items-center rounded-md text-textMuted" type="button" title="清除道具" onClick={() => onChange('')}>
-              <X size={14} />
-            </button>
-          )}
-        </div>
         <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5">
           <Search size={14} className="text-textMuted" />
           <input
@@ -263,7 +282,7 @@ function ItemSearchField({
                 type="button"
                 onClick={() => onChange(item.id)}
               >
-                <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="xs" />
+                <HeldItemIcon iconRef={item.iconRef} label={item.chineseName} className="h-6 w-6" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-xs font-semibold text-textPrimary">{item.chineseName}</span>
                   <span className="block truncate text-[11px] text-textMuted">{item.effectSummary}</span>
@@ -525,6 +544,7 @@ function MemberEditor({
                   <TypeBadge key={type} type={type} size="sm" />
                 ))}
               </div>
+              <HeldItemLine item={selectedItem} className="mt-2 max-w-full text-[11px]" />
             </div>
           </div>
         </Card>
