@@ -19,7 +19,7 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：10 个测试文件，59 个用例
+- [x] `npm test` 通过：10 个测试文件，61 个用例
 - [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，11 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
@@ -76,7 +76,7 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 已接入 Pokémon 的当前规则招式 / learnset 第一阶段：PokéBase Champions Available Moves → 528 个招式、11323 条 Pokémon-招式关系；PokeAPI 只补中文名 / 中文说明 / 目标范围
 - [x] 图鉴 Pokémon 详情页头像大图预览、招式折叠列表、按属性 / 性质 / 威力排序
 - [x] 队伍页小卡片展示携带物图片；编辑页招式与携带物改为可搜索选择器
-- [ ] 32 只地区形态 Pokémon 数据接入
+- [x] 32 只地区形态 Pokémon 数据接入
 - [ ] Champions 伤害机制确认
 - [ ] 正式伤害计算
 - [x] 正式速度计算结论（基于当前 Champions SP v1 公式与 gate）
@@ -208,17 +208,17 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] Reg M-A 官方 Mega allowlist shell：59 条官方允许 Mega Evolution，未 join 的条目保持待补战斗数据
 - [x] 首批 6 只真实 Pokemon catalog 数据
 - [x] 181 只基础形态 Pokemon 完整 catalog：含中文名、日文名、属性、种族值、特性（中文描述）、PokeAPI 头像
-- [x] 174 个当前 catalog 特性完整中文说明，含 PokeAPI 中文名优先、52poke zh-hans 信息框说明、source refs 与自动化生成脚本
+- [x] 180 个当前 catalog 特性完整中文说明，含 PokeAPI 中文名优先、52poke zh-hans 信息框说明、source refs 与自动化生成脚本
 - [x] 首批 4 个 Mega form catalog 数据：超级妙蛙花、超级喷火龙X、超级喷火龙Y、超级烈咬陆鲨
 - [x] 首批 seed 道具数据与当前可选池拆分
 - [x] 首批 seed 招式数据
 - [x] 首批 seed 特性数据
 - [x] Reg M-A 道具 catalog 第一批：30 个普通携带道具、59 个 Mega Stone、28 个树果，source refs 仍按社区候选 + manual-review 管理
-- [x] 已接入 Pokémon 的 Reg M-A 招式 catalog 数据：528 个当前规则招式，字段含中文名、英文名、属性、分类、威力、命中、PP、目标范围、效果摘要
-- [x] 已接入 Pokémon 的 Reg M-A learnset 数据：181 只基础形态 Pokémon 均有 PokéBase Champions Available Moves 映射
+- [x] 已接入 Pokémon 的 Reg M-A 招式 catalog 数据：539 个当前规则招式，字段含中文名、英文名、属性、分类、威力、命中、PP、目标范围、效果摘要
+- [x] 已接入 Pokémon 的 Reg M-A learnset 数据：213 只当前规则 Pokémon（181 基础形态 + 32 地区形态）均有 PokéBase Champions Available Moves 映射，共计 13387 条 Pokémon-招式关系
 - [x] Champions 性格 catalog 初版：25 个主系列性格已接入，含中文名、增减能力与 neutral 标记
 - [x] 完整真实 Reg M-A 基础形态 Pokemon catalog 数据（181/213 基础形态）
-- [ ] 32 只地区形态 Pokémon 数据接入
+- [x] 32 只地区形态 Pokémon 数据接入
 - [ ] 其余 24 个 Champions 新 Mega 形态的 stats / types / abilities / sprite / Mega Stone 映射
 - [ ] 每条真实数据的来源链接和复核状态
 
@@ -283,6 +283,7 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 图鉴特性列表测试：搜索只匹配特性中英文名，拥有者头像折叠显示，Mega 特性跳转到对应 Mega 详情页
 - [x] 招式 / learnset 审计测试：528 个招式全部有 sourceRefs，181 只已接入 Pokémon 当前规则招式列表非空，烈咬陆鲨招式映射排除错误水炮
 - [x] 图鉴与队伍编辑测试：头像大图、招式折叠排序、携带物搜索、招式搜索与保存选择
+- [x] 32 只地区形态审计测试：id 精确匹配、本地图标/立绘文件存在且尺寸合格、属性/种族值/特性非空、learnset 非空、关键形态属性差异断言
 
 ## 5. 当前风险与处理状态
 
@@ -302,8 +303,8 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 特性说明占位风险已收敛：当前 174 个特性均有中文说明，列表搜索不再匹配说明文本，避免“威吓”误搜到说明里包含威吓的其他特性
 - [ ] 52poke 中文特性说明 source license 风险：当前仅作为自用 seed 数据源接入，公开分发前需确认 CC BY-NC-SA 署名 / 非商业 / 相同方式共享要求
 - [ ] Mega 数据不完整风险：59 条官方 allowlist 已建 shell，35 个旧主系列 Mega form 具备可展示 stats/types/ability/sprite，24 个 Champions 新 Mega 仍保留 shell
-- [ ] 地区形态数据缺失：32 只地区形态（Alolan/Galarian/Hisuian/Paldean）尚未录入 catalog
-- [ ] 招式 / learnset 剩余风险：181 只基础形态已按 PokéBase Champions 当前规则页接入；32 只地区形态和后续 Champions 新 Mega form 仍需补齐后再 join learnset
+- [x] 地区形态数据缺失：32 只地区形态（Alolan/Galarian/Hisuian/Paldean）已录入 catalog。（旧风险已收敛）
+- [x] 招式 / learnset 剩余风险：213 只当前规则 Pokémon（181 基础 + 32 地区形态）已全部按 PokéBase Champions 当前规则页接入 learnset。
 
 ## 6. 下一步开发清单
 
@@ -340,9 +341,9 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 队伍添加 Pokémon 改为底部搜索 Picker，不再按顺序循环
 - [x] 图鉴详情页种族值加上总和数值
 - [x] 统一替换道具图标来源为 PokéBase Champions 当前可选道具真实图片快照，新增生成 / 审计脚本，更新 PWA 静态资源缓存，并修复本地路径渲染契约
-- [ ] 分批补齐 32 只地区形态 Pokémon 数据
+- [x] 分批补齐 32 只地区形态 Pokémon 数据
 - [ ] 分批补齐其余 24 个 Champions 新 Mega 形态数据
-- [x] 分批补齐已接入 Pokémon 的 Reg M-A 招式 / learnset catalog
+- [x] 分批补齐已接入 Pokémon 的 Reg M-A 招式 / learnset catalog（现已覆盖全部 213 只）
 - [ ] 建立 Reg M-B / 后续规则 registry 草案
 
 ## 7. 提交记录

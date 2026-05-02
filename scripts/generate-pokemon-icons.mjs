@@ -27,6 +27,8 @@ const re = /(?:form)?[Aa]rtwork\((\d+)\)/g;
 while ((m = re.exec(combined))) spriteIds.add(Number(m[1]));
 const dexRe = /nationalDexNo:\s*(\d+)/g;
 while ((m = dexRe.exec(combined))) spriteIds.add(Number(m[1]));
+const tplRe = /\/assets\/pokemon\/(?:thumbs|artwork)\/\$\{(\d+)\}/g;
+while ((m = tplRe.exec(combined))) spriteIds.add(Number(m[1]));
 
 console.log(`Found ${spriteIds.size} sprite IDs`);
 

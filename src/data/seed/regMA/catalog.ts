@@ -6,6 +6,7 @@ import { pokemonBatch002, abilitiesBatch002 } from './catalog-batch-002';
 import { pokemonBatch001, abilitiesBatch001 } from './catalog-batch-001';
 import { megaFormsByParentId, megaStoneParentMap, megaCapableBaseIds } from './mega-catalog';
 import { itemIconMapping } from './item-icon-mapping';
+import { pokemonForms032 } from './catalog-forms';
 import { championsMoves } from './move-catalog';
 
 const catalogRefs = ['reg-ma-official-eligible-pokemon', 'pokeapi-pokemon-data', 'pokeapi-official-artwork', 'manual-seed-review'];
@@ -179,6 +180,66 @@ const abilityRows: Ability[] = [
     englishName: 'Intimidate',
     effectSummary: '出场时威吓对手，让其退缩，降低对手的攻击。',
     pokemonIds: ['incineroar'],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
+  {
+    id: 'adaptability',
+    chineseName: '适应力',
+    englishName: 'Adaptability',
+    effectSummary: '与自身同属性的招式威力会提高。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
+  {
+    id: 'curious-medicine',
+    chineseName: '怪药',
+    englishName: 'Curious Medicine',
+    effectSummary: '出场时会从贝壳撒药，将我方的能力变化复原。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
+  {
+    id: 'mimicry',
+    chineseName: '拟态',
+    englishName: 'Mimicry',
+    effectSummary: '宝可梦的属性会根据场地的状态而变化。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
+  {
+    id: 'quick-draw',
+    chineseName: '速击',
+    englishName: 'Quick Draw',
+    effectSummary: '有时能比对手先一步行动。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
+  {
+    id: 'surge-surfer',
+    chineseName: '冲浪之尾',
+    englishName: 'Surge Surfer',
+    effectSummary: '电气场地时，速度会变为2倍。',
+    pokemonIds: [],
+    calculationImpact: 'pending',
+    legalInCurrentRule: true,
+    sourceRefs: abilityRefs,
+  },
+  {
+    id: 'vital-spirit',
+    chineseName: '干劲',
+    englishName: 'Vital Spirit',
+    effectSummary: '通过激发出干劲，不会变为睡眠状态。',
+    pokemonIds: [],
     calculationImpact: 'pending',
     legalInCurrentRule: true,
     sourceRefs: abilityRefs,
@@ -374,6 +435,7 @@ export const pokemon: Pokemon[] = [
   ...pokemonBatch003,
   ...pokemonBatch002,
   ...pokemonBatch001,
+  ...pokemonForms032,
   {
     id: 'venusaur',
     nationalDexNo: 3,

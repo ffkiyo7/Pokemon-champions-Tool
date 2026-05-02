@@ -114,7 +114,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps current-rule move catalog generated from Champions available moves', () => {
-    expect(moves).toHaveLength(528);
+    expect(moves).toHaveLength(539);
 
     const garchompMoves = currentRuleMovesForPokemon('garchomp').map((move) => move.id);
     expect(garchompMoves).toEqual(expect.arrayContaining(['protect', 'dragon-claw', 'earthquake']));
@@ -149,7 +149,7 @@ describe('seed data audit', () => {
   it('keeps real catalog rows on local sprite icons', () => {
     const ids = pokemon.map((entry) => entry.id);
     expect(ids).toEqual(expect.arrayContaining(['venusaur', 'charizard', 'politoed', 'torkoal', 'garchomp', 'incineroar']));
-    expect(pokemon.length).toBeGreaterThanOrEqual(6);
+    expect(pokemon.length).toBe(213);
     // All Pokémon and Mega form icons must be local /assets/pokemon/thumbs/ paths
     expect(pokemon.every((entry) => entry.iconRef.startsWith('/assets/pokemon/thumbs/'))).toBe(true);
     expect(pokemon.flatMap((entry) => entry.megaForms).every((form) => form.iconRef.startsWith('/assets/pokemon/thumbs/'))).toBe(true);
@@ -181,7 +181,7 @@ describe('seed data audit', () => {
   });
 
   it('keeps ability text complete and maps abilities back to current Pokemon', () => {
-    expect(abilities).toHaveLength(174);
+    expect(abilities).toHaveLength(180);
     expect(abilities.every((ability) => ability.effectSummary && !ability.effectSummary.includes('待确认'))).toBe(true);
 
     const expectedPokemonIdsByAbility = new Map<string, string[]>();
@@ -195,6 +195,66 @@ describe('seed data audit', () => {
     abilities.forEach((ability) => {
       expect(ability.pokemonIds).toEqual(expectedPokemonIdsByAbility.get(ability.id) ?? []);
     });
+  });
+
+  it('keeps all 32 form Pokemon entries in the catalog with type distinctions', () => {
+    const formIds = [
+      'raichu-alola', 'ninetales-alola', 'arcanine-hisui', 'slowbro-galar',
+      'tauros-paldea-combat-breed', 'tauros-paldea-blaze-breed', 'tauros-paldea-aqua-breed',
+      'typhlosion-hisui', 'slowking-galar',
+      'rotom', 'rotom-heat', 'rotom-wash', 'rotom-frost', 'rotom-fan', 'rotom-mow',
+      'samurott-hisui', 'zoroark-hisui', 'stunfisk-galar',
+      'meowstic-male', 'meowstic-female', 'goodra-hisui',
+      'gourgeist-average', 'gourgeist-small', 'gourgeist-large', 'gourgeist-super',
+      'avalugg-hisui', 'decidueye-hisui',
+      'lycanroc-midday', 'lycanroc-midnight', 'lycanroc-dusk',
+      'basculegion-male', 'basculegion-female',
+    ];
+
+    const formPokemon = pokemon.filter((entry) => formIds.includes(entry.id));
+    expect(formPokemon).toHaveLength(32);
+
+    for (const id of formIds) {
+      const entry = pokemon.find((p) => p.id === id);
+      expect(entry, `${id} should exist in catalog`).toBeTruthy();
+      if (!entry) continue;
+
+      // Require local icon and artwork refs
+      expect(entry.iconRef, `${id} iconRef must be local`).toMatch(/^\/assets\/pokemon\/thumbs\//);
+      expect(entry.artworkRef, `${id} artworkRef must be local`).toMatch(/^\/assets\/pokemon\/artwork\//);
+
+      // Verify icon and artwork files exist
+      for (const ref of [entry.iconRef, entry.artworkRef].filter(Boolean) as string[]) {
+        const filePath = `public${ref}`;
+        expect(existsSync(filePath), `${id} file missing: ${filePath}`).toBe(true);
+        expect(readFileSync(filePath).length, `${id} file empty: ${filePath}`).toBeGreaterThan(0);
+        const dimensions = pngDimensions(filePath);
+        expect(Math.max(dimensions.width, dimensions.height), `${id} thumbnail too small`).toBeGreaterThanOrEqual(192);
+      }
+
+      // Non-empty data fields
+      expect(entry.types.length, `${id} must have types`).toBeGreaterThan(0);
+      expect(Object.values(entry.baseStats).every((v) => v > 0), `${id} must have non-zero baseStats`).toBe(true);
+      expect(entry.abilities.length, `${id} must have abilities`).toBeGreaterThan(0);
+
+      // Learnset must be non-empty
+      const movesForForm = currentRuleMovesForPokemon(id);
+      expect(movesForForm.length, `${id} must have learnable moves`).toBeGreaterThan(0);
+
+      // canMega must be false
+      expect(entry.canMega, `${id} canMega must be false`).toBe(false);
+      expect(entry.megaForms, `${id} megaForms must be empty`).toEqual([]);
+    }
+
+    // Key type assertions: prevent accidental base-form type inheritance
+    const typeMap = Object.fromEntries(formPokemon.map((p) => [p.id, p.types]));
+    expect(typeMap['raichu-alola']).toContain('Psychic');
+    expect(typeMap['ninetales-alola']).toEqual(expect.arrayContaining(['Ice', 'Fairy']));
+    expect(typeMap['arcanine-hisui']).toContain('Rock');
+    expect(typeMap['slowbro-galar']).toContain('Poison');
+    expect(typeMap['zoroark-hisui']).toEqual(expect.arrayContaining(['Normal', 'Ghost']));
+    expect(typeMap['goodra-hisui']).toContain('Steel');
+    expect(typeMap['decidueye-hisui']).toContain('Fighting');
   });
 
   it('reports source refs that are not present in the manifest', () => {

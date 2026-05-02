@@ -6,7 +6,7 @@
 
 - 本地最新基线：`c29992b Fix local item icon rendering`
 - 本地当前领先 `origin/master` 多个提交；本轮已完成道具图快照、渲染修复与测试补强，待文档提交后统一推送。
-- `npm test` 通过：10 个测试文件，59 个用例。
+- `npm test` 通过：10 个测试文件，61 个用例。
 - `npm run build` 通过。
 - `npm run test:pwa` 通过：PWA 离线 + 390px 移动端视觉回归，视觉基线 11 张。
 - Playwright PWA / 视觉测试使用 `playwright.config.ts` 中的 `channel: 'chrome'`，即本机 Google Chrome；不依赖 Playwright bundled Chromium。
@@ -25,26 +25,27 @@
 - `currentRuleCatalog` 已接入 Reg M-A 道具候选 catalog：当前规则可选池 117 个道具。
 - 道具图片已统一为 PokéBase Champions 当前可选道具真实图片快照：117 个 PNG 存入 `public/assets/items/`，`iconRef` 使用本地 `/assets/items/*.png`，SW 已配置惰性预缓存。
 - `PokemonAvatar` 已修复本地图片路径识别：支持 `/assets/...`、相对路径与 `data:image/*`，失败时才用文字 fallback。
-- 招式和 learnset 已完成已接入 Pokémon 的第一阶段 join：`scripts/generate-champions-moves.mjs` 从 PokéBase Champions Pokémon Available Moves 页面生成 528 个招式与 11323 条 Pokémon-招式关系；PokeAPI 只用于中文名、中文说明和目标范围。
+- 招式和 learnset 已完成全部 213 只当前规则 Pokémon 的 join：`scripts/generate-champions-moves.mjs` 从 PokéBase Champions Pokémon Available Moves 页面生成 539 个招式与 13387 条 Pokémon-招式关系；PokeAPI 只用于中文名、中文说明和目标范围。
 - 图鉴 Pokémon 列表按全国图鉴序号排序；详情页头像可点开大图，当前规则可学招式默认折叠，可按属性 / 性质 / 威力排序。
 - 队伍小卡片展示当前携带物图片；队伍编辑页招式和携带物已改为可搜索选择器。
 - Reg M-A 将于 2026-06-17 01:59 UTC 结束；仍需预留 Reg M-B 数据注册表 / 切换设计。
 
 ## 下一轮优先事项
 
-1. 地区形态数据接入
-   - 32 只地区形态（Alolan / Galarian / Hisuian / Paldean）尚未录入 catalog。
-   - 地区形态的 stats / types / abilities 与基础形态不同，需要按 form ID 从 PokeAPI 接入。
-   - 保持 `manual-review`，不伪造数据。
+1. 地区形态数据接入 ✅ 已完成
+   - 32 只地区形态（Alolan / Galarian / Hisuian / Paldean / Rotom / Lycanroc / Gourgeist / Meowstic / Basculegion）已录入 catalog。
+   - 所有地区形态均从 PokeAPI 按 form ID 接入 stats / types / abilities / sprite / artwork。
+   - 所有形态 Pokémon 均为独立顶层 `Pokemon` 条目，id 精确等于 PokeAPI endpoint id。
+   - 保持 `manual-review`，无伪造数据。Champions 新 Mega 仍为 shell 状态。
 
 2. Mega 数据第三阶段
    - 对 59 个官方 Mega allowlist 做 catalog join。
    - 已完成旧主系列 35 个 Mega form；剩余 24 个 Champions 新 Mega 只在官方或可靠结构源出现后补战斗字段。
    - 新增测试：allowlist entry 与 catalog form 映射、Mega Stone 到 form 的一一关系，以及 Mega 特性拥有者在图鉴中指向具体 Mega form。
 
-3. 招式 / learnset 后续补齐
-   - 已接入 181 只基础形态 Pokémon 的 PokéBase Champions Available Moves。
-   - 下一步只补缺口：32 只地区形态、后续 Champions 新 Mega form 与 learnset 的 form 级差异。
+3. 招式 / learnset 后续补齐 ✅ 已完成
+   - 213 只当前规则 Pokémon（181 基础形态 + 32 地区形态）已全部接入 PokéBase Champions Available Moves 页面 learnset。
+   - 招式 catalog 现已包含 539 个招式，13387 条 Pokémon-招式关系。
    - 性格已按主系列 25 个接入；后续只需确认 Champions 是否全量沿用名称 / 效果。
 
 4. 伦琴猫与主页轻量内容

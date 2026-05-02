@@ -131,7 +131,7 @@ async function cachedJson(url) {
 }
 
 async function readCurrentPokemon() {
-  const files = ['catalog.ts', ...(await readdir(DATA_DIR)).filter((file) => file.startsWith('catalog-batch-') && file.endsWith('.ts'))];
+  const files = ['catalog.ts', ...(await readdir(DATA_DIR)).filter((file) => (file.startsWith('catalog-batch-') || file.startsWith('catalog-forms')) && file.endsWith('.ts'))];
   const entries = new Map();
 
   for (const file of files) {
