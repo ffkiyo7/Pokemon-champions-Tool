@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import { useState } from 'react';
 import type { LegalityStatus, PokemonType } from '../types';
 
 export function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -146,10 +147,19 @@ export function PokemonAvatar({
     lg: 'h-14 w-14 text-lg',
     xl: 'h-16 w-16 text-lg',
   };
-  const isImage = Boolean(iconRef?.startsWith('http://') || iconRef?.startsWith('https://'));
+  const [failedSrc, setFailedSrc] = useState<string | undefined>();
+  const isImage = Boolean(
+    iconRef?.startsWith('http://') ||
+      iconRef?.startsWith('https://') ||
+      iconRef?.startsWith('/') ||
+      iconRef?.startsWith('./') ||
+      iconRef?.startsWith('../') ||
+      iconRef?.startsWith('data:image/'),
+  );
+  const imageFailed = Boolean(iconRef && failedSrc === iconRef);
 
-  if (!isImage) {
-    const fallback = iconRef ?? label.charAt(0);
+  if (!isImage || imageFailed) {
+    const fallback = imageFailed ? label.charAt(0) : iconRef ?? label.charAt(0);
     return (
       <div className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-elevated font-bold text-accent ${sizes[size]}`}>
         {fallback}
@@ -163,15 +173,7 @@ export function PokemonAvatar({
         src={iconRef}
         alt={label}
         className="h-full w-full object-contain p-0.5"
-        onError={(e) => {
-          const target = e.currentTarget;
-          target.style.display = 'none';
-          const parent = target.parentElement;
-          if (parent) {
-            parent.classList.add('text-xs');
-            parent.textContent = label.charAt(0);
-          }
-        }}
+        onError={() => setFailedSrc(iconRef)}
       />
     </div>
   );

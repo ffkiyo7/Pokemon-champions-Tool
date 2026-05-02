@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   abilities,
@@ -89,6 +89,9 @@ describe('seed data audit', () => {
       // File must exist on disk
       const filePath = `public${item.iconRef}`;
       expect(existsSync(filePath), `${item.id} icon file missing: ${filePath}`).toBe(true);
+      expect(readFileSync(filePath).subarray(0, 8), `${item.id} icon file must be a PNG`).toEqual(
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      );
     }
 
     // Out-of-rule items (Clear Amulet, Assault Vest) are NOT required to have local images

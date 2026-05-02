@@ -196,6 +196,8 @@ describe('App page flows', () => {
     await user.click(screen.getByRole('button', { name: '道具' }));
     await user.type(screen.getByPlaceholderText('搜索名称'), '围巾');
     expect(screen.getByText('讲究围巾')).toBeTruthy();
+    const choiceScarfCard = screen.getByText('讲究围巾').closest('section')!;
+    expect(within(choiceScarfCard).getByAltText('讲究围巾').getAttribute('src')).toContain('/assets/items/choice-scarf.png');
     expect(screen.queryByText('文柚果')).toBeNull();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
