@@ -244,12 +244,22 @@ describe('App page flows', () => {
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
     await user.click(screen.getByRole('button', { name: '招式' }));
+    const firstNormalMoveCard = screen.getByText(/百万吨重踢 Mega Kick/).closest('section')!;
+    const firstPoisonMoveCard = screen.getByText(/溶化 Acid Armor/).closest('section')!;
+    expect(firstNormalMoveCard.compareDocumentPosition(firstPoisonMoveCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
     await user.type(screen.getByPlaceholderText('搜索名称'), 'Dragon');
     expect(screen.getByText(/龙爪 Dragon Claw/)).toBeTruthy();
     expect(screen.queryByText(/守住 Protect/)).toBeNull();
 
     await user.clear(screen.getByPlaceholderText('搜索名称'));
     await user.click(screen.getByRole('button', { name: '特性' }));
+    const aftermathCard = screen.getByText(/引爆 Aftermath/).closest('section')!;
+    const analyticCard = screen.getByText(/分析 Analytic/).closest('section')!;
+    const bigPecksCard = screen.getByText(/健壮胸肌 Big Pecks/).closest('section')!;
+    expect(aftermathCard.compareDocumentPosition(analyticCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(analyticCard.compareDocumentPosition(bigPecksCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
     await user.type(screen.getByPlaceholderText('搜索名称'), '威吓');
     const intimidateCard = screen.getByText(/威吓 Intimidate/).closest('section')!;
     expect(screen.queryByText(/精神力 Inner Focus/)).toBeNull();

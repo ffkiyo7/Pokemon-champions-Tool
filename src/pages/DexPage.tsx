@@ -398,6 +398,7 @@ export function DexPage({
     () => moves.filter((move) => matchesSearch(move.chineseName, move.englishName, move.id, typeLabelByValue[move.type], move.type, categoryLabels[move.category], move.category)),
     [query],
   );
+  const sortedFilteredMoves = useMemo(() => sortMovesForDisplay(filteredMoves, 'type'), [filteredMoves]);
   const selectableItems = useMemo(() => currentRuleSelectableItems(), []);
   const filteredItems = useMemo(
     () => selectableItems.filter((item) => matchesSearch(item.chineseName, item.englishName, item.effectSummary)),
@@ -406,6 +407,10 @@ export function DexPage({
   const filteredAbilities = useMemo(
     () => abilities.filter((ability) => matchesSearch(ability.chineseName, ability.englishName)),
     [query],
+  );
+  const sortedFilteredAbilities = useMemo(
+    () => [...filteredAbilities].sort((a, b) => a.englishName.localeCompare(b.englishName, 'en-US')),
+    [filteredAbilities],
   );
 
   const toggleTypeFilter = (type: PokemonType) => {
@@ -513,11 +518,11 @@ export function DexPage({
       )}
 
       {tab === 'moves' && (
-        filteredMoves.length === 0 ? (
+        sortedFilteredMoves.length === 0 ? (
           <EmptyState title="没有找到相关招式" action={<Button onClick={() => setQuery('')}>清除搜索</Button>} />
         ) : (
         <div className="space-y-2">
-          {filteredMoves.map((move) => {
+          {sortedFilteredMoves.map((move) => {
             const isExpanded = expandedMoveId === move.id;
             return (
             <Card key={move.id} className="flex items-start gap-3">
@@ -556,11 +561,11 @@ export function DexPage({
       )}
 
       {tab === 'abilities' && (
-        filteredAbilities.length === 0 ? (
+        sortedFilteredAbilities.length === 0 ? (
           <EmptyState title="没有找到相关特性" action={<Button onClick={() => setQuery('')}>清除搜索</Button>} />
         ) : (
         <div className="space-y-2">
-          {filteredAbilities.map((ability) => {
+          {sortedFilteredAbilities.map((ability) => {
             const expanded = expandedAbilityListIds.includes(ability.id);
             const abilityEntries = dexEntries.filter((entry) => entry.abilities.includes(ability.id));
             const previewEntries = abilityEntries.slice(0, ABILITY_OWNER_PREVIEW_LIMIT);
