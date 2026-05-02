@@ -19,7 +19,7 @@ npm run build
 
 当前验证结果：
 
-- [x] `npm test` 通过：9 个测试文件，55 个用例
+- [x] `npm test` 通过：9 个测试文件，56 个用例
 - [x] `npm run test:visual` 通过：1 个 Playwright 移动端视觉回归用例，11 张基线截图
 - [x] `npm run test:pwa` 通过：2 个 Playwright 用例，包含 PWA 离线与移动端视觉回归
 - [x] `npm run build` 通过
@@ -71,7 +71,7 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] 图鉴特性列表改为形态级拥有者映射：Mega 特性显示对应 Mega 形态头像和名称，点击可跳转到对应 Pokémon / Mega 详情页
 - [x] 性格完整接入：25 个主系列性格从 PokeAPI 接入，含中文名、增减能力、neutral 标记
 - [x] Mega 形态数据大批量接入：41 个旧主系列 Mega 拥有完整 stats/types/abilities/sprite/Mega Stone 映射，18 个 Champions 新 Mega 保留 shell
-- [x] 道具图片临时接入：119 个道具从 PokeAPI sprites 获取 iconRef，DexPage 道具 tab 使用 PokemonAvatar 渲染；已发现 PokeAPI 覆盖不完整，破图兜底只作为临时防护，明日改为 PokéBase Champions 当前可选道具真实图片快照
+- [x] 道具图片本地快照：117 个当前规则可选道具图片从 PokéBase Champions 下载为 `public/assets/items/` 本地静态资源，不依赖外站热链；Clear Amulet / Assault Vest 不补图（当前规则不可选）
 - [ ] 完整真实 Reg M-A 招式 / learnset 数据接入
 - [ ] 32 只地区形态 Pokémon 数据接入
 - [ ] Champions 伤害机制确认
@@ -282,7 +282,7 @@ Playwright 说明：`playwright.config.ts` 的移动端项目使用 `channel: 'c
 - [x] Champions Stat Points 已按 v1 产品机制启用；后续仍需追踪官方最终措辞
 - [x] `@smogon/calc` 兼容性已调研：主线能力可用，Champions 特有机制仍阻断
 - [ ] 中文名、头像、简介资源授权风险仍需产品确认
-- [ ] 道具图片完整性风险：当前 PokeAPI item sprites 对 Champions 新 Mega Stone 与 Fairy Feather 覆盖不完整；明日改为下载 PokéBase Champions 当前规则 117 个可选道具真实图片到项目静态资源，不使用本地生成图标，不补当前规则外的 Clear Amulet / Assault Vest
+- [x] 道具图片完整性已解决：117 个当前规则可选道具图片已从 PokéBase Champions 做本地快照，不依赖外站热链；SW 已配置惰性预缓存
 - [x] 属性 PNG 图标实验已撤回，当前采用项目化中文胶囊 badge
 - [x] 真实头像风险已按用户接受策略接入 PokeAPI official-artwork 外链
 - [x] 手机局域网测试中新建失败风险：通过 `createId` fallback 兜底

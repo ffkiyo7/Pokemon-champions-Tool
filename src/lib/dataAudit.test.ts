@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   abilities,
@@ -14,6 +15,7 @@ import {
   speedBenchmarks,
 } from '../data';
 import { auditSeedData, auditSourceRefs } from './dataAudit';
+import { currentRuleSelectableItems } from './currentRuleCatalog';
 
 describe('seed data audit', () => {
   it('keeps current seed data internally consistent', () => {
@@ -71,6 +73,29 @@ describe('seed data audit', () => {
     expect(currentRuleSelectableItemIds).not.toContain('clear-amulet');
     expect(items.find((item) => item.id === 'assault-vest')?.legalInCurrentRule).toBe(false);
     expect(items.find((item) => item.id === 'clear-amulet')?.legalInCurrentRule).toBe(false);
+  });
+
+  it('keeps all 117 current-rule items with local iconRef snapshots', () => {
+    const selectable = currentRuleSelectableItems();
+    expect(selectable).toHaveLength(117);
+
+    for (const item of selectable) {
+      // iconRef must exist
+      expect(item.iconRef, `${item.id} missing iconRef`).toBeTruthy();
+      // Must be local path, not PokeAPI remote
+      expect(item.iconRef, `${item.id} iconRef must be local /assets/items/`).toMatch(/^\/assets\/items\//);
+      expect(item.iconRef, `${item.id} must not use PokeAPI remote`).not.toContain('raw.githubusercontent.com/PokeAPI');
+
+      // File must exist on disk
+      const filePath = `public${item.iconRef}`;
+      expect(existsSync(filePath), `${item.id} icon file missing: ${filePath}`).toBe(true);
+    }
+
+    // Out-of-rule items (Clear Amulet, Assault Vest) are NOT required to have local images
+    const outOfRule = items.filter((item) => !item.legalInCurrentRule);
+    for (const item of outOfRule) {
+      expect(currentRuleSelectableItemIds, `${item.id} must not be in selectable pool`).not.toContain(item.id);
+    }
   });
 
   it('keeps real catalog rows on real artwork URLs', () => {
