@@ -340,12 +340,12 @@ function PokemonDetail({
       </Card>
       {showLargeImage && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-6" role="dialog" aria-modal="true" aria-label={`${entry.chineseName}大图`}>
-          <button className="absolute inset-0 cursor-default" type="button" aria-label="关闭大图" onClick={() => setShowLargeImage(false)} />
-          <div className="relative w-full max-w-[360px]">
-            <button className="absolute right-0 top-0 grid h-9 w-9 place-items-center rounded-lg bg-card text-textSecondary" type="button" title="关闭" onClick={() => setShowLargeImage(false)}>
+          <button className="absolute inset-0 cursor-default" type="button" aria-label="关闭" onClick={() => setShowLargeImage(false)} />
+          <div className="relative z-10 w-full max-w-[360px]">
+            <button className="absolute right-0 top-0 z-20 grid h-9 w-9 place-items-center rounded-lg bg-card text-textSecondary" type="button" title="关闭" onClick={() => setShowLargeImage(false)}>
               <X size={18} />
             </button>
-            <img className="mx-auto max-h-[70vh] w-full object-contain drop-shadow-2xl" src={entry.iconRef} alt={entry.chineseName} />
+            <img className="mx-auto max-h-[70vh] w-full object-contain drop-shadow-2xl" src={entry.iconRef.startsWith('/assets/pokemon/icons/') ? entry.iconRef.replace('/assets/pokemon/icons/', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/') : entry.iconRef} alt={entry.chineseName} />
             <p className="mt-3 text-center text-sm font-semibold text-white">{entry.chineseName}</p>
           </div>
         </div>
@@ -365,6 +365,8 @@ export function DexPage({
   const [query, setQuery] = useState('');
   const [selectedTypes, setSelectedTypes] = useState<PokemonType[]>([]);
   const [showTypeFilter, setShowTypeFilter] = useState(false);
+  const [showMegaOnly, setShowMegaOnly] = useState(false);
+  const [expandedMoveId, setExpandedMoveId] = useState<string | null>(null);
   const [detailPokemonId, setDetailPokemonId] = useState<string | null>(null);
   const [expandedAbilityListIds, setExpandedAbilityListIds] = useState<string[]>([]);
   const dexEntries = useMemo(
@@ -380,9 +382,10 @@ export function DexPage({
       dexEntries.filter((entry) => {
         const matchesQuery = `${entry.chineseName} ${entry.englishName} ${entry.japaneseName}`.toLowerCase().includes(query.toLowerCase());
         const matchesType = selectedTypes.length === 0 || selectedTypes.every((type) => entry.types.includes(type));
-        return matchesQuery && matchesType;
+        const matchesMega = !showMegaOnly || entry.isMega;
+        return matchesQuery && matchesType && matchesMega;
       }),
-    [dexEntries, query, selectedTypes],
+    [dexEntries, query, selectedTypes, showMegaOnly],
   );
   const detailPokemon = detailPokemonId ? dexEntries.find((entry) => entry.id === detailPokemonId) ?? null : null;
   const typeFilterLabel = selectedTypes.length === 0 ? '属性：全部' : `属性：${selectedTypes.map((type) => typeLabelByValue[type]).join(' + ')}`;
@@ -392,7 +395,7 @@ export function DexPage({
     return values.some((value) => String(value ?? '').toLowerCase().includes(normalized));
   };
   const filteredMoves = useMemo(
-    () => moves.filter((move) => matchesSearch(move.chineseName, move.englishName, move.type, move.category, move.effectSummary)),
+    () => moves.filter((move) => matchesSearch(move.chineseName, move.englishName, move.id, typeLabelByValue[move.type], move.type, categoryLabels[move.category], move.category)),
     [query],
   );
   const selectableItems = useMemo(() => currentRuleSelectableItems(), []);
@@ -460,6 +463,9 @@ export function DexPage({
               <Filter size={13} />
               {typeFilterLabel}
             </Button>
+            <Button variant="ghost" aria-pressed={showMegaOnly} onClick={() => setShowMegaOnly((v) => !v)}>
+              仅 Mega
+            </Button>
             {selectedTypes.length > 0 && (
               <Button variant="ghost" onClick={() => { setSelectedTypes([]); setDetailPokemonId(null); }}>
                 清空
@@ -511,15 +517,22 @@ export function DexPage({
           <EmptyState title="没有找到相关招式" action={<Button onClick={() => setQuery('')}>清除搜索</Button>} />
         ) : (
         <div className="space-y-2">
-          {filteredMoves.map((move) => (
-            <Card key={move.id} className="flex items-center gap-3">
+          {filteredMoves.map((move) => {
+            const isExpanded = expandedMoveId === move.id;
+            return (
+            <Card key={move.id} className="flex items-start gap-3">
               <TypeBadge type={move.type} />
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm font-semibold">{move.chineseName} {move.englishName}</h3>
-                <p className="text-xs text-textSecondary">威力 {move.power ?? '-'} · 命中 {move.accuracy ?? '-'} · PP {move.pp}</p>
+                <p className="text-xs text-textSecondary">{categoryLabels[move.category]} · 威力 {move.power ?? '-'} · 命中 {move.accuracy ?? '-'} · PP {move.pp}</p>
+                {isExpanded && <p className="mt-1 text-xs leading-relaxed text-textSecondary">{move.effectSummary}</p>}
               </div>
+              <button className="grid h-6 w-6 shrink-0 place-items-center rounded text-textMuted" onClick={() => setExpandedMoveId(isExpanded ? null : move.id)} aria-label={isExpanded ? '收起说明' : '展开说明'}>
+                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
             </Card>
-          ))}
+          );
+          })}
         </div>
         )
       )}

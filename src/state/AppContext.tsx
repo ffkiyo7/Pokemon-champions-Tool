@@ -8,7 +8,7 @@ type Store = AppState & {
   loading: boolean;
   saveTeam: (team: Team) => Promise<void>;
   deleteTeam: (teamId: string) => Promise<void>;
-  addTeam: () => Promise<Team>;
+  addTeam: (name?: string) => Promise<Team>;
   updateMember: (teamId: string, member: TeamMember) => Promise<void>;
   toggleFavoriteBenchmark: (benchmarkId: string) => Promise<void>;
   replaceTeams: (teams: Team[]) => Promise<void>;
@@ -20,9 +20,9 @@ const AppContext = createContext<Store | undefined>(undefined);
 
 const now = () => new Date().toISOString();
 
-const createEmptyTeam = (): Team => ({
+const createEmptyTeam = (name?: string): Team => ({
   id: createId('team'),
-  name: `新队伍 ${new Date().toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}`,
+  name: name || `新队伍 ${new Date().toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}`,
   ruleSetId: currentRuleSet.id,
   dataVersionId: currentDataVersion.id,
   members: [],
@@ -63,8 +63,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await repository.deleteTeam(teamId);
   }, []);
 
-  const addTeam = useCallback(async () => {
-    const team = createEmptyTeam();
+  const addTeam = useCallback(async (name?: string) => {
+    const team = createEmptyTeam(name);
     setTeams((current) => [team, ...current]);
     await repository.saveTeam(team);
     return team;

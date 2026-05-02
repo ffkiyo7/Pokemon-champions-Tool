@@ -1,6 +1,6 @@
 import { BarChart3, ChevronUp, Edit3, Minus, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { abilities, items, moves, pokemon } from '../data';
+import { abilities, currentRuleNatureOptions, items, moves, pokemon } from '../data';
 import { buildTeamAnalysisDetails, memberBattleStats, memberLabel, statRows } from '../lib/calculations';
 import { currentRuleMovesForPokemon, currentRuleNatures, currentRuleSelectableItemsForPokemon, natureOptionLabel } from '../lib/currentRuleCatalog';
 import { createId } from '../lib/id';
@@ -77,7 +77,7 @@ function MemberCard({
           <div className={`${expanded ? '' : 'mb-2'} relative shrink-0`}>
             <PokemonAvatar iconRef={battleForm?.iconRef ?? entry?.iconRef} label={battleForm?.chineseName ?? entry?.chineseName ?? '未配置 Pokemon'} size={expanded ? 'md' : 'xl'} />
             {item?.iconRef && (
-              <span className="absolute -bottom-1 -right-1 rounded-full border border-border bg-card p-0.5">
+              <span className="absolute translate-x-1 translate-y-1 rounded-full border border-border bg-card p-0.5">
                 <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="xs" />
               </span>
             )}
@@ -98,10 +98,7 @@ function MemberCard({
               </div>
             )}
             {expanded && (
-              <div className="flex min-w-0 items-center gap-1.5 text-xs text-textSecondary">
-                {item?.iconRef && <PokemonAvatar iconRef={item.iconRef} label={item.chineseName} size="xs" />}
-                <span className="truncate">{item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'}</span>
-              </div>
+              <p className="truncate text-xs text-textSecondary">{item?.chineseName ?? '未选道具'} · {ability?.chineseName ?? '未选特性'}</p>
             )}
           </div>
         </div>
@@ -221,7 +218,7 @@ function ItemSearchField({
 }) {
   const [query, setQuery] = useState('');
   const selectedItem = value ? options.find((item) => item.id === value) ?? items.find((item) => item.id === value) : undefined;
-  const filteredItems = options.filter((item) => optionMatches(query, item.chineseName, item.englishName, item.effectSummary)).slice(0, 28);
+  const filteredItems = options.filter((item) => optionMatches(query, item.chineseName, item.englishName, item.effectSummary));
 
   return (
     <div>
@@ -298,8 +295,7 @@ function MoveSlotPicker({
     ...availableMoves,
   ];
   const filteredMoves = options
-    .filter((move) => optionMatches(query, move.chineseName, move.englishName, move.type, move.category, move.effectSummary))
-    .slice(0, query.trim() ? 32 : 14);
+    .filter((move) => optionMatches(query, move.chineseName, move.englishName, move.type, move.category));
 
   return (
     <div className="rounded-lg border border-border bg-secondary p-2">
@@ -575,11 +571,19 @@ function MemberEditor({
         />
 
         <SelectField label="性格" value={draft.nature} onChange={(nature) => updateDraft({ nature })}>
-          {currentRuleNatures().map((nature) => (
-            <option key={nature} value={nature}>
-              {natureOptionLabel(nature)}
-            </option>
-          ))}
+          {(() => {
+            const statPriority = { '攻击': 0, '防御': 1, '特攻': 2, '特防': 3, '速度': 4 };
+            const sorted = [...currentRuleNatureOptions].sort((a, b) => {
+              const aGroup = a.up[0] ? (statPriority[a.up[0]] ?? 5) : 5;
+              const bGroup = b.up[0] ? (statPriority[b.up[0]] ?? 5) : 5;
+              return aGroup - bGroup || a.id.localeCompare(b.id, 'zh-Hans-CN');
+            });
+            return sorted.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {natureOptionLabel(opt.id)}
+              </option>
+            ));
+          })()}
         </SelectField>
 
         <div>
@@ -740,8 +744,38 @@ export function TeamPage({
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [nameModalTeamId, setNameModalTeamId] = useState<string | null>(null);
+  const [nameDraft, setNameDraft] = useState('');
   const activeTeam = teams.find((team) => team.id === activeTeamId) ?? teams[0];
   const editingMember = activeTeam?.members.find((member) => member.id === editingMemberId);
+
+  const openCreateModal = () => {
+    setNameDraft('');
+    setNameModalTeamId(null);
+    setShowNameModal(true);
+  };
+
+  const openRenameModal = (teamId: string) => {
+    const team = teams.find((t) => t.id === teamId);
+    setNameDraft(team?.name ?? '');
+    setNameModalTeamId(teamId);
+    setShowNameModal(true);
+  };
+
+  const confirmName = async () => {
+    const name = nameDraft.trim();
+    if (!name) return;
+    if (nameModalTeamId) {
+      const team = teams.find((t) => t.id === nameModalTeamId);
+      if (team) await saveTeam({ ...team, name });
+    } else {
+      const team = await addTeam(name);
+      onActiveTeamChange(team.id);
+    }
+    setShowNameModal(false);
+    setExpandedMemberId(null);
+  };
 
   const createTeam = async () => {
     const team = await addTeam();
@@ -781,7 +815,7 @@ export function TeamPage({
           <h2 className="text-lg font-semibold">我的队伍</h2>
           <p className="text-xs text-textSecondary">本地保存 · 无账号依赖</p>
         </div>
-        <Button onClick={createTeam}>
+        <Button onClick={openCreateModal}>
           <Plus size={14} />
           新建
         </Button>
@@ -798,13 +832,18 @@ export function TeamPage({
       )}
 
       {!activeTeam ? (
-        <EmptyState title="还没有队伍" action={<Button onClick={createTeam}>新建第一支队伍</Button>} />
+        <EmptyState title="还没有队伍" action={<Button onClick={openCreateModal}>新建第一支队伍</Button>} />
       ) : (
         <>
           <Card className="bg-secondary">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h3 className="font-semibold">{activeTeam.name}</h3>
+                <h3 className="flex items-center gap-2 font-semibold">
+                  {activeTeam.name}
+                  <button className="text-textMuted" title="编辑名称" onClick={() => openRenameModal(activeTeam.id)}>
+                    <Edit3 size={12} />
+                  </button>
+                </h3>
                 <p className="text-xs text-textSecondary">{activeTeam.members.length}/6 成员 · {activeTeam.notes || '未填写队伍备注'}</p>
               </div>
               <button className="text-danger" title="删除队伍" onClick={removeActiveTeam}>
@@ -856,6 +895,26 @@ export function TeamPage({
           )}
           {showAnalysis && <AnalysisDetailSheet team={activeTeam} onClose={() => setShowAnalysis(false)} />}
           <PokemonPicker open={showPicker} onClose={() => setShowPicker(false)} onPick={handlePickPokemon} />
+          {showNameModal && (
+            <div className="fixed inset-0 z-30 mx-auto max-w-[430px]">
+              <div className="absolute inset-0 bg-black/60" onClick={() => setShowNameModal(false)} />
+              <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 rounded-t-xl bg-card p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+                <h3 className="text-sm font-semibold">{nameModalTeamId ? '编辑队伍名称' : '新建队伍'}</h3>
+                <input
+                  autoFocus
+                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-textPrimary outline-none placeholder:text-textMuted"
+                  placeholder="输入队伍名称，例如：雨天 Mega 队"
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') confirmName(); }}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="ghost" onClick={() => setShowNameModal(false)}>取消</Button>
+                  <Button onClick={confirmName} disabled={!nameDraft.trim()}>确认</Button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -52,6 +52,8 @@ describe('App page flows', () => {
     const user = await renderApp();
 
     await user.click(screen.getByRole('button', { name: /新建/ }));
+    await user.type(screen.getByPlaceholderText(/输入队伍名称/), '测试队');
+    await user.click(screen.getByRole('button', { name: '确认' }));
     expect(await screen.findByText(/0\/6 成员/)).toBeTruthy();
 
     await user.click(screen.getByRole('button', { name: 'M-A 测试队' }));
